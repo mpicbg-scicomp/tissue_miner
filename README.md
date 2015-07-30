@@ -29,7 +29,7 @@ Prerequistes. Make sure that the packages listed in [install_tm.sh](misc/install
 To install TissueMiner on your machine just checkout a copy and define a TM_HOME shell variable:
 
     export TM_HOME="/tissue_miner/"
-    git clone https://bitbucket.org/johanneskoester/snakemake/wiki/Home ${TM_HOME}
+    git clone https://github.com/mpicbg-scicomp/tissue_miner.git ${TM_HOME}
         
     export PATH=$TM_HOME/db:$TM_HOME/shear:$TM_HOME/roi:$TM_HOME/misc:$TM_HOME/movies:$TM_HOME/shear_contributions:$TM_HOME/topology:$TM_HOME/triangles:$TM_HOME/lineage:$PATH
     export PATH=${TM_HOME}/parser:$PATH
