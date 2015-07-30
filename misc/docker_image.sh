@@ -11,6 +11,7 @@ docker build -t brandl/tissue_miner .
 #docker login
 #docker push brandl/tissue_miner
 
+
 docker run -t -i -v $(pwd)/example_movies:/movies brandl/tissue_miner /bin/bash --login -c "cd demo_ForTissueMiner; sm -j 5 all"
 docker run -t -i -v $(pwd)/example_movies:/movies brandl/tissue_miner /bin/bash --login
 

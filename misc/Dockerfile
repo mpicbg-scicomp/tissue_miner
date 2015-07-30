@@ -12,7 +12,7 @@ RUN apt-get install -y curl
 RUN /bin/bash -c "source <(curl https://raw.githubusercontent.com/mpicbg-scicomp/tissue_miner/master/misc/install_dependencies.sh)"
 
 ## force image rebuild after changing sources by changing comment in line
-RUN mkdir /tissue_miner && git clone https://github.com/mpicbg-scicomp/tissue_miner /tissue_miner ## test4
+RUN mkdir /tissue_miner && git clone https://github.com/mpicbg-scicomp/tissue_miner /tissue_miner ## test7
 
 ## http://stackoverflow.com/questions/20635472/using-the-run-instruction-in-a-dockerfile-with-source-does-not-work
 #RUN /bin/bash -c "source /tissue_miner/misc/install_dependencies.sh"

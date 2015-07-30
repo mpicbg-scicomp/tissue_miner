@@ -2,7 +2,7 @@
 About
 =================
 
-**TissueMiner** is a framework to track cells and groups of cells (rois) in space an and time. It allows to calculate statisitcs about lineage, shape, deformation and topology. It comes along with various tools to visulize these data. 
+**TissueMiner** is a framework to track cells and groups of cells (rois) in space an and time. It allows to calculate statistics about lineage, shape, deformation and topology. It comes along with various tools to visualize these data. 
 
 
 ![alt tag](https://raw.githubusercontent.com/mpicbg-scicomp/tissue_miner/master/docs/readme_screenshots/stripes_0.jpg)
