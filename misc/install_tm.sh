@@ -71,7 +71,7 @@ export TM_HOME="/tissue_miner/"
 
 mkdir ${TM_HOME}
 ## fixme use github url here
-git clone ssh://brandl@fileserver.mpi-cbg.de/projects/project_Raphael/scripts/.flywing_base_git_origin ${TM_HOME}
+git clone https://github.com/mpicbg-scicomp/tissue_miner ${TM_HOME}
 
 ## update existing local copy
 #cd  ${TM_HOME}; git pull origin
