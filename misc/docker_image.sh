@@ -5,10 +5,15 @@
 export TM_HOME=/home/brandl/mnt/mack/project-raphael/scripts/tissue_miner
 cd ${TM_HOME}/misc
 
-docker build -t brandl/tm2 .
+docker build -t brandl/tissue_miner .
 
+## publish the new image
+#docker login
+#docker push brandl/tissue_miner
 
-docker run -t -i brandl/tm2 /bin/bash --login
+docker run -t -i -v $(pwd)/example_movies:/movies brandl/tissue_miner /bin/bash --login -c "cd demo_ForTissueMiner; sm -j 5 all"
+
+docker run -t -i brandl/tissue_miner /bin/bash --login
 
 
 #######################################################

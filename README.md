@@ -11,11 +11,11 @@ How to get started?
 We provide a preconfigured [Docker](http://docker.com/) image to run TissueMiner without any setup. Just do
 
      ## download some example data
-     curl https://files.mpi-cbg.de/index.php/s/XAodByEI2sDslLV/download  | tar -zxvf -
+     curl https://files.mpi-cbg.de/index.php/s/oEhtzFujKHUa35Z/download  | tar -zxvf -
      
      ## download the image and start the analysis
      docker pull brandl/tissue_miner
-     docker run -t -i -v $(pwd)/example_movies:/movies brandl/tissue_miner /bin/bash --login -c "source .bash_profile; cd demo_ForTissueMiner; sm all"
+     docker run -t -i -v $(pwd)/example_movies:/movies brandl/tissue_miner /bin/bash --login -c "source /.bash_profile; cd demo_ForTissueMiner; sm all"
      
 The only adjustments are to set the source directory containing your movie directories and to specify a movie of interest.
 
