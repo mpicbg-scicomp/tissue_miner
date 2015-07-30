@@ -1,4 +1,17 @@
 #######################################################
+### Build Image using Dockerfile
+#######################################################
+
+export TM_HOME=/home/brandl/mnt/mack/project-raphael/scripts/tissue_miner
+cd ${TM_HOME}/misc
+
+docker build -t brandl/tm2 .
+
+
+docker run -t -i brandl/tm2 /bin/bash --login
+
+
+#######################################################
 ### Start interactive docker session (skip for local installation)
 #######################################################
 

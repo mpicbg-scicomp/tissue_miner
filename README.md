@@ -24,18 +24,27 @@ The only adjustments are to set the source directory containing your movie direc
 How to run locally?
 ================
 
-Prerequistes. Make sure that the packages listed in [install_tm.sh](misc/install_tm.sh) are installed on your system.
+Prerequistes. Make sure that the packages listed in [install_tm.sh](misc/install_dependencies.sh) are installed on your system.
 
 To install TissueMiner on your machine just checkout a copy and define a TM_HOME shell variable:
 
-    export TM_HOME="/tissue_miner/"
+    export TM_HOME="tissue_miner"
+
+    ## download this repository
     git clone https://github.com/mpicbg-scicomp/tissue_miner.git ${TM_HOME}
         
+    ## or update existing local copy with
+    cd  ${TM_HOME}; git pull origin
+    
+    ## Install all required R packages
+    ${TM_HOME}/tissue_miner/Setup.R | tee tm_setup.log
+    
+    ## compile the parser needed to convert TissueAnalyzer outputs into csv
+    cd ${TM_HOME}/parser && make clean && make
+
+    ## adjust your path to include all tools
     export PATH=$TM_HOME/db:$TM_HOME/shear:$TM_HOME/roi:$TM_HOME/misc:$TM_HOME/movies:$TM_HOME/shear_contributions:$TM_HOME/topology:$TM_HOME/triangles:$TM_HOME/lineage:$PATH
     export PATH=${TM_HOME}/parser:$PATH
-        
-    ${TM_HOME}/tissue_miner/Setup.R | tee tm_setup.log
-
 
 To execute the workflow we recommend [snakemake](https://bitbucket.org/johanneskoester/snakemake/wiki/Home). We provide [snakemake workflow](workflow/tm.snkmk) to ease running TissueMiner on a cluster or locally on a single computer. These are the steps to prepare your system to run TissueMiner.
 

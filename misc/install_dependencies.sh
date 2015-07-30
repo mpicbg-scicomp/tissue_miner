@@ -61,28 +61,3 @@ sudo apt-get install --assume-yes qt4-dev-tools libqt4-core
 
 ## git
 sudo apt-get install --assume-yes git
-
-
-########################################################################################################################
-## Install TissueMiner
-
-# todo adjust to local setup
-export TM_HOME="/tissue_miner/"
-
-mkdir ${TM_HOME}
-## fixme use github url here
-git clone https://github.com/mpicbg-scicomp/tissue_miner ${TM_HOME}
-
-## update existing local copy
-#cd  ${TM_HOME}; git pull origin
-
-## Run setup routine to install all require packages
-${TM_HOME}/Setup.R 2>&1 | tee tm_setup.log
-
-
-## todo make sure that log file does not contain any errors
-
-## compile the image parser
-cd $TM_HOME/parser
-make clean
-make
