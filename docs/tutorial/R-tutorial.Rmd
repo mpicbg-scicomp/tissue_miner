@@ -1,0 +1,500 @@
+---
+title: "R-tutorial"
+author: "Raphael Etournay"
+date: "16/06/2015"
+output:
+  html_document:
+    fig_caption: yes
+    number_sections: yes
+    toc: yes
+  pdf_document:
+    fig_caption: yes
+    number_sections: yes
+    toc: yes
+---
+
+
+
+# Using the R language to extract, manipulate and visualize data from a relational database
+
+This tutorial will guide the user, without any previous knowledge in programming, through the main aspects of data manipulation and visualization using the R language. Why R ? Not only because it is open source, well supported and free of charge, but also because this language now provides very efficient and simple ways to handle important amount of tabular data, using a so called "grammar" of data manipulation (*dplyr* package) and visualization (*ggplot2* package) (ref Wickham). We found R to be ideal for querying our relational databases (*RSQLite* package) and perform subsequent calculations and analyses for understanding tissue morphogenesis. In such a schema, the user keeps control of his data at the expense of just a little effort to learn a few verbs and the simple syntaxe of the grammar. This gives the advantage of full autonomy on the data that can manipulated without restriction, namely wihtout relying on a limited number of buttons to click when using a so called user-friendly software. Another advantage of the command-line strategy is that the workflow can easily run on a high performance computing plateform (cluster). To help the user getting rapidly familiar with the verbs and the syntax of the grammars, we now briefly describes how to use the 3 packages RSQLite, dplyr and ggplot2, to query a relational database, manipulate data, and render them as vector graphics, respectively. The text that is encapsulated in shaded grey boxes corresponds to the R code that the user could execute in a R shell, using R-Studio for example (see Documentation).
+
+
+## Setup environment
+
+
+```{r Setup environment, warning=FALSE, message=FALSE, echo=TRUE}
+#options(width = 55)
+scriptsDir=Sys.getenv("TISSMORH_SCRIPTS")
+source(file.path(scriptsDir, "commons/WingCommons.R"))
+source(file.path(scriptsDir, "db/movie_rotation/RotationFunctions.R"))
+
+source(file.path(scriptsDir, "commons/BaseQueryFunctions.R"))
+## commented out, because loaded via config.R
+#source(file.path(scriptsDir, "config/WingAlgnNcolorScheme.R"))
+
+
+
+shearScriptsDir=Sys.getenv("SHEAR_SCRIPTS")
+source(file.path(scriptsDir, "commons/ShearQueriesFunctions.R"))
+source(file.path(scriptsDir, "commons/MultiplePlotsFunctions.R"))
+
+
+## Set auto FALSE to skip default graphs creation
+auto <- F ## TODO: move plots to another script
+library("zoo")
+
+## Define path to data IN and OUT
+# movieDbBaseDir="/media/project_raphael@fileserver/movieDB_newParser"
+movieDbBaseDir="/media/project_raphael@fileserver/movieDB_rotated"
+# movieDbBaseDir="/media/project-raphael@mack/movie_dbs/MoviesDB_rotated"
+
+outDataBaseDir="/home/etournay/Documents"
+mcdir(outDataBaseDir)
+
+## Set general theme: more specific tuning must be done for each graph
+theme_set(theme_bw())
+theme_update(panel.grid.major=element_line(linetype= "dotted", color="black", size=0.2),
+             panel.border = element_rect(size=0.3,color="black",fill=NA),
+             axis.ticks=element_line(size=0.2),
+             axis.ticks.length=unit(0.1,"cm"),
+             legend.key = element_blank()
+)
+```
+
+
+## R: the basics
+
+Many books or web sites describe the R language, and we only introduce the necessary knowledge to understand this tutorial.
+We recommend of few references that have been useful to us:
+
+* The art of R programming
+* The R cookbook
+* The R graphics cookbook
+* And some websites...
+
+In R, one has two possible syntaxes (**=** or **<-**) to assign a value to a variable. By convention, we will always use **<-** as an assignment operator to distinguish the variable assignement from **=** that is used for mapping data to a particular object.
+```{r The basics 1, warning=FALSE, message=FALSE, echo=TRUE, cache=TRUE}
+# assign a number to variables x and y:
+x <- 2
+y <- 3
+# display the result of x + y:
+x + y
+
+# is x equal y?
+x==y
+
+# is x different from y?
+x!=y
+
+# is x superior to y? 
+x>y
+
+# is x inferior to y?
+x<y
+```
+
+***
+
+A vector is a series of values. 
+```{r The basics 2, warning=FALSE, message=FALSE, echo=TRUE, cache=TRUE}
+# assign a vector to x and y:
+x <- c(4,3,8)
+y <- c(6,7,2)
+# assign a bolean vector to z:
+z <- c(TRUE,FALSE,TRUE)
+# display the result of x + y (element-wise addition):
+x + y
+# display the result of x + y + z, where z is automatically coerced to integers
+x + y + z
+```
+
+***
+
+In some cases, it is covenient to name each element of the vector. Such a vector is usefull to store configuration parameters.
+```{r The basics 3, warning=FALSE, message=FALSE, echo=TRUE, cache=TRUE}
+# assign a named vector to x:
+x <- c("movie1"="red", "movie2"="blue", "movie3"="green")
+# display the content of x
+x
+```
+
+***
+
+Tabular data that we obtain from the relational database are stored in a table called *data frame*. This tutorial essentially shows how to manipulate data frames in order to perform calculations and prepare the data for plotting. A data frame is composed of columns that correspond to vectors of identical length.
+```{r The basics 4, warning=FALSE, message=FALSE, echo=TRUE, cache=TRUE}
+# Assign a data frame to x:
+x <- data.frame(frame=c(1,2,3), cell_area=c(20,22,24))
+# display the content of x:
+x
+# display the number of lines in x:
+nrow(x)
+# display the 2 first rows of x:
+head(x, n=2)
+# display the 2 last rows of x:
+tail(x, n=2)
+```
+
+
+## How to query a relational database ?
+
+### Open a connection to the database
+As our relational database has been done in SQLite, we use the RSQLite package to open a connection to the database (see installation procedure). To facilitate the procedure we have developed a dedicated function "openMovieDb" that opens a connection to the database of choice. The name of the time-lapse is used to identify the corresponding database. The SQLite connection is then assign to the "db" variable that we use for further querying the database.
+
+```{r SQLite DB connection, warning=FALSE, message=FALSE, echo=TRUE, cache=FALSE}
+# Define path to all time-lapses
+movieDbBaseDir <- "/media/project_raphael@fileserver/movieSegmentation"
+# Define path a particular time-lapse called "WT_25deg_111102"
+movieDir <- file.path(movieDbBaseDir, c("WT_25deg_111102"))
+# Connection to the DB stored in the "db" variable
+db <- openMovieDb(movieDir)
+```
+
+***
+
+### Query the database using SQL
+
+We now formulate a simple SQL query to load the desired data into the memory of the computer. Note that we only use trivial SQL queries to simplify the query procedure at the expense of memory usage assuming that recent computers have several GB of RAM. The user must know the database structure (see Figure1 in the main text) to be able to formulate a sensible SQL query, namely the table names and the column names. One can thus ***select*** the desired columns ***from*** a given table. Below is an example where we extract the cell identifiers, the frames and the cell area from the table called "cells". More complicated queries are of course possible, but we will instead use the grammar of data manipulation to manipulate the data frames in the computer memory.
+
+```{r Simple SQL query, warning=FALSE, message=FALSE, echo=TRUE, cache=TRUE}
+# Use the built-in "dbGetQuery" function to query the database "db" using a SQL statement in quotes
+# Assign the resulting data frame to the "cellProperties" variable
+cellProperties <- dbGetQuery(db, "select cell_id, frame, area from cells")
+# show first lines of the table
+head(cellProperties)
+
+# Filter out the margin cell (id 10000) around the tissue
+cellProperties <- dbGetQuery(db, "select cell_id, frame, area from cells where cell_id!=10000") 
+
+```
+
+## Manipulate large data sets using the dplyr package
+
+Here, we briefly introduce the main verbs and the syntax of the grammar of data **manipulation** supplied by the dplyr package (see Installation procedure). In practice, just a single operator and about 5 verbs only are sufficient to effectively manipulate data. We also encourage the user to download the Rstudio cheat sheet [here](http://www.rstudio.com/resources/cheatsheets/) regarding data wrangling with dplyr.
+
+Simply stated, this grammar allows to chain a series of operations on a data frame and to assign the resulting table to a new variable, thereby improving the clarity of the code and memory handling. In each step of the chain, every intermediate result/output is taken as an input for the next operation. Code-wise, a connection between two chain steps is achieved by using the pipe operator: **%>%**. Each type of operation on data frames is identified by a verb. In the present tutorial, we mainly use 7 verbs only:
+
+* **inner_join**: to merge two data frames by matching user-defined columns
+* **mutate**: to perform calculations on columns, by adding or modifying existing ones
+* **summarize**: to compute summary statistics
+* **group_by** (and **ungroup**): helpful to mutate or summarize data on user-defined data subsets
+* **filter**: to parse data on row content
+* **select**: to parse data on column names
+* **arrange**: to order values of desired columns
+
+### Example 1 
+Aim: **calculate** the average cell area in square microns as function of time in hours from start of time-lapse recording. 
+
+```{r Example of dplyr, warning=FALSE, message=FALSE, echo=TRUE, cache=TRUE}
+# We query the DB to get cell area and pipe the resulting table the next function
+avgCellArea <- dbGetQuery(db, "select cell_id, frame, area from cells") %>%
+  # remove the huge artificial margin cell around the tissue
+  filter(cell_id!=10000) %>%
+  # convert pixel to squared microns knowing that 1px = 0.207 micron
+  mutate(area_real=(0.207)^2*area) %>%
+  # indicate that the next function must be applied frame-wise 
+  group_by(frame) %>%
+  # calculate the average area in each frame of the time-lapse
+  summarize(area_avg=mean(area_real)) %>%
+  # cancel grouping
+  ungroup() %>%
+  # bring time in seconds into the current table by matching the frame number
+  inner_join(dbGetQuery(db, "select * from timepoints"), by="frame") %>%
+  # convert time to hours
+  mutate(time_h=round(time_sec/3600, 1)) %>%
+  # remove the unecessary columns
+  select(-c(frame, time_sec)) %>%
+  # order time chronologically
+  arrange(time_h)
+```
+
+### Example 2
+For convenience, we built a custom **print_head()** function to display the first lines of the current table, without affecting the data content. The **print_head()** function can therefore be placed whereever needed in the chain of operations:
+
+```{r Example of print_head, warning=FALSE, message=FALSE, echo=TRUE, cache=TRUE}
+# Here, is an example in which we display each intermediate step
+avgCellArea <- dbGetQuery(db, "select cell_id, frame, area from cells") %>% print_head() %>%
+  filter(cell_id!=10000) %>% print_head() %>%
+  mutate(area_real=(0.207)^2*area) %>% print_head() %>%
+  group_by(frame) %>% print_head() %>%
+  summarize(area_avg=mean(area_real)) %>% print_head() %>%
+  ungroup() %>% print_head() %>%
+  inner_join(dbGetQuery(db, "select * from timepoints"), by="frame") %>% print_head() %>%
+  mutate(time_h=round(time_sec/3600, 1)) %>% print_head() %>%
+  select(-c(frame, time_sec)) %>% print_head() %>%
+  arrange(time_h) %>% print_head()
+```
+
+## Vectorized conditional statement (ifelse)
+The previous example is actually a series of vectorized operations on columns, namely loops are implicit. In such a schema, the traditional conditional statements "if-then-else" wouldn't work. Instead, the R language provides a vectorized **ifelse()** function that we can then use in combination with the dplyr grammar. The vectorized **ifelse()** function takes 3 arguments corresponding to the condition (if), the consequent (then), and the alternative (else).
+
+```{r Example of ifelse, warning=FALSE, message=FALSE, echo=TRUE, cache=TRUE}
+# Here, is an example in which we display each intermediate step
+cell <- dbGetQuery(db, "select cell_id, frame, area from cells") %>% 
+  # additional column isMarginCell to flag the margin cell as "true"
+  mutate(isMarginCell=ifelse(cell_id==10000, TRUE, FALSE)) %>% print_head()
+```
+
+
+## Reshape data using tidyr
+columns to row: melt
+rows to columns: dcast
+
+## Data visualization with ggplot2 
+
+Here, we briefly introduce the main verbs and the syntax of the grammar of data **visualization** supplied by the ggplot2 package (see Installation procedure). In practice, just a single operator and a few visual marks are sufficient to effectively plot data. We also encourage the user to download the corresponding Rstudio cheat sheet [here](http://www.rstudio.com/resources/cheatsheets/) regarding data visualization with ggplot2.
+
+Simply stated, this grammar allows to chain multiple graphical layers to contruct a graph, thereby improving the clarity of the code for complex graphs. Code-wise, a connection between two chain steps is achieved by using the plus operator: **+**. The ground layer of graph allows to define the data set to be plotted and to map the relevant columns of the data frame to the system of coordinates: we do so by invoking the **ggplot()** function. Then, we have to specify the kind of graph we'd like to generate by adding geometrical layers such as:
+
+* **geom_point**: to plot the data as points
+* **geom_line**: to join the points by lines
+* **geom_segment**: to plot a segment such as the representation of a nematic tensor, or a cell bond
+* **geom_polygon**: to plot a polygon such as the representation of a cell
+
+These geometrical layers could also be complemented by scaling layers such as:
+
+* **scale\_x\_continuous** or **scale\_y\_continuous**: to control the x and y axes rendering
+* **scale_color_gradientn**: to use a gradient of colors when rendering the data
+
+Finally ggplot allows to save the graph in various formats including vector graphics such as svg, eps or pdf.
+We have written a wrapper **ggsave2()** to the default **ggsave()** function in order to add more functionality, and we'll use **ggsave2()** in the rest of this tutorial.
+
+
+### Example with ggplot:
+We would like to **plot** the average cell area in square microns as function of time in hours from start of time-lapse recording. To map the time to the abscissa x and the average area to the ordinate y, one has to invoke the aesthetic function of ggplot: **aes()**. 
+
+```{r Example ggplot, warning=FALSE, message=FALSE, fig.width=11, cache=TRUE}
+# Show the first rows of the previously calculated avgCellArea data frame:
+head(avgCellArea)
+
+# Map the data to the system of coordinates using ggplot
+ggplot(avgCellArea, aes(x = time_h, y = area_avg)) +
+  # plot the average area as a line using geom_line
+  geom_line() +
+  # add a title
+  ggtitle("Average cell area as function of time")
+
+# Save the plot as svg for editing in Inkscape
+ggsave2(width=14, unit="in", outputFormat="svg")
+```
+
+
+# Rendering cells, bonds and vertices
+
+To render cells as polygons, we order vertices around the cell contour and we pass this ordered list of vertices as an argument to the **geom_polygon()** function 
+of ggplot. To faciliate visualization tasks, our automated workflow (see main text) automatically queries the DB and generates an ordered list of vertices around each cell and stores the resulting table *cellshapes.RData* along with DB file. 
+
+
+## Rendering cells and vertices
+```{r Rendering cells and vertices: load data, warning=FALSE, message=FALSE, fig.width=11,cache=TRUE}
+# Load data into the 'cellshapes' variable
+cellshapes <- local(get(load(file.path(movieDir, "cellshapes.RData")))) %>% print_head()
+
+# Select a current frame to work with
+curFrame <- 70
+
+```
+
+### Example 1: plot cells as polygons in the Cartesian system
+
+```{r Rendering cells and vertices: example1, warning=FALSE, message=FALSE, fig.width=11, cache=TRUE}
+ggplot(cellshapes %>% filter(frame==curFrame)) +
+  # plot cells as polygons:
+  geom_polygon(aes(x_pos, y_pos, group=cell_id),color="green",fill="white", size=0.3) +
+  # X and Y axes must have the same scale:
+  coord_equal() +
+  # add a title "frame" followed by a 3-digit padded number:
+  ggtitle("Pupal wing cells represented as polygons in Cartesian system")
+```
+
+### Example 2: plot cells as polygons in the image coordinate system
+
+```{r Rendering cells and vertices: example2, warning=FALSE, message=FALSE, fig.width=11, cache=TRUE}
+ggplot(cellshapes %>% filter(frame==curFrame)) +
+  geom_polygon(aes(x_pos, y_pos, group=cell_id),color="green",fill="white", size=0.3) + 
+  coord_equal() +
+  # In an image coordinate system, the Y-axis is pointing downwards. We flip the Y-axis:
+  scale_y_continuous(trans = "reverse") +
+  # scale_y_continuous(limits=rev(c(0,1900)), trans = "reverse", expand = c(0,0)) +
+  ggtitle("Pupal wing cells represented as polygons in image coordinate system")
+```
+
+### Example 3: plot cells and vertices
+
+```{r Rendering cells and vertices: example3, warning=FALSE, message=FALSE, fig.width=11, cache=TRUE}
+ggplot(cellshapes %>% filter(frame==curFrame)) +
+  geom_polygon(aes(x_pos, y_pos, group=cell_id),color="green",fill="white", size=0.3) +
+  # plot each vertex as a point:
+  geom_point(aes(x_pos, y_pos),color="red", size=0.4) + 
+  coord_equal() +
+  scale_y_continuous(trans = "reverse") +
+  ggtitle("Pupal wing cells and vertices")
+```
+
+### Example 4: plot cells and vertices on the image
+
+We can now overlay cells and vertices on the wing image. To do so, we built a dedicated **wingImg()** function that loads the specified frame of the time-lapse.
+This function takes the cellshapes and curFrame as input variables and returns the first set of layers of the graph that consists of a raster image of the wing and additional specifications such as the Y-axis flipping (scale_y_continuous(trans = "reverse")) and isoscaling of X and Y axes (coord_equal()). 
+
+```{r Rendering cells and vertices: example4, warning=FALSE, message=FALSE, fig.width=11, cache=TRUE}
+cellshapes %>%
+  # add overlay image (! connection to DB required !):
+  wingImg(curFrame) +
+  geom_polygon(aes(x_pos, y_pos, group=cell_id), color="green",fill=NA, size=0.2) + 
+  geom_point(aes(x_pos, y_pos),color="red", size=0.4) +
+  ggtitle("Cells and vertices overlaid on the image")
+
+```
+
+### Further reading: the plotWing() function
+## TODO not a good idea to put in the function def here as it will quicly run out of sync with the actual code
+```{r plotWing function, warning=FALSE, message=FALSE, eval=FALSE}
+plotWing <- function(frame, img=readMovieImg(frame), squareRoi=rbind(c(0, dim(img)[2]), c(0, dim(img)[1])), isTimeStamp=TRUE){
+  
+  ## with alignment model
+  frameInSec <- as.numeric(dbGetQuery(db, paste0("select time_sec from timepoints where frame=", frame)))
+  if(!isTimeStamp){
+    timeStamp= as.character(frame)
+  }else {
+    algn_shift <- get_movie_time_shift(basename(movieDir))$time_shift
+    algn_shift <- ifelse(length(algn_shift)==0,0, algn_shift)
+    timeStamp <- sprintf(paste0("%.1f ",time_unit_label),(frameInSec+ algn_shift + time_offset)/3600)
+    
+  }
+  
+  ## adjust the roi to fit into the image
+  adjustRoi = squareRoi
+  
+  adjustRoi[adjustRoi<1] <- 1
+  if(adjustRoi[1,2] > dim(img)[2]) adjustRoi[1,2] <- dim(img)[2]
+  if(adjustRoi[2,2] > dim(img)[1]) adjustRoi[1,2] <- dim(img)[1]
+  
+  ## todo better flip image here instead flipping y everywhere
+  cropImg <- img[seq(adjustRoi[2,1], adjustRoi[2,2]), seq(adjustRoi[1,1], adjustRoi[1,2])]
+  
+  ggplot(data.frame(), aes(x=1, y=1)) +
+    annotation_raster(cropImg,  adjustRoi[1,1], adjustRoi[1,2], -adjustRoi[2,2], adjustRoi[2,1], interpolate=T) +
+    scale_x_continuous(limits=adjustRoi[1,],expand=c(0,0)) +
+    scale_y_continuous(limits=rev(adjustRoi[2,]), expand=c(0,0), trans = "reverse") +
+    theme(axis.title.x=element_blank(), axis.title.y=element_blank(), axis.text.x = element_blank(), axis.text.y = element_blank(), axis.ticks = element_blank()) +
+    annotate("text", x = Inf, y = Inf, color='red', hjust = 1.1, vjust = -0.5, label = timeStamp) +
+    coord_equal()
+}
+```
+
+## Rendering bonds
+To render cell bonds one must get undirected bonds and their respective positions. Here, is an example in which different related tables must be joined together to pool the relevant data to be plotted.
+
+### Get the data from the DB
+```{r Rendering bonds: load dbond, warning=FALSE, message=FALSE, cache=TRUE}
+# Send SQL query to the DB to get direct bond properties into a table called dbond:
+dbond <- dbGetQuery(db, "select frame, dbond_id, conj_dbond_id, ubond_id, vertex_id from dbonds") %>% 
+  print_head()
+```
+
+```{r Rendering bonds: load vertices, warning=FALSE, message=FALSE, cache=TRUE}
+# Send SQL query to the DB to get vertices into a table called vertices:
+vertices <- dbGetQuery(db, "select * from vertices") %>% print_head()
+```
+
+```{r Rendering bonds: load ubond, warning=FALSE, message=FALSE, cache=TRUE}
+# Send SQL query to the DB to get undirected bond properties into a table called ubond:
+ubond <- dbGetQuery(db, "select ubond_id, bond_length from ubonds") %>% print_head()
+```
+
+### Manipulate the data for plotting
+```{r Rendering bonds: reshape data, warning=FALSE, message=FALSE, cache=TRUE}
+dbond_2vx <- dbond %>%
+  # join dbond with itself to get the 2 vertices of each undirected bond
+  dt.merge(with(dbond, data.frame(dbond_id=conj_dbond_id,vertex_id)),
+           by= c("dbond_id"), suffixes=c(".1", ".2")) %>%
+  # join the resulting table to vertices to add (x,y) coordinates of vertex #1
+  dt.merge(with(vertices, data.frame(vertex_id.1=vertex_id, x_pos.1=x_pos, y_pos.1=y_pos)),
+           by = c("vertex_id.1")) %>%
+  # join the resulting table to vertices to add (x,y) coordinates of vertex #2
+  dt.merge(with(vertices, data.frame(vertex_id.2=vertex_id, x_pos.2=x_pos, y_pos.2=y_pos)),
+           by = c("vertex_id.2")) %>% 
+  # remove unecessary columns
+  select (-c(dbond_id,conj_dbond_id)) %>% 
+  # remove duplicated bond ids resulting from the above join operations
+  unique_rows("ubond_id") %>% 
+  # join the resulting table with ubond to add the bond_length property
+  dt.merge(ubond, by=c("ubond_id")) %>% print_head()
+```
+
+### Plot cell bonds over the image
+```{r Rendering bonds: plot data, warning=FALSE, message=FALSE, fig.width=11, cache=TRUE}
+dbond_2vx %>%
+  wingImg(curFrame) + 
+  # bonds are represented by segments using geom_segment
+  geom_segment(aes(x=x_pos.1, y=y_pos.1,
+                   xend=x_pos.2, yend=y_pos.2,
+                   color=bond_length), # Here bond_length values are mapped to the color
+               size=0.3, lineend="round") +
+  # we overwrite the default color map by a custom rainbow palette
+  scale_color_gradientn(name="bond_length",
+                        colours=c("black", "blue", "green", "yellow", "red"),
+                        limits=c(0,quantile(dbond_2vx$bond_length, probs = 99.9/100)),
+                        na.value = "red") +
+  ggtitle("Color-coded pattern of bond length")
+
+```
+
+# Making videos to visualize the time evolution of patterns
+
+One may ask how to assemble a video showing the evolution of the bond-length pattern. Here, we show how to set up a parallelized loop over all frames of the time-lapse, and we use the famous avconv (formerly ffmpeg) tool to create videos. This example may appear complex for the novice who may just look at the next junk where a dedicated function is used to make videos.
+FFmpeg must be installed on your computer: please, visit <http://ffmpegmac.net/> for Mac users or simply "sudo apt-get install libav-tools" on Ubuntu-Linux. 
+
+## Example: movie of bond length pattern
+To simplify the procedure of creating videos, we built a dedicated function **wingMovie()** that takes a list of ggplot layers as an input argument.
+```{r Rendering bonds: video1, warning=FALSE, message=FALSE, eval=FALSE}
+# Here use the wingMovie function
+wingMovie(dbond_2vx, "BondLengthPattern.mp4", list(
+  geom_segment(aes(x=x_pos.1, y=y_pos.1,xend=x_pos.2, yend=y_pos.2,color=bond_length), 
+               size=0.3, lineend="round") ,
+  scale_color_gradientn(name="bond_length",
+                        colours=c("black", "blue", "green", "yellow", "red"),
+                        limits=c(0,quantile(dbond_2vx$bond_length, probs = 99.9/100)),
+                        na.value = "red") # outliers are red
+))
+```
+
+## Further reading: movie creation procedure
+```{r Rendering bonds: video2, warning=FALSE, message=FALSE, eval=FALSE}
+# create a temporary directory for video preparation
+tmpDir <- paste0(tempdir(),"/"); mcdir(tmpDir)
+
+# l_ply is parallelized 'for' loop to speed up processing:
+# For frame i=0 to last frame, plot bond-length pattern and save as tiff
+l_ply(0:max(dbond_2vx$frame), function(i) {
+  # Here, we re-use the code from the last section
+  dbond_2vx %>%
+    wingImg(i) + 
+    geom_segment(aes(x=x_pos.1, y=y_pos.1,
+                     xend=x_pos.2, yend=y_pos.2,
+                     color=bond_length), 
+                 size=0.3, lineend="round") +
+    scale_color_gradientn(name="bond_length",
+                          colours=c("black", "blue", "green", "yellow", "red"),
+                          # color scaling range done over the entire time-lapse
+                          limits=c(0,quantile(dbond_2vx$bond_length, probs = 99.9/100)),
+                          na.value = "red") +
+    # add a padded number as a suffixe indicating the frame number
+    ggtitle(paste0("BondLengthPattern_", sprintf("%03d", i)))
+  
+  # save image as tiff
+  ggsave2(outputFormat="tiff")
+}, .parallel=T, .inform=T)
+
+# Set working directory back to previous for saving the video
+setwd(outDataBaseDir)
+
+# Make use of avconv to create a compressed video entitled 'BondLengthPattern.mp4'
+system(paste0("avconv -y -r 10 -i ",tmpDir,
+              "BondLengthPattern_%03d.tiff -b:v 6000k -vf scale=-1:720 ",
+              "BondLengthPattern",".mp4", ";rm ",tmpDir,"*.tiff "))
+```
+
+
+
+

@@ -1,0 +1,194 @@
+from string import Template
+
+
+## needs to be passed by command line
+##movie="PA_Sample_NoCorrection"
+##movieDbDir="/projects/project-raphael/movie_dbs/db_tests/copy_test/PA_Sample_NoCorrection"
+##movieDbDir=config["movie_dir"]
+
+## todo test if movie_dir is present in config array and use instead
+movieDbDir=os.path.abspath('.')
+
+movie = os.path.basename(movieDbDir)
+
+DB = movie + ".sqlite"
+T1_COUNTS = "topochanges/topoChangeSummary.RData"
+TRACKED_ROIS = "roi_bt/lgRoiSmoothed.RData"
+TRIANGLES = "shear_contrib/triList.RData"
+
+# https://bitbucket.org/johanneskoester/snakemake/wiki/Documentation#markdown-header-local-rules
+localrules: parse_tables, makedb
+
+## grep output /projects/project-raphael/scripts/tissue_miner/workflow/tm.snkmk | tail -n+2 | cut -d: -f2-  | sort -u | tr "\\n" ","
+rule all:
+    input:  "4way_vertices/not3_vertices.mp4", DB, "dbTablesFromParser/vertex_in_frame.dat", "lg_color_optimization/lg_colors.txt", "lineage/generation_limit_range.mp4", "nematics_movies/" + movie + "_cell_elongation.mp4", "polygon_class/polygon_class_discrete.mp4", "shear_contrib/thirdInt.RData", TRIANGLES, "state_movies/" + movie + "_avg_area_change_smooth.mp4", "nematics_movies/" + movie + "_DBelong_nematics.mp4", "state_movies/" + movie + "_cell_elong_norm.mp4", "state_movies/blue_square_tracking.mp4", "stripe_movies/static_stripes.mp4", T1_COUNTS, "topochanges/t1_balance_smoothed.mp4", "topochanges/t1_rates_smoothed.mp4", TRACKED_ROIS, "tri_categories/triangleCategories.RData", "roi_bt/bt_bhfix_peeled.mp4", "shear_contrib/raw/Ta_t.RData"
+
+
+# rule hello:
+#     run:
+#         print(vars())
+#
+#
+
+
+## merged into CreateDbFromParser for convenience and better readability
+#rule rotate_originals:
+#    shell: "RotateOriginals.sh"  + movieDbDir
+
+rule prepare_movie:
+    params: name="prepare_movie"
+    output: "Segmentation/movieInformation.dat"
+    shell: "CreateMovieInfoDat.sh "  + movieDbDir
+
+
+rule parse_tables:
+    params: name="parse_tables"
+    input: "Segmentation/movieInformation.dat"
+    output: "dbTablesFromParser/vertex_in_frame.dat"
+    # shell: Template("/sw/bin/xvfb-run imageParser $(dirname $movieDbDir) $(basename $movieDbDir)  %03d").safe_substitute(vars())
+#    shell: "/sw/bin/xvfb-run imageParser $(dirname {movieDbDir}) $(basename {movieDbDir}) %03d" #optionally remove tracked and divided pngs
+    shell: "imageParser $(dirname {movieDbDir}) $(basename {movieDbDir}) %03d" #optionally remove tracked and divided pngs
+
+
+rule makedb:
+    params: name="makedb"
+    input: "dbTablesFromParser/vertex_in_frame.dat", "Segmentation/cumultimesec.txt"
+    output: DB, "cellshapes.RData"
+    shell: "CreateDbFromParser.R "  + movieDbDir
+
+# shell: "$TM_HOME/db/movie_rotation/RotateOriginals.sh " + movieDbDir +" ; CreateDbFromParser.R "  + movieDbDir
+
+rule roi_tracking:
+    params: name="roi_tracking"
+    input: DB, "Segmentation/LastFrameRoi.txt"
+    output: TRACKED_ROIS
+    shell: "LastFrameRoiBT.R "  + movieDbDir
+
+
+rule roi_movies:
+    params: name="roi_movies"
+    input: TRACKED_ROIS
+    output: "roi_bt/bt_bhfix_peeled.mp4"
+    shell: "RoiTrackingMovies.R "  + movieDbDir
+
+
+rule roi_deform:
+    params: name="roi_deform"
+    input: DB
+    shell: "RoiDeformation.R "  + movieDbDir
+
+
+### Lineage Analysis
+
+rule lineage_colors:
+    params: name="lineage_colors"
+    input: DB
+    output: "lg_color_optimization/lg_colors.txt"
+    shell: "LineageGroupColoring.R " + movieDbDir
+
+
+rule lineage_movies:
+    params: name="lineage_movies"
+    input: "lg_color_optimization/lg_colors.txt"
+    output: "lineage/generation_limit_range.mp4"
+    shell: "LineageMovies.R " + movieDbDir
+
+
+### Topology Analysis
+
+
+
+rule topo_countt1:
+    params: name="topo_countt1"
+    input: DB, TRACKED_ROIS
+    output: T1_COUNTS
+    shell: "CountT1.R "  + movieDbDir
+    
+rule topo_movies:
+    params: name="topo_movies"
+    input: T1_COUNTS
+    output: "topochanges/t1_rates_smoothed.mp4"
+    shell: "TopologyMovies.R "  + movieDbDir
+
+
+rule topo_unbalance:
+    params: name="topo_unbalance"
+    input: T1_COUNTS
+    output: "topochanges/t1_balance_smoothed.mp4"
+    shell: "UnbalanceT1Movie.R "  + movieDbDir
+
+
+rule four_way:
+    params: name="four_way"
+    input: DB
+    output: "4way_vertices/not3_vertices.mp4"
+    shell: "FourWayVertices.R "  + movieDbDir
+
+
+rule polygon_class:
+    params: name="polygon_class"
+    input: TRACKED_ROIS
+    output: "polygon_class/polygon_class_discrete.mp4"
+    shell: "PolygonClass.R " + movieDbDir
+
+
+## triangles
+
+rule tri_create:
+    params: name="tri_create"
+    input: DB
+    output: TRIANGLES
+    shell: "CreateTriangles.R " + movieDbDir
+
+rule tri_categorize:
+    params: name="tri_categorize"
+    input: T1_COUNTS, TRIANGLES
+    output: "tri_categories/triangleCategories.RData"
+    ## todo use function here to simplify log creation
+    shell: "CategorizeTriangles.R "  + movieDbDir # direct log redirection: + "2>tri_categorize.err.log 1>tri_categorize.out.log"
+
+### misc
+
+rule area_movies:
+    params: name="area_movies"
+    input: DB
+    output: "state_movies/" + movie + "_avg_area_change_smooth.mp4"
+    shell: "AreaMovies.R " + movieDbDir
+
+rule db_elongation_movies:
+    params: name="db_elongation_movies"
+    input: DB
+    output: "nematics_movies/" + movie + "_DBelong_nematics.mp4", "state_movies/" + movie + "_cell_elong_norm.mp4"
+    shell: "DbElongationMovie.R " + movieDbDir
+
+rule state_movies:
+    params: name="state_movies"
+    input: DB
+    output: "state_movies/blue_square_tracking.mp4"
+    shell: "MakeMovies.R " + movieDbDir
+
+rule stripe_movies:
+    params: name="stripe_movies"
+    input: DB
+    output: "stripe_movies/static_stripes.mp4"
+    shell: "StripeMovies.R " + movieDbDir
+
+
+### shear
+
+def redirect_out(ruleName):
+   return " 2>logs/"+ruleName+".err.log 1>logs/"+ ruleName + ".out.log"
+# usage: + redirect_out("shear_calculate")
+
+rule shear_calculate:
+    params: name="shear_calculate"
+    input: TRACKED_ROIS, TRIANGLES
+    output: "shear_contrib/thirdInt.RData", "shear_contrib/raw/Ta_t.RData"
+    shell: "CalculateShearContributions.R " + movieDbDir
+
+rule shear_movies:
+    params: name="shear_movies"
+    input: "shear_contrib/thirdInt.RData"
+    output: "nematics_movies/" + movie + "_cell_elongation.mp4"
+    shell: "NematicsMovies.R " + movieDbDir
+

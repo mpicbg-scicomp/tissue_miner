@@ -1,0 +1,225 @@
+
+## Source common functions
+#devtools::source_url("http://dl.dropbox.com/u/113630701/rlibs/base-commons.R")
+
+devtools::source_url("https://raw.githubusercontent.com/holgerbrandl/datautils/v1.11/R/core_commons.R")
+devtools::source_url("https://raw.githubusercontent.com/holgerbrandl/datautils/v1.11/R/ggplot_commons.R")
+devtools::source_url("https://raw.githubusercontent.com/holgerbrandl/datautils/v1.11/R/datatable_commons.R")
+
+
+#source("/home/etournay/RawData/base-commons.R")
+require.auto(sqldf)
+
+source(file.path(scriptsDir, "commons/MovieFunctions.R"))
+source(file.path(scriptsDir, "commons/RoiCommons.R"))
+
+
+# disabled for now because not needed for main workflow
+#source(file.path(scriptsDir, "commons/MultipleQueriesFunctions.R"))
+#source(file.path(scriptsDir, "commons/MultiplePlotsFunctions.R"))
+
+# source(file.path(scriptsDir, "misc/CompareWings_functions.R")) --> REPLACED BY MultipleQueriesFuctions.R
+
+## Set up main parameters
+# enable plyr parallelization
+require.auto(doMC);
+
+## todo should go into config
+isCluster=Sys.getenv("LSF_SERVERDIR")!=""
+isEatonPC=Sys.info()[["nodename"]]=="eaton-pc-2"
+registerDoMC(cores=ifelse(isCluster, 5, ifelse(isEatonPC,6,3)));
+# require.auto(foreach); require.auto(doMC); registerDoMC(cores=20)
+
+require.auto(dplyr)
+
+## allows processing also on headless systems (like when running as cluster job)
+#options(device="png")
+
+## force long integers (cell ids etc) to render without using scientific notation
+## http://stackoverflow.com/questions/9397664/force-r-not-to-use-exponential-notation-e-g-e10
+options("scipen"=100)
+
+####################################################################################################
+## ensure sufficient package versions
+
+## see http://stackoverflow.com/questions/9314783/require-minimum-version-of-r-package
+check_version = function(pkg_name, min_version) {
+    cur_version = packageVersion(pkg_name)
+    if(cur_version < min_version) stop(sprintf("Package %s needs a newer version,
+               found %s, need at least %s", pkg_name, cur_version, min_version))
+}
+
+check_version("dplyr", "0.4-1")
+check_version("magrittr", "1.5")
+
+####################################################################################################
+## Helper functions
+
+## Establish DB connection
+openMovieDb <- function(movieDir){
+  db_name=basename(movieDir)
+  dbFile=file.path(movieDir, paste0(db_name, ".sqlite"))
+
+  if(str_detect(dbFile, "project-raphael")) {
+    dbSizeBytes=file.info(dbFile)$size
+
+    if(is.na(dbSizeBytes) || dbSizeBytes==0) stop(paste0("db '",dbFile,"'in is empty or does not exist"))
+
+    tmpDbFile <- paste0("/tmp/",db_name, "__", dbSizeBytes, ".sqlite")
+    ## copy db to tmp on madmax because sqlite driver doesn't seem to like lustre
+    if(!file.exists(tmpDbFile)){
+      echo("creating database copy under '",tmpDbFile,"' for db: ", db_name)
+      system(paste("cp ",dbFile,tmpDbFile))
+    }else{
+      echo("using cached db:", tmpDbFile)
+    }
+
+    dbFile=tmpDbFile;
+  }
+
+  db <- dbConnect(SQLite(), dbname=paste0(dbFile))
+
+  return(db)
+}
+
+
+ma <- function(x,n=11, ...){as.numeric(stats::filter(x,rep(1/n,n), sides=2, ...))}
+
+##todo remove
+#applyTensorNiceName <- function(df){
+#  if ("tensor" %in% names(df)){
+#    df$tensor <-  factor(df$tensor,
+#                         levels=c("cagc", "ct", "crc","ShearCD", "ShearCE", "CEwithCT", "correlationEffects", "nu", "ShearT1","ShearT2","dqtot","deltaCheck","u", "Q"),
+#                         labels=c("cell area growth correl", "corotational term", "cell rotation correl", "cell division","pure cell elongation change", "cell elongation change","correlation effects","total shear","T1","T2", "dqtot","deltaCheck","deformation gradient", "cell elongation state"))
+#    return(df)
+#  } else stop("The dataframe argument doesn't contain any 'tensor' column")
+#}
+
+
+restoreBondOrder <- function(df) arrange(df,  frame, cell_id, bond_order)
+
+
+addCellShapes <- function(dfWithCellIdAndFrame){
+    stopifnot(all(c("frame", "cell_id") %in% colnames(dfWithCellIdAndFrame))) # data must have frame and cell_id
+
+    local(get(load(file.path(movieDir, "cellshapes.RData")))) %>%
+        inner_join(dfWithCellIdAndFrame, by=c("frame", "cell_id")) %>%
+        restoreBondOrder()
+}
+
+
+
+########################################################################################################################
+### DB Query Utils
+
+## refactor into commons
+cdByDaughters <- function(db){
+  cdEvents <- dbGetQuery(db, "select cell_id as mother_cell_id, left_daughter_cell_id, right_daughter_cell_id from cellinfo")
+  cdEventsLong <- subset(melt(cdEvents, id.vars="mother_cell_id", value.name="cell_id"), !is.na(cell_id), select=-variable)
+
+  ## first occurence to daughter
+  firstOcc <- dbGetQuery(db, "select cell_id, first_occ from cellinfo")
+  merge(cdEventsLong, firstOcc)
+}
+
+
+########################################################################################################################
+### Wing comparision --> MOVED TO MultipleQueriesFunctions.R
+
+
+addTimeFunc <- function(movieDb, df){
+  time <-  dbGetQuery(movieDb, "select * from timepoints")
+  timeInt <- cbind(time[-nrow(time),], timeInt_sec=diff(time$time_sec))
+  result <- dt.merge(df, timeInt, by="frame")
+  return(result)
+}
+
+
+#if(F){ #### DEBUG
+#tt <-data.frame(movie="WT_25deg_111102", time_sec=1:45)
+#add_dev_time(tt)
+#} #### DEBUG end
+
+
+add_dev_time <- function(df){
+    ## Given a data.frame with a frame column, we add the developmental time according to the shift definition from the configuration.
+
+    algnData <- dt.merge(df, get_movie_time_shift(df$movie), by="movie") %>% mutate(dev_time=(time_sec+time_shift)/3600) ## 54000 sec offset, namely 15hAPF
+
+    if(nrow(algnData)==0) stop("could not add development time to data. Make sure that get_movie_time_shift is correclyt implemented!")
+
+    return(algnData)
+}
+
+
+# addTimeFunc <- function(movieDb, df){
+#   time <-  dbGetQuery(movieDb, "select * from timepoints")
+#   timeInt <- cbind(time[-nrow(time),], timeInt_sec=diff(time$time_sec))
+#   result <- dt.merge(df, timeInt, by="frame")
+#   return(result)
+# }
+# 
+# ## example query functon to illustrate the concept
+# cellCountQueryFun <- function(movieDb){ data.frame(num_cells=dbGetQuery(movieDb, "select count(cell_id) from cellinfo")[1,1])}
+# 
+# multiQuery <- function(movieDbDirectories, queryFun=cellCountQueryFun,...){
+#     ## todo get hash of range and function and cache the results somewhere
+# 
+# #    require.auto(foreach); require.auto(doMC); registerDoMC(cores=6)
+# 
+#     queryResults <- ldply(movieDbDirectories, function(movieDbDir){
+#         dbName=basename(movieDbDir)
+#         movieDb <- openMovieDb(movieDbDir)
+# 
+#         results <- transform(queryFun(movieDb, movieDbDir, ...), movie=dbName)
+# 
+#         dbDisconnect(movieDb)
+# 
+#         return(results)
+#     }, .progress="text", .parallel=T, .inform=T)
+# 
+#     return(queryResults)
+# }
+
+# multiQuery(rangeModelMovies,cellCountQueryFun)
+
+
+# D
+unique_rows <- function(df, columns){
+    unique(setkeyv(data.table(df), columns)) %>% as.df()
+}
+
+
+## same as in core_utils
+print_head <- function(df, desc=NULL){
+    print(head(df))
+    print(nrow(df))
+    return(df)
+}
+
+
+mod2pi <- function(x) x - floor(x/(2*pi))* 2*pi
+
+modPi <- function(x) x - floor(x/(pi))*pi
+# ggplot(data.frame(x=c(-10,10)), aes(x=x))+ stat_function(fun=modPiOv2, n=1000)
+modPiOv2 <- function(x) x - floor(x/(pi/2))*pi/2
+
+
+########################################################################################################################
+#### Integrete User Customization
+
+configFile <- system("echo $TM_CONFIG", intern=T)
+
+## or fall back to defaults if not defined
+if(configFile==""){
+    configFile=file.path(scriptsDir, "config/default_config.R")
+}
+
+if(!file.exists(configFile)){
+    stop(paste("could not find configFile", configFile))
+}
+
+print(paste("using config file", configFile))
+source(configFile)
+
+## todo post-process to create meaningful defaults (like image size dependent grid size)
