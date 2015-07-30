@@ -20,3 +20,6 @@ RUN cd /tissue_miner/parser &&  make
 
 ## also add .bash_profile to user home directory
 COPY docker_bash_profile.sh /.bash_profile
+
+## install virtual xserver because imageParser needs it
+RUN apt-get install --assume-yes xvfb
