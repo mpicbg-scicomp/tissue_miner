@@ -18,5 +18,5 @@ RUN /bin/bash -c "source /tissue_miner/misc/install_dependencies.sh"
 ## compile the parser needed to convert TissueAnalyzer outputs into csv
 #RUN cd ${TM_HOME}/parser && make clean && make
 
-## also add bash profile
+## also add .bash_profile
 COPY docker_bash_profile.sh /.bash_profile
