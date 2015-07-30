@@ -8,6 +8,7 @@ if(length(argv) != 1){
     if(is.na(file.info(movieDir)$isdir)) stop(paste("movie directory does not exist"))
 }
 
+
 # movieDir <- "/home/brandl/mnt/mack/project-raphael/movie_dbs/MoviesDB_rotated/WT_25deg_111102"
 # movieDir <- normalizePath(".")
 
