@@ -8,15 +8,15 @@ FROM ubuntu
 RUN apt-get install -y git
 
 ## force image rebuild after changing sources by changing comment in line
-RUN mkdir /tissue_miner && git clone https://github.com/mpicbg-scicomp/tissue_miner /tissue_miner/ ## test3
+RUN mkdir /tissue_miner && git clone https://github.com/mpicbg-scicomp/tissue_miner /tissue_miner ## test3
 
 ## http://stackoverflow.com/questions/20635472/using-the-run-instruction-in-a-dockerfile-with-source-does-not-work
 RUN /bin/bash -c "source /tissue_miner/misc/install_dependencies.sh"
 
-#RUN ${TM_HOME}/tissue_miner/Setup.R | tee tm_setup.log
+RUN  /bin/bash -c "export TM_HOME='/tissue_miner'; /tissue_miner/Setup.R | tee tm_setup.log"
 
 ## compile the parser needed to convert TissueAnalyzer outputs into csv
-#RUN cd ${TM_HOME}/parser && make clean && make
+RUN cd /tissue_miner/parser &&  make
 
 ## also add .bash_profile to user home directory
 COPY docker_bash_profile.sh /.bash_profile

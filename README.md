@@ -11,12 +11,11 @@ How to get started?
 We provide a preconfigured [Docker](http://docker.com/) image to run TissueMiner without any setup. Just do
 
      ## download some example data
-     wget https://files.mpi-cbg.de/index.php/s/XAodByEI2sDslLV/download
-     tar -zxvf download; rm download
+     curl https://files.mpi-cbg.de/index.php/s/XAodByEI2sDslLV/download  | tar -zxvf -
      
      ## download the image and start the analysis
      docker pull brandl/tissue_miner
-     docker run -t -i -v example_movies:/movies brandl/tissue_miner /bin/bash --login -c "cd demo_ForTissueMiner; sm -n all"
+     docker run -t -i -v $(pwd)/example_movies:/movies brandl/tissue_miner /bin/bash --login -c "source .bash_profile; cd demo_ForTissueMiner; sm all"
      
 The only adjustments are to set the source directory containing your movie directories and to specify a movie of interest.
 
@@ -40,7 +39,7 @@ To install TissueMiner on your machine just checkout a copy and define a TM_HOME
     ${TM_HOME}/tissue_miner/Setup.R | tee tm_setup.log
     
     ## compile the parser needed to convert TissueAnalyzer outputs into csv
-    cd ${TM_HOME}/parser && make clean && make
+    cd ${TM_HOME}/parser && make
 
     ## adjust your path to include all tools
     export PATH=$TM_HOME/db:$TM_HOME/shear:$TM_HOME/roi:$TM_HOME/misc:$TM_HOME/movies:$TM_HOME/shear_contributions:$TM_HOME/topology:$TM_HOME/triangles:$TM_HOME/lineage:$PATH
