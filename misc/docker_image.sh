@@ -12,9 +12,13 @@ docker build -t brandl/tissue_miner .
 #docker push brandl/tissue_miner
 
 docker run -t -i -v $(pwd)/example_movies:/movies brandl/tissue_miner /bin/bash --login -c "cd demo_ForTissueMiner; sm -j 5 all"
+docker run -t -i -v $(pwd)/example_movies:/movies brandl/tissue_miner /bin/bash --login
 
 docker run -t -i brandl/tissue_miner /bin/bash --login
 
+
+cd /Volumes/projects/project-raphael/scripts/tissue_miner
+git update-index --chmod=+x db/movie_rotation/transform_images.sh db/movie_rotation/RotateOriginals.sh
 
 #######################################################
 ### Start interactive docker session (skip for local installation)

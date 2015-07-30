@@ -37,7 +37,7 @@ for originalPng in $(find $movieDbDir/Segmentation -name "original.png" | sort);
     if [ -z "$(which sem)" ]; then
         $TM_HOME/db/movie_rotation/transform_images.sh $originalPng $trafoFile $trafoPngOutput
     else
-        sem -j$NB_CPU  $TM_HOME/db/movie_rotation/transform_images.sh $originalPng $trafoFile $trafoPngOutput
+        sem -j$NB_CPU $TM_HOME/db/movie_rotation/transform_images.sh $originalPng $trafoFile $trafoPngOutput
     fi
 done
 
