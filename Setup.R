@@ -21,10 +21,6 @@ if (!require("devtools")) install.packages("devtools")
 scriptsDir=Sys.getenv("TM_HOME")
 source(file.path(scriptsDir, "commons/TMCommons.R"))
 
-## force dplyr 0.4.1 since 0.4.2 is buggy
-packageurl = "http://cran.r-project.org/src/contrib/Archive/dplyr/dplyr_0.4.1.tar.gz"
-install.packages(packageurl, repos=NULL, type="source", dependencies = TRUE)
-
 
 #devtools::install_github("hadley/lazyeval")
 #install.packages("Rcpp")
@@ -50,6 +46,10 @@ require.auto(RBGL) # --> no longer on cran but somehow still in their index
 require.auto(rgeos)
 
 require.auto(hash)
+
+## force dplyr 0.4.1 since 0.4.2 is buggy
+packageurl = "http://cran.r-project.org/src/contrib/Archive/dplyr/dplyr_0.4.1.tar.gz"
+install.packages(packageurl, repos=NULL, type="source", dependencies = TRUE)
 
 
 ########################################################################################################################
