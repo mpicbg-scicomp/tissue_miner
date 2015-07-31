@@ -21,15 +21,15 @@ We provide a preconfigured [docker image](https://registry.hub.docker.com/u/bran
      docker pull brandl/tissue_miner
      docker run -t -i -v $(pwd)/example_movies:/movies brandl/tissue_miner /bin/bash --login -c "source /.bash_profile; cd demo_ForTissueMiner; sm all"
      
-The only adjustments are to set the source directory containing your movie directories and to specify a movie of interest.
+To run TissueMiner over your own data, you'll need to set the source directory containing your movie directories and to replace the example movie name with your movie/directory of interest.
 
 
 How to run locally?
 ================
 
-Prerequistes. Make sure that the packages listed in [install_tm.sh](misc/install_dependencies.sh) are installed on your system.
+First, make sure that the packages listed in [install_dependencies.sh](misc/install_dependencies.sh) are installed on your system.
 
-To install TissueMiner on your machine just checkout a copy and define a TM_HOME shell variable:
+Second, just grab a copy of TissueMiner and run the setup procedure. 
 
     export TM_HOME="tissue_miner"
 
@@ -48,8 +48,10 @@ To install TissueMiner on your machine just checkout a copy and define a TM_HOME
     ## adjust your path to include all tools
     export PATH=$TM_HOME/db:$TM_HOME/shear:$TM_HOME/roi:$TM_HOME/misc:$TM_HOME/movies:$TM_HOME/shear_contributions:$TM_HOME/topology:$TM_HOME/triangles:$TM_HOME/lineage:$PATH
     export PATH=${TM_HOME}/parser:$PATH
+    
+Don't forget to define TM_HOME shell variable, pointing to the root of your TissueMiner installation, since it will require it to resolve script paths internally.
 
-To execute the workflow we recommend [snakemake](https://bitbucket.org/johanneskoester/snakemake/wiki/Home). We provide [snakemake workflow](workflow/tm.snkmk) to ease running TissueMiner on a cluster or locally on a single computer. These are the steps to prepare your system to run TissueMiner.
+To run the workflow we recommend [snakemake](https://bitbucket.org/johanneskoester/snakemake/wiki/Home). We provide a [snakemake workflow](workflow/tm.snkmk) to ease running TissueMiner on a cluster or locally on a single computer. It integrates all analyses implemented in TissueMiner, but can be easily extended to include project specifc elements as well. This is how we usually run it using a small launcher to save typing: 
 
     sm() {
         snakemake --snakefile ${TM_HOME}/workflow/tm.snkmk --keep-going "$@"
@@ -61,11 +63,17 @@ To execute the workflow we recommend [snakemake](https://bitbucket.org/johannesk
     ## list all tasks
     sm -n
     
-    ## process all tasks or just sepecific ones
+    ## process all tasks and write a log file
     sm all | tee log.txt
+    
+    ## or just run sepecific tasks
     sm makedb | tee log.txt
     
-For snakemake details see the [reference](https://bitbucket.org/johanneskoester/snakemake/wiki/Home).
+    ## statistics and executation state graph visualization
+    sm --dag | dot -Tpdf > dag_tbd.pdf
+    sm -D > sm_execution_state.txt
+    
+For snakemake details see the its [reference](https://bitbucket.org/johanneskoester/snakemake/wiki/Home).
 
 Although we don not recommend it, you can run each of the tools also separately. See [simple_workflow.sh](workflow/simple_workflow.sh) for an example pipeline.
 
