@@ -77,7 +77,7 @@ To run the workflow we recommend [snakemake](https://bitbucket.org/johanneskoest
     
 For snakemake details see the its [reference](https://bitbucket.org/johanneskoester/snakemake/wiki/Home).
 
-Although we don not recommend it, you can run each of the tools also separately. See [simple_workflow.sh](workflow/simple_workflow.sh) for an example pipeline.
+Although we do not recommend it, you can also run each of the TissueMiner tools separately. See [simple_workflow.sh](workflow/simple_workflow.sh) for an example pipeline.
 
 Support
 =========
