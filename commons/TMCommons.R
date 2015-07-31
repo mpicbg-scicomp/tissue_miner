@@ -1,13 +1,9 @@
 
 ## Source common functions
-#devtools::source_url("http://dl.dropbox.com/u/113630701/rlibs/base-commons.R")
-
 devtools::source_url("https://raw.githubusercontent.com/holgerbrandl/datautils/v1.11/R/core_commons.R")
 devtools::source_url("https://raw.githubusercontent.com/holgerbrandl/datautils/v1.11/R/ggplot_commons.R")
 devtools::source_url("https://raw.githubusercontent.com/holgerbrandl/datautils/v1.11/R/datatable_commons.R")
 
-
-#source("/home/etournay/RawData/base-commons.R")
 require.auto(sqldf)
 
 source(file.path(scriptsDir, "commons/MovieFunctions.R"))
@@ -18,9 +14,8 @@ source(file.path(scriptsDir, "commons/RoiCommons.R"))
 #source(file.path(scriptsDir, "commons/MultipleQueriesFunctions.R"))
 #source(file.path(scriptsDir, "commons/MultiplePlotsFunctions.R"))
 
-# source(file.path(scriptsDir, "misc/CompareWings_functions.R")) --> REPLACED BY MultipleQueriesFuctions.R
-
 ## Set up main parameters
+
 # enable plyr parallelization
 require.auto(doMC);
 
@@ -85,16 +80,6 @@ openMovieDb <- function(movieDir){
 
 ma <- function(x,n=11, ...){as.numeric(stats::filter(x,rep(1/n,n), sides=2, ...))}
 
-##todo remove
-#applyTensorNiceName <- function(df){
-#  if ("tensor" %in% names(df)){
-#    df$tensor <-  factor(df$tensor,
-#                         levels=c("cagc", "ct", "crc","ShearCD", "ShearCE", "CEwithCT", "correlationEffects", "nu", "ShearT1","ShearT2","dqtot","deltaCheck","u", "Q"),
-#                         labels=c("cell area growth correl", "corotational term", "cell rotation correl", "cell division","pure cell elongation change", "cell elongation change","correlation effects","total shear","T1","T2", "dqtot","deltaCheck","deformation gradient", "cell elongation state"))
-#    return(df)
-#  } else stop("The dataframe argument doesn't contain any 'tensor' column")
-#}
-
 
 restoreBondOrder <- function(df) arrange(df,  frame, cell_id, bond_order)
 
@@ -106,7 +91,6 @@ addCellShapes <- function(dfWithCellIdAndFrame){
         inner_join(dfWithCellIdAndFrame, by=c("frame", "cell_id")) %>%
         restoreBondOrder()
 }
-
 
 
 ########################################################################################################################
@@ -135,12 +119,6 @@ addTimeFunc <- function(movieDb, df){
 }
 
 
-#if(F){ #### DEBUG
-#tt <-data.frame(movie="WT_25deg_111102", time_sec=1:45)
-#add_dev_time(tt)
-#} #### DEBUG end
-
-
 add_dev_time <- function(df){
     ## Given a data.frame with a frame column, we add the developmental time according to the shift definition from the configuration.
 
@@ -152,61 +130,22 @@ add_dev_time <- function(df){
 }
 
 
-# addTimeFunc <- function(movieDb, df){
-#   time <-  dbGetQuery(movieDb, "select * from timepoints")
-#   timeInt <- cbind(time[-nrow(time),], timeInt_sec=diff(time$time_sec))
-#   result <- dt.merge(df, timeInt, by="frame")
-#   return(result)
-# }
-# 
-# ## example query functon to illustrate the concept
-# cellCountQueryFun <- function(movieDb){ data.frame(num_cells=dbGetQuery(movieDb, "select count(cell_id) from cellinfo")[1,1])}
-# 
-# multiQuery <- function(movieDbDirectories, queryFun=cellCountQueryFun,...){
-#     ## todo get hash of range and function and cache the results somewhere
-# 
-# #    require.auto(foreach); require.auto(doMC); registerDoMC(cores=6)
-# 
-#     queryResults <- ldply(movieDbDirectories, function(movieDbDir){
-#         dbName=basename(movieDbDir)
-#         movieDb <- openMovieDb(movieDbDir)
-# 
-#         results <- transform(queryFun(movieDb, movieDbDir, ...), movie=dbName)
-# 
-#         dbDisconnect(movieDb)
-# 
-#         return(results)
-#     }, .progress="text", .parallel=T, .inform=T)
-# 
-#     return(queryResults)
-# }
-
-# multiQuery(rangeModelMovies,cellCountQueryFun)
-
-
-# D
+## DEPRECATED: use dplyr::distinct
 unique_rows <- function(df, columns){
+    warning("unique_rows() is DEPRECATED: use dplyr::distinct instead")
     unique(setkeyv(data.table(df), columns)) %>% as.df()
 }
 
 
-## same as in core_utils
-print_head <- function(df, desc=NULL){
-    print(head(df))
-    print(nrow(df))
-    return(df)
-}
-
-
+## angle conversion  helpers
 mod2pi <- function(x) x - floor(x/(2*pi))* 2*pi
-
 modPi <- function(x) x - floor(x/(pi))*pi
 # ggplot(data.frame(x=c(-10,10)), aes(x=x))+ stat_function(fun=modPiOv2, n=1000)
 modPiOv2 <- function(x) x - floor(x/(pi/2))*pi/2
 
 
 ########################################################################################################################
-#### Integrete User Customization
+#### Integrete User Configuration
 
 configFile <- system("echo $TM_CONFIG", intern=T)
 
