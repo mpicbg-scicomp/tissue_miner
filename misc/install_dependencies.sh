@@ -36,6 +36,9 @@ sudo apt-get install --assume-yes sqlite3 libsqlite3-dev
 ## install avconv needed movie rendering
 sudo apt-get install --assume-yes libav-tools
 
+## install graphviz needed for snakemake graph rendering
+sudo apt-get install --assume-yes graphviz
+
 ## sem for image conversion (see http://askubuntu.com/questions/12764/where-do-i-get-a-package-for-gnu-parallel)
 #sudo apt-get install --assume-yes parallel
 sudo apt-get install --assume-yes wget
