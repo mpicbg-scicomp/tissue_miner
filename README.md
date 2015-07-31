@@ -49,27 +49,29 @@ Second, just grab a copy of TissueMiner and run the setup procedure.
     export PATH=$TM_HOME/db:$TM_HOME/shear:$TM_HOME/roi:$TM_HOME/misc:$TM_HOME/movies:$TM_HOME/shear_contributions:$TM_HOME/topology:$TM_HOME/triangles:$TM_HOME/lineage:$PATH
     export PATH=${TM_HOME}/parser:$PATH
     
-Don't forget to define TM_HOME shell variable, pointing to the root of your TissueMiner installation, since it will require it to resolve script paths internally.
+Don't forget to define a TM_HOME shell variable, pointing to the root of your TissueMiner installation, since it will require it to resolve script paths internally.
 
-To run the workflow we recommend [snakemake](https://bitbucket.org/johanneskoester/snakemake/wiki/Home). We provide a [snakemake workflow](workflow/tm.snkmk) to ease running TissueMiner on a cluster or locally on a single computer. It integrates all analyses implemented in TissueMiner, but can be easily extended to include project specifc elements as well. This is how we usually run it using a small launcher to save typing: 
+To run the workflow we recommend [snakemake](https://bitbucket.org/johanneskoester/snakemake/wiki/Home). We provide a [snakemake workflow](workflow/tm.snkmk) to ease running TissueMiner on a cluster or locally on a single computer. It integrates all analyses implemented in TissueMiner and can be easily extended to include project specifc elements as well. This is how we usually run TissueMiner: 
 
+    ##  define a custom snakemake launcher to save typing
     sm() {
         snakemake --snakefile ${TM_HOME}/workflow/tm.snkmk --keep-going "$@"
     }
     export -f sm
     
+    ## TissueMiner assumes the movie data to be present in the current working directoy
     cd <movie_directory>
     
-    ## list all tasks
+    ## List all tasks
     sm -n
     
-    ## process all tasks and write a log file
+    ## Process all tasks and write a log file
     sm all | tee log.txt
     
-    ## or just run sepecific tasks
+    ## ... or just run sepecific tasks
     sm makedb | tee log.txt
     
-    ## statistics and executation state graph visualization
+    ## Export statistics and execution state graph visualization
     sm --dag | dot -Tpdf > dag_tbd.pdf
     sm -D > sm_execution_state.txt
     
