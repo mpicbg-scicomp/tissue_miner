@@ -31,7 +31,8 @@ First, make sure that the packages listed in [install_dependencies.sh](misc/inst
 
 Second, just grab a copy of TissueMiner and run the setup procedure. 
 
-    export TM_HOME="tissue_miner"
+    ## Set path to install TissueMiner in you home folder (please use an absolute path)
+    export TM_HOME="~/tissue_miner"
 
     ## download this repository
     git clone https://github.com/mpicbg-scicomp/tissue_miner.git ${TM_HOME}
