@@ -52,7 +52,7 @@ Second, just grab a copy of TissueMiner and run the setup procedure in a termina
     
 Don't forget to define a TM_HOME shell variable, pointing to the root of your TissueMiner installation, since it will require it to resolve script paths internally.
 
-Then you can run TissueMiner to analyze your movie provided you movie folder contains a "Segmentation" folder in which to find the original images as well as the TissueAnalyzer outputs.
+Then you can run TissueMiner to analyze your movie, provided your movie folder contains a "Segmentation" folder in which to find the original images as well as the TissueAnalyzer outputs.
 
 To run the workflow we recommend [snakemake](https://bitbucket.org/johanneskoester/snakemake/wiki/Home). We provide a [snakemake workflow](workflow/tm.snkmk) to ease running TissueMiner on a cluster or locally on a single computer. It integrates all analyses implemented in TissueMiner and can be easily extended to include project specifc elements as well. This is how we usually run TissueMiner: 
 
