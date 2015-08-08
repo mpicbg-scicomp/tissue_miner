@@ -29,7 +29,7 @@ How to run locally?
 
 First, make sure that the packages listed in [install_dependencies.sh](misc/install_dependencies.sh) are installed on your system.
 
-Second, just grab a copy of TissueMiner and run the setup procedure. 
+Second, just grab a copy of TissueMiner and run the setup procedure in a terminal (Unix-shell interpreter)
 
     ## Set path to install TissueMiner in you home folder (please use an absolute path)
     export TM_HOME="~/tissue_miner"
@@ -51,6 +51,8 @@ Second, just grab a copy of TissueMiner and run the setup procedure.
     export PATH=${TM_HOME}/parser:$PATH
     
 Don't forget to define a TM_HOME shell variable, pointing to the root of your TissueMiner installation, since it will require it to resolve script paths internally.
+
+Then you can run TissueMiner to analyze your movie provided you movie folder contains a "Segmentation" folder in which to find the original images as well as the TissueAnalyzer outputs.
 
 To run the workflow we recommend [snakemake](https://bitbucket.org/johanneskoester/snakemake/wiki/Home). We provide a [snakemake workflow](workflow/tm.snkmk) to ease running TissueMiner on a cluster or locally on a single computer. It integrates all analyses implemented in TissueMiner and can be easily extended to include project specifc elements as well. This is how we usually run TissueMiner: 
 
