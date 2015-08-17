@@ -48,8 +48,18 @@ openMovieDb <- function(movieDir){
 
 mqf_cellCount <- function(movieDb){ data.frame(num_cells=dbGetQuery(movieDb, "select count(cell_id) from cellinfo")[1,1])}
 
+#mqf_cellCount_withRois <- function(movieDb, rois=c()){
+#    queryResult <- data.frame(num_cells=dbGetQuery(movieDb, "select count(cell_id) from cellinfo")[1,1])
+#
+#    if(length(rois)==0) rois = unique(queryResult$roi)
+#
+#    queryResult %>% filter(roi %in% rois)
+#}
+#multiQuery(mqf_cellCount_withRois, mqf_cellCount_withRois, "hinge")
+#multiQuery(mqf_cellCount_withRois, mqf_cellCount_withRois)
+
 ## Master function to query multiple movies for comparison
-multiQuery <- function(movieDirectories, selectedRois, queryFun=mqf_cellCount, ...){
+multi_db_query <- function(movieDirectories, queryFun=mqf_cellCount, ...){
   ## todo get hash of range and function and cache the results somewhere
   #    require.auto(foreach); require.auto(doMC); registerDoMC(cores=6)
   #   browser()
@@ -70,16 +80,16 @@ multiQuery <- function(movieDirectories, selectedRois, queryFun=mqf_cellCount, .
 
 
 ## Get a variable from another environment
-getCT <- function(name) {
-  for(env in sys.frames()){
-    if (exists(name, env)) {
-      return(get(name, env))
-    }
-  }
-  
-  stop(paste(name, "not defined"))
-  #    return(NULL)
-}
+#getCT <- function(name) {
+#  for(env in sys.frames()){
+#    if (exists(name, env)) {
+#      return(get(name, env))
+#    }
+#  }
+#
+#  stop(paste(name, "not defined"))
+#  #    return(NULL)
+#}
 
 ## used to restore roi for shear contributions or other data stored in Roi folders
 addRoiByDir <- function(rdataFile) transform(local(get(load(rdataFile))), roi=basename(dirname((rdataFile))))
@@ -101,19 +111,19 @@ addRois <-function(data, movieDbDir){
   ## combine rois
   #  rois <- transform(rois, roi=ifelse(str_detect(roi, "interL|InterL|postL5"), "intervein", ifelse(str_detect(roi, "^L[0-9]{1}$"), "vein", ac(roi))))
   
-  rois <- simplifyRois(rois)
+#  rois <- simplifyRois(rois)
   #     browser()
   
-  selectedRois <- getCT("selectedRois")
-  filtRois <- subset(rois, roi %in% selectedRois)
-  
-  if("raw" %in% selectedRois){
-    filtRois <- addRawRoi(filtRois, data)
-  }
+#  selectedRois <- getCT("selectedRois")
+#  filtRois <- subset(rois, roi %in% selectedRois)
+#
+#  if("raw" %in% selectedRois){
+#    filtRois <- addRawRoi(filtRois, data)
+#  }
   
   
   ## filter for ROIs of interest
-  cellsRoiFilt <- dt.merge(data, filtRois, by=c("cell_id"), allow.cartesian=TRUE)
+  cellsRoiFilt <- dt.merge(data, rois, by=c("cell_id"), allow.cartesian=TRUE)
   
   return(cellsRoiFilt)
 }
@@ -156,10 +166,10 @@ filterCumSum <- function(movieData, moviesDirs){
 # Add time from DB
 # returns df
 
-mqf_cellCountsByFrame <- function(movieDb, movieDbDir){
+mqf_cellCountsByFrame <- function(movieDb, movieDbDir, rois){
   
   cells <- dbGetQuery(movieDb, "select cell_id, frame from cells where frame & cell_id!=10000")
-  cellsRoiFilt <- addRois(cells, movieDbDir)
+  cellsRoiFilt <- addRois(cells, movieDbDir) %>% filter(roi %in% rois)
   
   ## filter for ROIs of interest
   cellCount <- transform(with(cellsRoiFilt, as.data.frame(table(frame, roi=ac(roi)))), frame=as.numeric(levels(frame)))
