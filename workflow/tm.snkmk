@@ -158,7 +158,7 @@ rule area_movies:
 rule db_elongation_movies:
     params: name="db_elongation_movies"
     input: DB
-    output: "nematics_movies/" + movie + "_DBelong_nematics.mp4", "state_movies/" + movie + "_cell_elong_norm.mp4"
+    output: "state_movies/" + movie + "_DBelong_nematics.mp4", "state_movies/" + movie + "_cell_elong_norm.mp4"
     shell: "DbElongationMovie.R " + movieDbDir
 
 rule state_movies:

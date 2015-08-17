@@ -71,7 +71,7 @@ rm(cellshapes, csElong)
 
 ########################################################################################################################
 ### Now aggegregate by grid and render as line segment movie
-mcdir(file.path(movieDir, "nematics_movies"))
+#mcdir(file.path(movieDir, "nematics_movies"))
 
 gridSize=128
 
