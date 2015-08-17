@@ -86,3 +86,13 @@ Support
 =========
 
 Please use the github ticket system to report issues or suggestions. We also welcome pull requests.
+
+
+Reference
+==========
+
+If you like to use TissuMiner for your own research, please cite
+
+> Etournay et al. (2015). Interplay of cell dynamics and epithelial tension during morphogenesis of the Drosophila pupal wing. eLife, 4, e07090. doi:10.7554/eLife.07090
+
+
