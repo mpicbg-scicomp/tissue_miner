@@ -1,3 +1,5 @@
+
+
 /*  Draw and get ROI coordinates
  *  Just drag and drop the macro to Fiji and Run it
  *  Select the image file on which to define the ROIs
@@ -93,6 +95,86 @@ function extract_ROIcoord(filePath, ROIpath){
 	setBatchMode(false);
 }
 
+function setDefaultTemplatesFile(templatesPathName)
+{
+	f = File.open(templatesPathName);
+	print(f, "pupal wing,blade,interL1-L2,L2,interL2-L3,L3,proxInterL3-L4,distInterL3-L4,L4,proxInterL4-L5,postCV,distInterL4-L5,L5,postL5,HBinterface,hinge");
+	print(f, "wing disk,DV,AP,DorsInLeft,DorsInRight,VentrInRight,VentrInLeft,DorsOutLeft,DorsOutRight,VentrOutRight,VentrOutLeft");
+	File.close(f);
+}
+
+
+function updateTemplateFile(templatesPathName, templates_str_list)
+{
+	// save the updated template file to disk 
+	f = File.open(templatesPathName);
+	for(i=0; i<templates_str_list.length; i++){
+		print(f, templates_str_list[i]);
+	}
+	File.close(f);
+}
+
+
+// get a list of templates name
+
+function getTemplatesName(templates_str_list){
+	n_temp = templates_str_list.length;
+	templatesName=newArray(n_temp);
+	for(i=0; i<n_temp; i++){
+	    chuncks=split(templates_str_list[i],",");
+	    templatesName[i]=chuncks[0];
+	}
+	return templatesName;
+}
+
+// get the id of the template with name template name
+function getTemplateId(templates_str_list, templateName)
+{	
+	id=-1;
+	for(i=0; i<templates_str_list.length; i++){
+	    chuncks=split(templates_str_list[i],",");
+		if( chuncks[0]==templateName ){
+			id = i;
+		}
+	}
+	return id;
+}
+
+// create a dialog to input a string that can be given a default value
+function updateTemplate(title, default)
+{
+	Dialog.create(title);
+	Dialog.addMessage(title+":");
+	Dialog.addString("", default, 100);			  
+	Dialog.addMessage("please enter the template name and the name of the different\n"+
+					  "structures separateded by a comma. For instance:\n"+
+					  "pupal wing,blade,interL1-L2,L2,interL2-L3,L3 ... ");
+	Dialog.show();
+	return Dialog.getString();
+}
+
+
+
+
+// add item at the end of array
+function appendToArray(array, new_item){
+	aux_array = array;
+	n= array.length;
+	array = newArray( n+1 );
+	for(i=0;i<n;i++){ array[i]=aux_array[i]; }
+	array[n]=new_item;
+	return array;
+}
+
+// remove item k from array and return array
+function removeFromArray(array, k)
+{
+	aux = array;
+	array = newArray(aux.length-1);
+	for(i=0;i<k;i++){ array[i]=aux[i]; }
+	for(i=k+1;i<aux.length;i++){ array[i-1]=aux[i]; }
+	return array;
+}
 
 
 
@@ -100,29 +182,96 @@ function extract_ROIcoord(filePath, ROIpath){
 /*
  * ***************MAIN PROG**********************
  */
+ 
 // Set up paths to files and ROI
+fsep = File.separator();
 inputFile = File.openDialog("Choose an image to draw ROI");
-folderPath=File.getParent(inputFile)+File.separator();
+folderPath=File.getParent(inputFile)+fsep;
 
-// GUI
-Dialog.create("Tasks to be performed");
-data=newArray("pupal wing", "wing disk");
-Dialog.addChoice("Data type: ",data,"pupal wing");
-Dialog.addNumber("Pixel size (optional): ",0.207);
-Dialog.show();
-data=Dialog.getChoice();
-pxsize=Dialog.getNumber();
+templatesPath= getDirectory("plugins");
+templatesPathName = templatesPath+"Draw_andGetRoiCoord_templates.txt";
 
-// TODO: define data type and rois in a separate txt file called roi.conf
-// pupal wing: blade, interL1-L2, ...
-// wing disk: DV, AP, ...
-// parse this file and generate the appropriate GUI
-if (data=="pupal wing") {
-	listROI=newArray("blade", "interL1-L2", "L2", "interL2-L3", "L3", "proxInterL3-L4", "distInterL3-L4", "L4", "proxInterL4-L5", "postCV", "distInterL4-L5", "L5", "postL5", "HBinterface", "hinge");	
+
+/////////////////////////////////////////////////////
+// initialize the list of template //////////////////
+/////////////////////////////////////////////////////
+
+// if the templates file does not exist create one
+if (File.exists(templatesPathName)!=1){
+	setDefaultTemplatesFile(templatesPathName);
 }
-else {
-	listROI=newArray("DV", "AP", "DorsInLeft", "DorsInRight", "VentrInRight", "VentrInLeft", "DorsOutLeft", "DorsOutRight", "VentrOutRight", "VentrOutLeft");	
+templates_fileStr = File.openAsString(templatesPathName);
+templates_str_list = split(templates_fileStr, "\n");
+templatesName = getTemplatesName(templates_str_list);
+
+// if the file is empty set the file to default
+if (templatesName.length==0){ 
+	setDefaultTemplatesFile(templatesPathName);
+	templates_fileStr = File.openAsString(templatesPathName);
+	templatesName = getTemplatesName(templates_fileStr);
 }
+templates_str_list = split(templates_fileStr, "\n");
+
+
+////////////////////////////////////////////////////////
+// create the gui proposing the actions ////////////////
+////////////////////////////////////////////////////////
+
+actions = newArray("Draw rois for the selected template",
+                   "Edit selected template",
+                   "Remove selected template",
+                   "Input a new template");
+action = "";
+pxsize = 0.207;
+// redisplay the dialog as long as the action selection is related to adding, erasing, editing templates
+while( (action!=actions[0]) | (templatesName.length==0) )
+{
+	// GUI
+	Dialog.create("Tasks to be performed");
+	Dialog.addChoice("Action: ",actions, actions[0]);
+	Dialog.addChoice("Template : ",templatesName,templatesName[0]);
+	Dialog.addNumber("Pixel size (optional): ",pxsize);
+	Dialog.show();
+	action = Dialog.getChoice();
+	templateName = Dialog.getChoice();
+	pxsize = Dialog.getNumber();
+
+	if(action==actions[1]) //Edit the selected template
+	{
+		id = getTemplateId(templates_str_list, templateName);
+		templates_str = updateTemplate( "Update template "+templateName, templates_str_list[id] );
+		templates_str_list[id] = templates_str;
+		IJ.log(templateName+" template was edited");
+	}
+	else if(action == actions[2]) //Erase the selected template
+	{
+		id = getTemplateId(templates_str_list, templateName);
+		templates_str_list = removeFromArray(templates_str_list, id);
+		IJ.log(templateName+" template was erased");
+	}
+	else if(action == actions[3]) //Add a new template
+	{
+		template_str = updateTemplate("Create a new template","");
+		templates_str_list = appendToArray(templates_str_list, template_str);
+		chuncks=split(template_str,",");
+		IJ.log(chuncks[0]+" was created");
+	}
+	for(i=0; i<templates_str_list.length; i++){IJ.log("" + templates_str_list[i]); }
+	updateTemplateFile(templatesPathName, templates_str_list);
+	templatesName = getTemplatesName(templates_str_list);
+}
+
+// get the template selected
+id = getTemplateId(templates_str_list, templateName);
+template_str = templates_str_list[id];
+
+// create an array from the template string
+chuncks = split(template_str,",");
+listROI = newArray(chuncks.length-1);
+for(i=0; i<chuncks.length-1; i++){
+	listROI[i] = chuncks[i+1];	
+}
+
 
 rep=0;
 
