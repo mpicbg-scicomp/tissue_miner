@@ -34,26 +34,46 @@ timesmooth <- function(x,n=5){
 #    result
 }
 
-smooth_tissue <- function(overlayData, smooth_val, kernel_size=5, by=c("xGrid", "yGrid")){
+
+
+smooth_tissue <- function(overlayData, smooth_val, kernel_size=5, by=c("xGrid", "yGrid"), gap_fill=NA, global_min_max=T){
     # DEBUG overlayData=areaSummary
     # DEBUG overlayData=subset(areaSummary, frame!=9)
     # DEBUG smooth_val="mac_in_range"
 
     ## create missing timepoints to avoid that we smooth over gaps in time
-    minMaxByElement <- data.table(overlayData)[, list(frame=min(frame):max(frame)), by=by]
-    timeContData <- arrange(dt.merge(minMaxByElement, overlayData , all.x=T), frame)
+    if(global_min_max){
+        minMaxByElement <- overlayData %$% data.frame(frame=min(frame):max(frame)) %>%
+            merge(select(overlayData %>% ungroup(), one_of(by)) %>% distinct, by=NULL)
+    }else{
+        minMaxByElement <- data.table(overlayData)[, list(frame=min(frame):max(frame)), by=by]
+    }
+
+    timeContData <- full_join(minMaxByElement, overlayData, by=c(by, "frame"),  all.x=T, allow.cartesian=TRUE) %>% arrange(frame)
+#    timeContData %>% filter(xGrid==testX, yGrid==testY)
 
 #    browser()
-    smoothedTCD <- as.df(data.table(timeContData)[, eval(substitute(list(smoothie=timesmooth(smooth_val, kernel_size),frame))), by=by])
+
+#    timeContData[is.na(timeContData)] <- 0
+    timeContData <- eval(substitute(mutate(timeContData, gap_filled_smooth_val=ifelse(is.na(smooth_val), gap_fill, smooth_val))))
+
+#    timeContData <- mutate_(timeContData, gap_filled_smooth_val=ifelse(is.na(as.name(smooth_val)), 0, as.name(smooth_val)))
+
+    timeContData <- timeContData %>%
+        group_by_(.dots=by) %>%
+        mutate(smoothie=timesmooth(gap_filled_smooth_val, kernel_size) %>% as.numeric())
+#    smoothedTCD <- as.df(data.table(timeContData)[, eval(substitute(list(smoothie=timesmooth(gap_filled_smooth_val, kernel_size),frame))), by=by]) %>% select(-gap_filled_smooth_val)
 
     ## note: this just works because we've arranged it above, and data.table shouldn't resort it
 
-    timeContData <- dt.merge(timeContData, smoothedTCD)
+#    timeContData <- dt.merge(timeContData, smoothedTCD)
 #    timeContData$smoothie <- smoothedTCD$smoothie
 
     ## see sec1.6 of the data.table faq for another example
-    timeContDataFilt <- eval(substitute(subset(timeContData, !is.na(smooth_val))))
-    timeContDataFilt <- plyr::rename(timeContDataFilt, c(smoothie=paste0(substitute(smooth_val), "_smooth")))
+#    filter(timeContData, is.na(smooth_val))
+#    timeContDataFilt <- eval(substitute(subset(timeContData, !is.na(smooth_val))))
+    timeContDataFilt <- plyr::rename(timeContData, c(smoothie=paste0(substitute(smooth_val), "_smooth"))) %>% as.df()
+    timeContDataFilt %<>% select(-gap_filled_smooth_val)
 
     return(timeContDataFilt)
 }
