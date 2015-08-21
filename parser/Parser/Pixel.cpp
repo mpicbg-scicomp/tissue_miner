@@ -7,52 +7,6 @@ const PixelValue Pixel::BondValue           = 0x00FFFFFF;
 const PixelValue Pixel::OutsideCanvasValue  = 0xFF000000;
 const PixelValue Pixel::DividingCellValue   = 0x000000FF;
 
-
-//bool Pixel::goToLastCommonNeighboringBondPixelInCwOrientation(const PixelValue v) {
-//  // first, get "cw-most" index of neighbor with value v
-//  int firstIndexWithV=-1;
-//  PixelValue lastValue = neighbor(PixelFrame::NumberOfNeighbors-1).data();
-//  for(int index=0; index<PixelFrame::NumberOfNeighbors; ++index) {
-//    PixelValue curValue = neighbor(index).data();
-//    if(curValue!=lastValue) {
-//      if(lastValue==BondValue) {
-//        if(curValue==v) {
-//          if(firstIndexWithV<0) {
-//            firstIndexWithV = index;
-//          } else {
-//            std::cout << "Pixel::goToLastCommonNeighboringBondPixelInCwOrientation: Cell with id " << std::hex << v << std::dec << " appears twice around pixel at " << positionString() << "!" << std::endl;
-//            return false;
-//          }
-//        }
-//      } else {
-//        if(curValue!=BondValue) {
-//          std::cout << "Pixel::goToLastCommonNeighboringBondPixelInCwOrientation: Two different cells without bond in between!" << std::endl;
-//          return false;
-//        } 
-//      }
-//      lastValue = curValue;
-//    }
-//  }
-//  // when I'm here, everything went fine, so far
-//  // but did we find anything?
-//  if(firstIndexWithV<0) {
-//    std::cout << "Pixel::goToLastCommonNeighboringBondPixelInCwOrientation: Pixel value not found among neighbors!" << std::endl;
-//    return false;
-//  }
-//  
-//  // now, look for "cw-most" bond pixel neighbor of firstIndexWithV
-//  // second neighbor in cw direction could be common neighbor, if it is not diagonal
-//  int index2Back = (PixelFrame::NumberOfNeighbors-1+firstIndexWithV)%PixelFrame::NumberOfNeighbors; 
-//  if(!PixelFrame::diagonalNeighbor(index2Back) && (neighbor(index2Back).data()==BondValue)) {
-//    _position += _frame.direction(index2Back);
-//  } else {
-//    // first neighbor in cw direction must be common neighbor and must be a bond pixel (due to consistency check above)
-//    _position += _frame.direction((PixelFrame::NumberOfNeighbors-1+firstIndexWithV)%PixelFrame::NumberOfNeighbors);
-//  }
-//
-//  return true;
-//}
-
 int Pixel::getLastCommonNeighboringBondPixelInCwOrientation(std::vector<PixelValue> &neighbors, const PixelValue v, const int oldDirection) const {
   // clear neighbor set
   neighbors.clear();

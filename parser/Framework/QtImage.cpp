@@ -2,7 +2,6 @@
 #include <Qt/QtGui>
 
 #include "QtImage.h"
-#include "AbstractField.h"
 
 void QtImage::drawRectD(const double x1, const double y1, const double w, const double h, const Color &col) {
   QPainter *painter = startPainting();
@@ -255,35 +254,3 @@ void QtImage::drawEllipse(const double x, const double y, const double radius1, 
   
   endPainting();
 }
-
-void QtImage::drawScalarArray(const MatrixTransformation &trafo, const AbstractScalarArray &a, const ColorBar &Cb, const unsigned char AlphaValue) {
-//   std::cout << "QtImage::drawScalarArray: " << &(a.grid()) << std::endl;
-  for(int i=0; i<a.grid().numBoxesX(); ++i) {
-    for(int j=0; j<a.grid().numBoxesY(); ++j) {
-      if(a.valid(i,j)) {
-        std::vector<Vector2D> box;
-        box.push_back(trafo.map(a.grid().boxCornerBottomLeft(i,j)));
-        box.push_back(trafo.map(a.grid().boxCornerBottomRight(i,j)));
-        box.push_back(trafo.map(a.grid().boxCornerTopRight(i,j)));
-        box.push_back(trafo.map(a.grid().boxCornerTopLeft(i,j)));
-        drawPolygon(box, Cb.color(a(i,j)).withAlpha(AlphaValue));
-      }
-    }
-  }
-}
-
-void QtImage::drawVector2DArray(const IsotropicTransformation &trafo, const AbstractVector2DArray &a, const bool normalized, const Color &Col, const Color &HeadCol, const double RelLength, const double RelWidth) {
-  const double VectorLength = RelLength*a.grid().minBoxSize();
-  const double ArrowSize = RelWidth*a.grid().minBoxSize();
-  for(int i=0; i<a.grid().numBoxesX(); ++i) {
-    for(int j=0; j<a.grid().numBoxesY(); ++j) {
-      if(a.valid(i,j)) {
-        Vector2D v(a(i,j));
-        if(normalized) {
-          v /= v.norm();
-        }
-        drawArrowExt(trafo.map(a.grid().boxMid(i,j)), VectorLength*trafo.mapLocally(v), Col, HeadCol, ArrowSize*trafo.scale());
-      }
-    }
-  }  
-}  

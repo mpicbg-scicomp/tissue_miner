@@ -6,7 +6,6 @@
 #include <Qt/QtCore>
 #include <Qt/QtGui>
 
-#include "Transformation.h"
 #include "QtRasterImage.h"
 
 QRgb myQRgb(const Color &col) {
@@ -30,13 +29,6 @@ QtRasterImage::QtRasterImage(const int width, const int height) {
   _image = new QImage(QSize(width, height), QImage::Format_ARGB32);
   setAlphaChannel(0xFF);
   _valid = true;
-}
-
-QtRasterImage::QtRasterImage(const QtRasterImage &img) {
-  _image = new QImage(QSize(img.width(), img.height()), QImage::Format_ARGB32);
-  setAlphaChannel(0xFF);
-  _valid = true;
-  blend(Identity, img);
 }
 
 QtRasterImage::~QtRasterImage() {
@@ -271,66 +263,6 @@ char QtRasterImage::pixel(const int i, const int j, const ColorChannel c) const 
     return qAlpha(_image->pixel(i, _image->height()-j-1));
   }
   return 0;
-}
-
-void QtRasterImage::blend(const MatrixTransformation &t, const QtRasterImage &img, const ColorChannel targetChannel, const ColorChannel sourceChannel) {
-  typedef int (*ExtractColorChannel) (QRgb rgba);
-  ExtractColorChannel ExtractColorChannelArray[] = {qRed, qGreen, qBlue, qAlpha};
-
-  ExtractColorChannel extractColor;
-  if(sourceChannel==NoChannel) {
-    extractColor = ExtractColorChannelArray[targetChannel];
-  } else {
-    extractColor = ExtractColorChannelArray[sourceChannel];
-  }
-
-  int w=width(), h=height();
-  int imgW = img.width(), imgH = img.height();
-  QRgb* targetScanLine;
-  for(int j=0; j<h; ++j) {
-    targetScanLine = (QRgb*)_image->scanLine(h-j-1);
-    if(targetChannel==NoChannel) {
-      for(int i=0; i<w; ++i) {
-        int ip = t.invertX(i, j);
-        int jp = t.invertY(i, j);
-        if(ip>=0 && ip<imgW && jp>=0 && jp<imgH) {
-          targetScanLine[i] = img._image->pixel(ip, imgH-jp-1);
-        }
-      }
-    } else if(targetChannel==RedChannel) {
-      for(int i=0; i<w; ++i) {
-        int ip = t.invertX(i, j);
-        int jp = t.invertY(i, j);
-        if(ip>=0 && ip<imgW && jp>=0 && jp<imgH) {
-          targetScanLine[i] = qRgba((*extractColor)(img._image->pixel(ip, imgH-jp-1)), qGreen(targetScanLine[i]), qBlue(targetScanLine[i]), qAlpha(targetScanLine[i]));
-        }
-      }
-    } else if(targetChannel==GreenChannel) {
-      for(int i=0; i<w; ++i) {
-        int ip = t.invertX(i, j);
-        int jp = t.invertY(i, j);
-        if(ip>=0 && ip<imgW && jp>=0 && jp<imgH) {
-          targetScanLine[i] = qRgba(qRed(targetScanLine[i]), (*extractColor)(img._image->pixel(ip, imgH-jp-1)), qBlue(targetScanLine[i]), qAlpha(targetScanLine[i]));
-        }
-      }
-    } else if(targetChannel==BlueChannel) {
-      for(int i=0; i<w; ++i) {
-        int ip = t.invertX(i, j);
-        int jp = t.invertY(i, j);
-        if(ip>=0 && ip<imgW && jp>=0 && jp<imgH) {
-          targetScanLine[i] = qRgba(qRed(targetScanLine[i]), qGreen(targetScanLine[i]), (*extractColor)(img._image->pixel(ip, imgH-jp-1)), qAlpha(targetScanLine[i]));
-        }
-      }
-    } else if(targetChannel==AlphaChannel) {
-      for(int i=0; i<w; ++i) {
-        int ip = t.invertX(i, j);
-        int jp = t.invertY(i, j);
-        if(ip>=0 && ip<imgW && jp>=0 && jp<imgH) {
-          targetScanLine[i] = qRgba(qRed(targetScanLine[i]), qGreen(targetScanLine[i]), qBlue(targetScanLine[i]), (*extractColor)(img._image->pixel(ip, imgH-jp-1)));
-        }
-      }
-    }
-  }
 }
 
 QtRasterImage QtRasterImage::scaled(int width, int height) {

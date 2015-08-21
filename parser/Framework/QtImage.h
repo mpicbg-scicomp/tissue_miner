@@ -7,7 +7,6 @@
 
 #include "Color.h"
 #include "AbstractCanvas.h"
-#include "AbstractField.h"
 
 class MyQColor : public QColor {
 public:
@@ -43,9 +42,7 @@ public:
   void drawEmptyCircle(const Vector2D &mid, const double radius, const Color &col, const double thickness=1.0) { drawEmptyCircle(mid.x(), mid.y(), radius, col, thickness); }
   void drawEllipse(const Vector2D &mid, const double radius1, const double radius2, const double angle, const Color &col) { drawEllipse(mid.x(), mid.y(), radius1, radius2, angle, col); }
 
-  void drawScalarArray(const MatrixTransformation &trafo, const AbstractScalarArray &a, const ColorBar &Cb=Rainbow, const unsigned char AlphaValue=0x80);
-  void drawVector2DArray(const IsotropicTransformation &trafo, const AbstractVector2DArray &a, const bool normalized=true, const Color &Col=Blue, const Color &HeadCol=Red, const double RelLength=0.9, const double RelWidth=0.35);
-  
+ 
 protected:
   virtual double yTransformation(const double y) const = 0;
 

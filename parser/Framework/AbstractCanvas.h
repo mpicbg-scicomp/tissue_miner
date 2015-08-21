@@ -3,7 +3,6 @@
 
 #include "Color.h"
 #include "Object2D.h"
-#include "AbstractField.h"
 
 // small y at the bottom...
 class AbstractCanvas {
@@ -24,8 +23,6 @@ public:
     drawBar(mid-v, mid+v, col, size);
   }
   virtual void drawLine(const Vector2D &r1, const Vector2D &r2, const Color &col) { drawLineD(r1.x(), r1.y(), r2.x(), r2.y(), col);  }
- 
-  void drawNematic2DArray(const IsotropicTransformation &trafo, const AbstractNematic2DArray &a, const bool normalized=true, const Color &Col=Green, const double RelativeLength=0.9, const double RelWidth=0.12);
  
   bool isInsideImage(Vector2D v) {
     return (v.x()>=0) && (v.y()>=0) && (v.x()<width()) && (v.y()<height());

@@ -11,11 +11,16 @@
 #include <set>
 #include <vector>
 #include "PixelFrame.h"
-#include "WrongPixelFrameException.h"
 
 /** cell index type */
 typedef unsigned int PixelValue;
 
+class WrongPixelFrameException : public std::exception {
+  virtual const char* what() const throw() {
+    return "Wrong pixel frame!";
+  }
+};
+    
 /** class for containing and managing pixel positions */
 class Pixel {
 public:
@@ -83,12 +88,6 @@ public:
   static const PixelValue OutsideCanvasValue;
   static const PixelValue DividingCellValue;
   
-  /**
-   * Go to the neighbor pixel which is also neighbor of the cw-most pixel with value v. *this becomes the cw-most pixel with that property.
-   * @param v
-   * @return true if everything is consistent.
-   */
-//  bool goToLastCommonNeighboringBondPixelInCwOrientation(const PixelValue v);
   /**
    * Returns the neighbor index of the pixel which is also neighbor of the cw-most pixel with value v. Also, returns the set of neighboring cell ids.
    * @param neighbors set of neighboring cell ids

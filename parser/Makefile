@@ -5,25 +5,20 @@ LDFLAGS = -O3
 
 DEPS_FILE = Makefile.deps
 EXECUTABLE = imageParser
-# format: yymmdd-cc; y-year, m-month, d-day, c-count
-VERSION = 150430-01
+VERSION = 150820-01
 
 MAIN_FILE = Mainfiles/$(EXECUTABLE).cpp
 
-SRCS = Framework/Color.cpp Framework/Matrix2x2.cpp Framework/Transformation.cpp Framework/AbstractCanvas.cpp Framework/AbstractRasterCanvas.cpp Framework/QtImage.cpp Framework/QtRasterImage.cpp Framework/QtVectorImage.cpp Framework/MovieData.cpp \
-Parser/LogCellNumber.cpp Parser/LogDualMarginDeformation.cpp Parser/Cell.cpp Parser/LogDualMarginState.cpp Parser/LogFile.cpp Parser/TissueState.cpp Parser/LogTriangleDeformation.cpp Parser/DeformingTissue.cpp Parser/LogTriangleState.cpp Parser/Triangle.cpp Parser/DirectedBond.cpp Parser/Vertex.cpp Parser/LogBondTriangleState.cpp Parser/Pixel.cpp Parser/LogCellNumberChange.cpp Parser/PixelFrame.cpp
+SRCS = Framework/Color.cpp Framework/AbstractCanvas.cpp Framework/AbstractRasterCanvas.cpp Framework/QtImage.cpp Framework/QtRasterImage.cpp Framework/MovieData.cpp \
+Parser/TissueState.cpp Parser/DeformingTissue.cpp Parser/Pixel.cpp Parser/PixelFrame.cpp Parser/LogFile.cpp
 
 ALL_SRCS = $(MAIN_FILE) $(SRCS) $(C_SRCS)
 
-INCDIRS = -I/home/mmpi/include
-# LIBDIRS = -L/home/mmpi/lib
-DEFINES = -DPROGRAMNAME=\"$(EXECUTABLE)\" -DVERSION=\"$(VERSION)\" -DUSE_NETCDF
-# DEFINES = -DPROGRAMNAME=\"$(EXECUTABLE)\"
+DEFINES = -DPROGRAMNAME=\"$(EXECUTABLE)\" -DVERSION=\"$(VERSION)\"
 INCDIRS = -IFramework -IParser -I/usr/include/qt4
 LIBDIRS =
 HEADERS = $(shell find . -name "*.h")
-LIBS = -lnetcdf_c++ -lnetcdf -lQtGui -lQtCore -lm 
-# LIBS = -lQtGui -lQtCore -lm
+LIBS = -lQtGui -lQtCore -lm
 OBJS = Mainfiles/$(EXECUTABLE).o $(SRCS:.cpp=.o)
 
 all: $(EXECUTABLE)

@@ -5,7 +5,6 @@
 #include <Qt/QtGui>
 
 #include "Color.h"
-#include "Transformation.h"
 #include "QtImage.h"
 #include "AbstractRasterCanvas.h"
 
@@ -15,7 +14,6 @@ public:
   QtRasterImage();
   QtRasterImage(const char filename[]);
   QtRasterImage(const int width, const int height);
-  QtRasterImage(const QtRasterImage &img);
   ~QtRasterImage();
 
   bool valid() const { return _valid; }
@@ -52,7 +50,6 @@ public:
     QtImage::drawLineD(x1, y1, x2, y2, col);
   }
   virtual void drawPixel(const int i, const int j, const Color &col);
-  void blend(const MatrixTransformation &t, const QtRasterImage &img, const ColorChannel targetChannel=NoChannel, const ColorChannel sourceChannel=NoChannel);
   QtRasterImage scaled(int width, int height);
   
 protected:

@@ -2,7 +2,6 @@
 #include <math.h>
 
 #include "AbstractCanvas.h"
-#include "AbstractField.h"
 
 
 // adopted from Doug
@@ -33,17 +32,3 @@ void AbstractCanvas::drawBarD(const double x1, const double y1, const double x2,
   drawLineD(x1, y1, x2, y2, col);
 }
 
-
-void AbstractCanvas::drawNematic2DArray(const IsotropicTransformation &trafo, const AbstractNematic2DArray &a, const bool normalized, const Color &Col, const double RelativeLength, const double RelWidth) {
-  const double NematicLength = RelativeLength*a.grid().minBoxSize()*fabs(trafo.scale());
-  const double BarSize = RelWidth*a.grid().minBoxSize()*fabs(trafo.scale());
-  for(int i=0; i<a.grid().numBoxesX(); ++i) {
-    for(int j=0; j<a.grid().numBoxesY(); ++j) {
-      if(a.valid(i,j)) {
-        Nematic2D n(a(i,j));
-        n = nematicFromAngleAndNorm(trafo.mapAngle(n.angle()), normalized?1.0:n.norm());
-        drawBar(trafo.map(a.grid().boxMid(i,j)), NematicLength*n, Col, BarSize);
-      }
-    }
-  }  
-}
