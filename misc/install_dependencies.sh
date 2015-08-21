@@ -56,7 +56,7 @@ make
 #### install image parser dependencies
 
 # netcds http://askubuntu.com/questions/79418/installing-netcdf
-sudo apt-get install --assume-yes libnetcdf-dev
+#sudo apt-get install --assume-yes libnetcdf-dev
 # see http://askubuntu.com/questions/382444/qt-headers-and-libraries-not-found
 sudo apt-get install --assume-yes qt4-dev-tools libqt4-core
 #sudo apt-get install libqt4-dev libqt4-opengl-dev libqtwebkit-dev qt4-linguist-tools qt4-qmake
