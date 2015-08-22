@@ -168,116 +168,146 @@ align_movie_start <- function(movieData, moviesDirs){
 
 mqf_cell_counts <- function(movieDb, movieDbDir, rois){
   
-  cells <- dbGetQuery(movieDb, "select cell_id, frame from cells where frame & cell_id!=10000")
-  cellsRoiFilt <- addRois(cells, movieDbDir) %>% filter(roi %in% rois)
+  queryResult <- dbGetQuery(movieDb, "select cell_id, frame from cells where frame & cell_id!=10000") %>%
+    addRois(., movieDbDir) 
   
+  if(length(rois)==0) rois = unique(queryResult$roi)
+
   ## filter for ROIs of interest
-  cellCount <- transform(with(cellsRoiFilt, as.data.frame(table(frame, roi=ac(roi)))), frame=as.numeric(levels(frame)))
-  cellCount <- addTimeFunc(movieDb, cellCount)
+  cellCount <- transform(with(queryResult %>% filter(roi %in% rois), as.data.frame(table(frame, roi=ac(roi)))), frame=as.numeric(levels(frame))) %>%
+    addTimeFunc(movieDb, .)
+  
   return(cellCount)
 }
 
-mqf_avg_cell_area <- function(movieDb, movieDbDir){
+mqf_avg_cell_area <- function(movieDb, movieDbDir, rois){
   
-  cells <- dbGetQuery(movieDb, "select cell_id, frame, area from cells where cell_id!=10000")
-  cellsRoiFilt <- addRois(cells, movieDbDir)
+  queryResult <- dbGetQuery(movieDb, "select cell_id, frame, area from cells where cell_id!=10000") %>%
+    addRois(., movieDbDir)
   
-  area <- as.df(data.table(cellsRoiFilt)[, list(area.avg=mean(area, na.rm=T), area.sum=sum(area, na.rm=T), nbcell=length(cell_id)), by=c("roi", "frame")])
-  area <- addTimeFunc(movieDb, area)
+  if(length(rois)==0) rois = unique(queryResult$roi)
+  
+  area <- queryResult %>%
+    filter(roi %in% rois) %>%
+    group_by(roi, frame) %>%
+    summarise(area.avg=mean(area, na.rm=T), area.sum=sum(area, na.rm=T), nbcell=length(cell_id)) %>%
+    addTimeFunc(movieDb, .)
+    
   return(area)
 }
 
-mqf_cell_area_cell <- function(movieDb, movieDbDir){
+mqf_cell_area <- function(movieDb, movieDbDir, rois=c()){
   
-  cells <- dbGetQuery(movieDb, "select cell_id, frame, area from cells where cell_id!=10000")
-  cellsRoiFilt <- addRois(cells, movieDbDir)
+  queryResult <- dbGetQuery(movieDb, "select cell_id, frame, area from cells where cell_id!=10000") %>%
+  addRois(., movieDbDir)
   
-  area <- addTimeFunc(movieDb, cellsRoiFilt)
+  if(length(rois)==0) rois = unique(queryResult$roi)
+ 
+  area <- queryResult %>%
+    filter(roi %in% rois) %>%
+    addTimeFunc(movieDb, .)
+  
   return(area)
 }
 
-mqf_avg_cell_neighbor_counts <- function(movieDb, movieDbDir){
+mqf_avg_cell_neighbor_counts <- function(movieDb, movieDbDir, rois=c()){
   
-  topoChangeSummary <- local(get(load(file.path(movieDbDir, "topochanges/topoChangeSummary.RData"))))
-  topoChangeSummaryRoi <- addRois(topoChangeSummary, movieDbDir)
+  queryResult <- local(get(load(file.path(movieDbDir, "topochanges/topoChangeSummary.RData")))) %>%
+    addRois(., movieDbDir)
   
-  ## Why does dplyr discard frame and roi ?  
-  #   neighborCount <- as.df(group_by(topoChangeSummaryRoi, roi, frame) %>% summarise(avg_num_neighbors=mean(num_neighbors_t)))
-  neighborCount <- as.df(data.table(topoChangeSummaryRoi)[, list(avg_num_neighbors=mean(num_neighbors_t)), by=c("roi", "frame")])
-  neighborCount <- addTimeFunc(movieDb,neighborCount)
+  if(length(rois)==0) rois = unique(queryResult$roi)
+  
+  neighborCount <- queryResult %>%
+    filter(roi %in% rois) %>%
+    group_by(roi,frame) %>%
+    summarise(avg_num_neighbors=mean(num_neighbors_t)) %>%
+    addTimeFunc(movieDb, .)
+    
   return(neighborCount)
 }
 
-mqf_avg_polygon_class <- function(movieDb, movieDbDir){
+mqf_avg_polygon_class <- function(movieDb, movieDbDir, rois=c()){
   
-  pgClass <- local(get(load(file.path(movieDbDir, "polygon_class/pgClass.RData"))))
-  pgClassByRoi <- arrange(addRois(pgClass, movieDbDir), frame)
+  queryResult <- local(get(load(file.path(movieDbDir, "polygon_class/pgClass.RData")))) %>%
+    addRois(., movieDbDir) %>%
+    arrange(frame)
   
-  pgClassCountByFrame <- with(pgClassByRoi, data.frame(table(frame,roi,polygon_class )))
-  cellCountByFrame <-with(pgClassByRoi, data.frame(table(frame,roi)))
+  if(length(rois)==0) rois = unique(queryResult$roi)
   
-  pgClassSummary <- dt.merge(with(pgClassCountByFrame, data.frame(frame=as.integer(frame),roi,polygon_class, pgFreq=Freq)), with(cellCountByFrame, data.frame(frame=as.integer(frame),roi, nbcell=Freq)), by=c("frame","roi"))
-  pgClassSummary <- addTimeFunc(movieDb,pgClassSummary)
+  pgClassCountByFrame <- with(queryResult %>% filter(roi %in% rois) , data.frame(table(frame,roi,polygon_class )))
+  cellCountByFrame <-with(queryResult %>% filter(roi %in% rois), data.frame(table(frame,roi)))
+  
+  pgClassSummary <- dt.merge(with(pgClassCountByFrame, data.frame(frame=as.integer(frame),roi,polygon_class, pgFreq=Freq)), with(cellCountByFrame, data.frame(frame=as.integer(frame),roi, nbcell=Freq)), by=c("frame","roi")) %>%
+    addTimeFunc(movieDb,.)
   
   return(pgClassSummary)
 }
 
-mqf_avg_cell_elongDB <- function(movieDb, movieDbDir){
+mqf_avg_cell_elongDB <- function(movieDb, movieDbDir, rois=c()){
   
-  cells <- dbGetQuery(movieDb, "select cell_id, frame, elong_xx, elong_xy from cells where cell_id!=10000")
-  cellsRoiFilt <- addRois(cells, movieDbDir)
+  queryResult <- dbGetQuery(movieDb, "select cell_id, frame, elong_xx, elong_xy from cells where cell_id!=10000") %>%
+    addRois(., movieDbDir)
+
+  if(length(rois)==0) rois = unique(queryResult$roi)
   
-  avgElong <- as.df(data.table(cellsRoiFilt)[, list(elong_xx.avg=mean(elong_xx, na.rm=T), elong_xy.avg=mean(elong_xy, na.rm=T)), by=c("roi", "frame")])
-  avgElong <- arrange(avgElong, roi, frame)
-  # avgElong <- as.df(data.table(avgElong)[, elong_xx.ma:=ma(elong_xx.avg), by=c("roi")])
-  # avgElong <- as.df(data.table(avgElong)[, elong_xy.ma:=ma(elong_xy.avg), by=c("roi")])
-  avgElong <- addTimeFunc(movieDb, avgElong)
-  # WHY is ma() not working in ddply ??????    
-  #     avgElong <- ddply(avgElong, .(roi), transform, elong_xx.ma=ma(elong_xx.avg), elong_xy.ma=ma(elong_xy.avg))
+  avgElong <- queryResult %>%
+    filter(roi %in% rois) %>%
+    group_by(roi,frame) %>%
+    summarise(elong_xx.avg=mean(elong_xx, na.rm=T), elong_xy.avg=mean(elong_xy, na.rm=T)) %>%
+    arrange(roi, frame) %>%
+    addTimeFunc(movieDb, .)
+  
   return(avgElong)
 }
 
 
-mqf_cell_elongDB <- function(movieDb, movieDbDir){
+mqf_cell_elongDB <- function(movieDb, movieDbDir, rois=c()){
   
-  cells <- dbGetQuery(movieDb, "select cell_id, frame, center_x, center_y, elong_xx, elong_xy from cells where cell_id!=10000")
-  cellsRoiFilt <- addRois(cells, movieDbDir)
+  queryResult <- dbGetQuery(movieDb, "select cell_id, frame, center_x, center_y, elong_xx, elong_xy from cells where cell_id!=10000") %>%
+    addRois(., movieDbDir)
   
-  cellsRoiFilt <- addTimeFunc(movieDb, cellsRoiFilt)
+  if(length(rois)==0) rois = unique(queryResult$roi)
   
-  return(cellsRoiFilt)
+  cellElong <- queryResult %>%
+    filter(roi %in% rois) %>%
+    addTimeFunc(movieDb, .)
+  
+  return(cellElong)
 }
 
-mqf_avg_triangle_elong <- function(movieDb, movieDbDir){
+mqf_avg_triangle_elong <- function(movieDb, movieDbDir, rois=c()){
   
-  allRoiData <- ldply(list.files(movieDbDir, "avgDeformTensorsWide.RData", full.names=TRUE, recursive=T), addRoiByDir)  %>%
-    subset(., select=c(frame, roi, Q_xx, Q_xy))
+  queryResult <- ldply(list.files(movieDbDir, "avgDeformTensorsWide.RData", full.names=TRUE, recursive=T), addRoiByDir)  %>%
+    select(frame, roi, Q_xx, Q_xy)
   
-  pooledCEstate <- subset(allRoiData, roi %in% selectedRois)
+  if(length(rois)==0) rois = unique(queryResult$roi)
   
-  pooledCEstate <- addTimeFunc(movieDb, pooledCEstate)
+  pooledCEstate <- queryResult %>%
+    filter(roi %in% rois) %>%
+    addTimeFunc(movieDb, .)
   
   return(pooledCEstate)
 }
 
 
-mqf_triangle_elong <- function(movieDb, movieDbDir){
+mqf_triangle_elong <- function(movieDb, movieDbDir, rois=c()){
   
-  allRoiData <- ldply(list.files(movieDbDir, "Ta_t.RData", full.names=TRUE, recursive=T), addRoiByDir)
+  queryResult <- ldply(list.files(movieDbDir, "Ta_t.RData", full.names=TRUE, recursive=T), addRoiByDir)
+  
+  if(length(rois)==0) rois = unique(queryResult$roi)
   
   # add frame to triangle data
   filepath <- file.path(movieDbDir, "shear_contrib", "triList.RData")
   allRoiData <- with(local(get(load(filepath))), data.frame(frame, tri_id)) %>% 
     filter(!duplicated(tri_id)) %>%
-    dt.merge(., allRoiData, by="tri_id")
-  
-  allRoiData <- subset(allRoiData, roi %in% selectedRois)
-  allRoiData <-  addTimeFunc(movieDb, allRoiData)
+    dt.merge(., queryResult, by="tri_id") %>%
+    filter(roi %in% rois) %>%
+    addTimeFunc(movieDb, .)
   
   return(allRoiData)
 }
 
-lossRate <- function(movieDb, movieDbDir, lostType){
+lossRate <- function(movieDb, movieDbDir, rois, lostType){
   
   cellsInFrame   <- dbGetQuery(movieDb, "select cell_id, frame, area from cells where cell_id!=10000")
   cellinfo <- dbGetQuery(movieDb, "select * from cellinfo")
@@ -286,6 +316,10 @@ lossRate <- function(movieDb, movieDbDir, lostType){
   lossEventsInFrame <- dt.merge(cellsInFrame, lossEvents, all.x=T)
   
   lossEventsByRoi <- addRois(lossEventsInFrame, movieDbDir)
+  
+  if(length(rois)==0) rois = unique(lossEventsByRoi$roi)
+  
+  lossEventsByRoi <- filter(lossEventsByRoi, roi %in% rois)
   
   #   lossSummary <- as.df(group_by(lossEventsByRoi, roi, frame) %>% summarise(num_cells=length(cell_id), num_loss=sum(is_loss_next_frame, na.rm=T)))
   lossSummary <- as.df(data.table(lossEventsByRoi)[, list(num_cells=length(cell_id), num_loss=sum(is_loss_next_frame, na.rm=T), avg_cell_area=mean(area)), by=c("roi","frame")])
@@ -299,12 +333,12 @@ lossRate <- function(movieDb, movieDbDir, lostType){
   return(lossSummary)
 }
 
-mqf_rate_CD <- function(movieDb, movieDbDir) lossRate(movieDb, movieDbDir, "Division")
-mqf_rate_T2 <- function(movieDb, movieDbDir) lossRate(movieDb, movieDbDir, "Apoptosis")
+mqf_rate_CD <- function(movieDb, movieDbDir, rois=c()) lossRate(movieDb, movieDbDir, rois, "Division")
+mqf_rate_T2 <- function(movieDb, movieDbDir, rois=c()) lossRate(movieDb, movieDbDir, rois, "Apoptosis")
 
 
 ## Topo changes
-topoChangeRate <- function(movieDb, movieDbDir, countExpr){
+topoChangeRate <- function(movieDb, movieDbDir, rois, countExpr){
   #todo don't query and don't use multi-query and infer cell counts directrly from the topochange data.
   cellsInFrame   <- dbGetQuery(movieDb, "select cell_id, frame from cells where cell_id!=10000")
   topoChangeSummary <- local(get(load(file.path(movieDbDir, "topochanges/topoChangeSummary.RData"))))
@@ -316,6 +350,10 @@ topoChangeRate <- function(movieDb, movieDbDir, countExpr){
   topoEventsInFrame <- dt.merge(cellsInFrame, topoEvents)
   
   topoEventsByRoi <- addRois(topoEventsInFrame, movieDbDir)
+  
+  if(length(rois)==0) rois = unique(topoEventsByRoi$roi)
+  
+  topoEventsByRoi <- filter(topoEventsByRoi, roi %in% rois)
   
   ## todo do we double count events here?
   #   topoSummary <- as.df(group_by(topoEventsByRoi, roi, frame) %>% summarise(num_cells=length(cell_id), num_topo=sum(topo_sum, na.rm=T))) #, cumsum_topo=cumsum(topo_sum)
@@ -330,15 +368,20 @@ topoChangeRate <- function(movieDb, movieDbDir, countExpr){
   return(topoSummary)
 }
 
-mqf_rate_T1 <- function(movieDb, movieDbDir) topoChangeRate(movieDb, movieDbDir, 0.5*(num_t1_gained+num_t1_lost))
-mqf_rateT1Balance <- function(movieDb, movieDbDir) topoChangeRate(movieDb, movieDbDir, 0.5*(num_t1_gained-num_t1_lost))
+mqf_rate_T1 <- function(movieDb, movieDbDir, rois=c()) topoChangeRate(movieDb, movieDbDir, rois, 0.5*(num_t1_gained+num_t1_lost))
+mqf_rateT1Balance <- function(movieDb, movieDbDir, rois=c()) topoChangeRate(movieDb, movieDbDir, rois, 0.5*(num_t1_gained-num_t1_lost))
 
 
 
-mqf_rate_isotropic_contrib <- function(movieDb, movieDbDir){
+mqf_rate_isotropic_contrib <- function(movieDb, movieDbDir, rois=c()){
   # calculate cell number, area, area change per roi and frame
-  cells <- dbGetQuery(movieDb, "select frame, cell_id,area from cells where cell_id!=10000")
-  cellsRoiFilt <- addRois(cells, movieDbDir) %>%
+  queryResult <- dbGetQuery(movieDb, "select frame, cell_id,area from cells where cell_id!=10000") %>%
+  addRois(., movieDbDir)
+  
+  if(length(rois)==0) rois = unique(queryResult$roi)
+    
+  cellsRoiFilt  <- queryResult %>%
+    filter(roi %in% rois) %>%
     group_by(frame, roi) %>%
     summarise(cell_nb=length(cell_id),
               avg_area=mean(area),
@@ -352,9 +395,13 @@ mqf_rate_isotropic_contrib <- function(movieDb, movieDbDir){
            frame=frame+1) # assign change to the "next" frame (tp1)
   
   # Calculate number of divisions, extrusions
-  cellinfo <- dbGetQuery(movieDb, "select * from cellinfo where cell_id!=10000")
-  cellinfoRoiFilt <- addRois(cellinfo, movieDbDir)
-  divExtrFrameSummary <- cellinfoRoiFilt %>%
+  queryResult <- dbGetQuery(movieDb, "select * from cellinfo where cell_id!=10000") %>%
+    addRois(., movieDbDir)
+  
+  if(length(rois)==0) rois = unique(queryResult$roi)
+  
+  divExtrFrameSummary <- queryResult %>%
+    filter(roi %in% rois) %>%
     group_by(roi,last_occ) %>%
     summarise(division_nb=sum(ifelse(lost_by=="Division", 1, 0)),
               extrusion_nb=sum(ifelse(lost_by=="Apoptosis", 1, 0)),

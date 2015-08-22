@@ -1,14 +1,15 @@
 
 
-mqf_rateShear <- function(movieDb, movieDbDir){
+mqf_rate_shear <- function(movieDb, movieDbDir, rois=c()){
   
-  pooledShear <- ldply(list.files(movieDbDir, "avgDeformTensorsLong.RData", full.names=TRUE, recursive=T), addRoiByDir)
+  queryResult <- ldply(list.files(movieDbDir, "avgDeformTensorsLong.RData", full.names=TRUE, recursive=T), addRoiByDir)
   
-  pooledShear <- subset(pooledShear, roi %in% selectedRois)
+  if(length(rois)==0) rois = unique(queryResult$roi)
   
-  pooledShear <- addTimeFunc(movieDb, pooledShear)
+  pooledShear <- filter(queryResult, roi %in% rois) %>%
+    addTimeFunc(movieDb, .) %>%
+    arrange(frame)
   
-  pooledShear <- arrange(pooledShear, frame)
   ShearRateByRoi <- as.df(data.table(pooledShear)[, ":=" (xx.ma=ma(xx)/(ma(timeInt_sec)/3600),
                                                           xy.ma=ma(xy)/(ma(timeInt_sec)/3600),
                                                           yx.ma=ma(yx)/(ma(timeInt_sec)/3600),
