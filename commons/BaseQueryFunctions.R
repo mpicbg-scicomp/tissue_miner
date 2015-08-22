@@ -132,7 +132,7 @@ addRois <-function(data, movieDbDir){
 calcRefTime <- function(movies){ get_movie_time_shift(movies) %$% max(time_shift) }
 
 ## Apply a time offset such that the counting starts at the min common time point of the selected movies
-filterCumSum <- function(movieData, moviesDirs){
+align_movie_start <- function(movieData, moviesDirs){
   
   movies <- ac(unique(movieData$movie))
   refTime <- calcRefTime(movies)
@@ -166,7 +166,7 @@ filterCumSum <- function(movieData, moviesDirs){
 # Add time from DB
 # returns df
 
-mqf_cellCountsByFrame <- function(movieDb, movieDbDir, rois){
+mqf_cell_counts <- function(movieDb, movieDbDir, rois){
   
   cells <- dbGetQuery(movieDb, "select cell_id, frame from cells where frame & cell_id!=10000")
   cellsRoiFilt <- addRois(cells, movieDbDir) %>% filter(roi %in% rois)
@@ -177,7 +177,7 @@ mqf_cellCountsByFrame <- function(movieDb, movieDbDir, rois){
   return(cellCount)
 }
 
-mqf_cellArea <- function(movieDb, movieDbDir){
+mqf_avg_cell_area <- function(movieDb, movieDbDir){
   
   cells <- dbGetQuery(movieDb, "select cell_id, frame, area from cells where cell_id!=10000")
   cellsRoiFilt <- addRois(cells, movieDbDir)
@@ -187,7 +187,7 @@ mqf_cellArea <- function(movieDb, movieDbDir){
   return(area)
 }
 
-mqf_cellAreaByCell <- function(movieDb, movieDbDir){
+mqf_cell_area_cell <- function(movieDb, movieDbDir){
   
   cells <- dbGetQuery(movieDb, "select cell_id, frame, area from cells where cell_id!=10000")
   cellsRoiFilt <- addRois(cells, movieDbDir)
@@ -196,7 +196,7 @@ mqf_cellAreaByCell <- function(movieDb, movieDbDir){
   return(area)
 }
 
-mqf_cellNeighborCounts <- function(movieDb, movieDbDir){
+mqf_avg_cell_neighbor_counts <- function(movieDb, movieDbDir){
   
   topoChangeSummary <- local(get(load(file.path(movieDbDir, "topochanges/topoChangeSummary.RData"))))
   topoChangeSummaryRoi <- addRois(topoChangeSummary, movieDbDir)
@@ -208,7 +208,7 @@ mqf_cellNeighborCounts <- function(movieDb, movieDbDir){
   return(neighborCount)
 }
 
-mqf_pgClass <- function(movieDb, movieDbDir){
+mqf_avg_polygon_class <- function(movieDb, movieDbDir){
   
   pgClass <- local(get(load(file.path(movieDbDir, "polygon_class/pgClass.RData"))))
   pgClassByRoi <- arrange(addRois(pgClass, movieDbDir), frame)
@@ -222,15 +222,15 @@ mqf_pgClass <- function(movieDb, movieDbDir){
   return(pgClassSummary)
 }
 
-mqf_avgCellElongDB <- function(movieDb, movieDbDir){
+mqf_avg_cell_elongDB <- function(movieDb, movieDbDir){
   
   cells <- dbGetQuery(movieDb, "select cell_id, frame, elong_xx, elong_xy from cells where cell_id!=10000")
   cellsRoiFilt <- addRois(cells, movieDbDir)
   
   avgElong <- as.df(data.table(cellsRoiFilt)[, list(elong_xx.avg=mean(elong_xx, na.rm=T), elong_xy.avg=mean(elong_xy, na.rm=T)), by=c("roi", "frame")])
   avgElong <- arrange(avgElong, roi, frame)
-  avgElong <- as.df(data.table(avgElong)[, elong_xx.ma:=ma(elong_xx.avg), by=c("roi")])
-  avgElong <- as.df(data.table(avgElong)[, elong_xy.ma:=ma(elong_xy.avg), by=c("roi")])
+  # avgElong <- as.df(data.table(avgElong)[, elong_xx.ma:=ma(elong_xx.avg), by=c("roi")])
+  # avgElong <- as.df(data.table(avgElong)[, elong_xy.ma:=ma(elong_xy.avg), by=c("roi")])
   avgElong <- addTimeFunc(movieDb, avgElong)
   # WHY is ma() not working in ddply ??????    
   #     avgElong <- ddply(avgElong, .(roi), transform, elong_xx.ma=ma(elong_xx.avg), elong_xy.ma=ma(elong_xy.avg))
@@ -238,7 +238,7 @@ mqf_avgCellElongDB <- function(movieDb, movieDbDir){
 }
 
 
-mqf_cellElongDB <- function(movieDb, movieDbDir){
+mqf_cell_elongDB <- function(movieDb, movieDbDir){
   
   cells <- dbGetQuery(movieDb, "select cell_id, frame, center_x, center_y, elong_xx, elong_xy from cells where cell_id!=10000")
   cellsRoiFilt <- addRois(cells, movieDbDir)
@@ -248,7 +248,7 @@ mqf_cellElongDB <- function(movieDb, movieDbDir){
   return(cellsRoiFilt)
 }
 
-mqf_avgCellElongationTri <- function(movieDb, movieDbDir){
+mqf_avg_triangle_elong <- function(movieDb, movieDbDir){
   
   allRoiData <- ldply(list.files(movieDbDir, "avgDeformTensorsWide.RData", full.names=TRUE, recursive=T), addRoiByDir)  %>%
     subset(., select=c(frame, roi, Q_xx, Q_xy))
@@ -261,7 +261,7 @@ mqf_avgCellElongationTri <- function(movieDb, movieDbDir){
 }
 
 
-mqf_cellElongationTri <- function(movieDb, movieDbDir){
+mqf_triangle_elong <- function(movieDb, movieDbDir){
   
   allRoiData <- ldply(list.files(movieDbDir, "Ta_t.RData", full.names=TRUE, recursive=T), addRoiByDir)
   
@@ -299,8 +299,8 @@ lossRate <- function(movieDb, movieDbDir, lostType){
   return(lossSummary)
 }
 
-mqf_rateCD <- function(movieDb, movieDbDir) lossRate(movieDb, movieDbDir, "Division")
-mqf_rateT2 <- function(movieDb, movieDbDir) lossRate(movieDb, movieDbDir, "Apoptosis")
+mqf_rate_CD <- function(movieDb, movieDbDir) lossRate(movieDb, movieDbDir, "Division")
+mqf_rate_T2 <- function(movieDb, movieDbDir) lossRate(movieDb, movieDbDir, "Apoptosis")
 
 
 ## Topo changes
@@ -330,12 +330,12 @@ topoChangeRate <- function(movieDb, movieDbDir, countExpr){
   return(topoSummary)
 }
 
-mqf_rateT1 <- function(movieDb, movieDbDir) topoChangeRate(movieDb, movieDbDir, 0.5*(num_t1_gained+num_t1_lost))
+mqf_rate_T1 <- function(movieDb, movieDbDir) topoChangeRate(movieDb, movieDbDir, 0.5*(num_t1_gained+num_t1_lost))
 mqf_rateT1Balance <- function(movieDb, movieDbDir) topoChangeRate(movieDb, movieDbDir, 0.5*(num_t1_gained-num_t1_lost))
 
 
 
-mqf_rateIsoContrib <- function(movieDb, movieDbDir){
+mqf_rate_isotropic_contrib <- function(movieDb, movieDbDir){
   # calculate cell number, area, area change per roi and frame
   cells <- dbGetQuery(movieDb, "select frame, cell_id,area from cells where cell_id!=10000")
   cellsRoiFilt <- addRois(cells, movieDbDir) %>%
