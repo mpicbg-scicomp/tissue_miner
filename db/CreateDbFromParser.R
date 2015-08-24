@@ -346,6 +346,7 @@ save(cellinfoDB, file="cellinfoDB.RData")
 ### that we actually use uuids
 if(length(unique(ubonds$ubond_id)) != nrow(ubonds)) stop("uuids broken for ubonds")  ## uuid test
 if(length(unique(vertices$vertex_id)) != nrow(vertices)) stop("uuids broken for ubonds")  ## uuid test
+if(nrow(cellinfo) == 0) stop("failed to detect cell lineage and info")  ## uuid test
 
 rm(cells2) ## clean up
 
