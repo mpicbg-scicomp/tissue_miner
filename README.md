@@ -41,7 +41,7 @@ Second, just grab a copy of TissueMiner and run the setup procedure in a termina
     cd  ${TM_HOME}; git pull origin
     
     ## Install all required R packages
-    ${TM_HOME}/tissue_miner/Setup.R | tee tm_setup.log
+    ${TM_HOME}/Setup.R | tee tm_setup.log
     
     ## compile the parser needed to convert TissueAnalyzer outputs into csv
     cd ${TM_HOME}/parser && make
