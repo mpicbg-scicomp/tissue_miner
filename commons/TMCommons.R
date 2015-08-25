@@ -1,8 +1,8 @@
 
 ## Source common functions
-devtools::source_url("https://raw.githubusercontent.com/holgerbrandl/datautils/v1.11/R/core_commons.R")
-devtools::source_url("https://raw.githubusercontent.com/holgerbrandl/datautils/v1.11/R/ggplot_commons.R")
-devtools::source_url("https://raw.githubusercontent.com/holgerbrandl/datautils/v1.11/R/datatable_commons.R")
+devtools::source_url("https://raw.githubusercontent.com/holgerbrandl/datautils/v1.13/R/core_commons.R")
+devtools::source_url("https://raw.githubusercontent.com/holgerbrandl/datautils/v1.13/R/ggplot_commons.R")
+devtools::source_url("https://raw.githubusercontent.com/holgerbrandl/datautils/v1.13/R/datatable_commons.R")
 
 require.auto(sqldf)
 
