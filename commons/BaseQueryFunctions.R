@@ -133,11 +133,14 @@ calcRefTime <- function(movies){ get_movie_time_shift(movies) %$% max(time_shift
 
 ## Apply a time offset such that the counting starts at the min common time point of the selected movies
 align_movie_start <- function(movieData, moviesDirs){
-  
+  # browser()
   movies <- ac(unique(movieData$movie))
   refTime <- calcRefTime(movies)
-  timeTables <-  multiQuery(moviesDirs, "fakeROI", function(movieDb, movieDbDir){ addTimeFunc(movieDb, data.frame(frame=0:1000)) })
   
+  timeTables <-multi_db_query(moviesDirs, function(movieDb, movieDbDir){ 
+    time <- dbGetQuery(movieDb, "select * from timepoints")
+    timeInt <- cbind(time[-nrow(time),], timeInt_sec=diff(time$time_sec))  }) 
+
   ## apply alignment model
   closestFrameByMovie <- timeTables %>%
     mutate(time_algn=time_sec+time_shift) %>%
@@ -153,7 +156,6 @@ align_movie_start <- function(movieData, moviesDirs){
   
   return(mdCumSumFilt)
 }
-
 
 
 ####################################################################################################
