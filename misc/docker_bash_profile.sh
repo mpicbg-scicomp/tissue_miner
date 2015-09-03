@@ -19,8 +19,8 @@ export -f sm
 ## add the image parser to the path
 export PATH=${TM_HOME}/parser:$PATH
 
-## start virtual x-server
-Xvfb :1 -screen 0 1024x768x16 &> xvfb.log  &
-export DISPLAY=:1.0
+## start virtual x-server ## no longer needed
+#Xvfb :1 -screen 0 1024x768x16 &> xvfb.log  &
+#export DISPLAY=:1.0
 
-cd /movies
+#cd /movies

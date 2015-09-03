@@ -41,4 +41,6 @@ for originalPng in $(find $movieDbDir/Segmentation -name "original.png" | sort);
     fi
 done
 
-sem --wait
+if [ ! -z "$(which sem)" ]; then
+    sem --wait
+fi

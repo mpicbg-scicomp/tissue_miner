@@ -39,6 +39,7 @@ sudo apt-get install --assume-yes libav-tools
 ## install graphviz needed for snakemake graph rendering
 sudo apt-get install --assume-yes graphviz
 
+
 ## sem for image conversion (see http://askubuntu.com/questions/12764/where-do-i-get-a-package-for-gnu-parallel)
 #sudo apt-get install --assume-yes parallel
 sudo apt-get install --assume-yes wget
@@ -49,6 +50,8 @@ cd parallel*
 ./configure
 make clean
 make
+
+
 #sudo make install
 #./src/sem --bibtex
 # note added to PATH via .bash_profile in docker image

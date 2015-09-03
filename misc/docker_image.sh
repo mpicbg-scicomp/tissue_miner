@@ -12,14 +12,27 @@ docker build -t brandl/tissue_miner .
 #docker push brandl/tissue_miner
 
 
-docker run -t -i -v $(pwd)/example_movies:/movies brandl/tissue_miner /bin/bash --login -c "cd demo_ForTissueMiner; sm -j 5 all"
-docker run -t -i -v $(pwd)/example_movies:/movies brandl/tissue_miner /bin/bash --login
+#docker run --rm -ti -v $(pwd)/example_movies:/movies brandl/tissue_miner /bin/bash --login
+#docker run --rm -ti -v $(pwd)/example_movies:/movies brandl/tissue_miner /bin/bash --login -c "cd demo_ForTissueMiner; sm -j 5 all"
+#docker run --rm -ti -v $(pwd)/example_movies:/movies brandl/tissue_miner /bin/bash --login -c "source /.bash_profile; cd demo_ForTissueMiner; sm all"
+docker run --rm -t -i -v $(pwd)/example_movies:/movies -w /movies/demo_ForTissueMiner brandl/tissue_miner sm -n all
+docker run --rm -t -i -v $(pwd)/example_movies:/movies -w /movies/demo_ForTissueMiner brandl/tissue_miner sm -f tri_create
 
-docker run -t -i brandl/tissue_miner /bin/bash --login
 
 
-cd /Volumes/projects/project-raphael/scripts/tissue_miner
-git update-index --chmod=+x db/movie_rotation/transform_images.sh db/movie_rotation/RotateOriginals.sh
+docker run  --rm -ti brandl/tissue_miner /bin/bash --login
+
+## signal forwarding
+docker run --rm -ti -v $(pwd):/movies brandl/tissue_miner  /bin/bash --login -c "sleep 10000"
+docker run --rm -ti -v $(pwd):/movies brandl/tissue_miner  /bin/bash --login
+
+docker run --rm -ti -v $(pwd):/movies brandl/tissue_miner ls
+docker run --rm -ti -v $(pwd):/movies brandl/tissue_miner sm -n
+
+
+
+#cd /Volumes/projects/project-raphael/scripts/tissue_miner
+#git update-index --chmod=+x db/movie_rotation/transform_images.sh db/movie_rotation/RotateOriginals.sh
 
 #######################################################
 ### Start interactive docker session (skip for local installation)

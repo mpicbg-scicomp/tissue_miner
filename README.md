@@ -19,7 +19,7 @@ We provide a preconfigured [docker image](https://registry.hub.docker.com/u/bran
      
      ## download the image and start the analysis
      docker pull brandl/tissue_miner
-     docker run -t -i -v $(pwd)/example_movies:/movies brandl/tissue_miner /bin/bash --login -c "source /.bash_profile; cd demo_ForTissueMiner; sm all"
+     docker run --rm -ti -v $(pwd)/example_movies:/movies -w /movies/demo_ForTissueMiner brandl/tissue_miner sm -n all
      
 To run TissueMiner over your own data, you'll need to set the source directory containing your movie directories and to replace the example movie name with your movie/directory of interest.
 
