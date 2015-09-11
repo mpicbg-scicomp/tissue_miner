@@ -84,11 +84,9 @@ render_source_image <- function(frame, img=readMovieImg(frame), squareRoi=rbind(
   if(adjustRoi[1,2] > dim(img)[2]) adjustRoi[1,2] <- dim(img)[2]
   if(adjustRoi[2,2] > dim(img)[1]) adjustRoi[1,2] <- dim(img)[1]
   
-  ## todo better flip image here instead flipping y everywhere
   cropImg <- img[seq(adjustRoi[2,1], adjustRoi[2,2]), seq(adjustRoi[1,1], adjustRoi[1,2])]
   
   ggplot(data.frame(), aes(x=1, y=1)) +
-    # annotation_raster(cropImg,  -adjustRoi[1,1], adjustRoi[1,2], -adjustRoi[2,2], adjustRoi[2,1], interpolate=T) + # BUGGED !!!
     annotation_raster(cropImg,  adjustRoi[1,1], adjustRoi[1,2], -adjustRoi[2,1], -adjustRoi[2,2], interpolate=F) +
     scale_x_continuous(limits=adjustRoi[1,],expand=c(0,0)) +
     scale_y_continuous(limits=rev(adjustRoi[2,]), expand=c(0,0), trans = "reverse") +
