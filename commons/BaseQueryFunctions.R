@@ -46,8 +46,19 @@ openMovieDb <- function(movieDir){
 }
 
 
-mqf_cellCount <- function(movieDb){ data.frame(num_cells=dbGetQuery(movieDb, "select count(cell_id) from cellinfo")[1,1])}
-
+mqf_cell_count <- function(movieDb, movieDbDir, rois){
+  
+  queryResult <- dbGetQuery(movieDb, "select cell_id, frame from cells where frame & cell_id!=10000") %>%
+    addRois(., movieDbDir) 
+  
+  if(length(rois)==0) rois = unique(queryResult$roi)
+  
+  ## filter for ROIs of interest
+  cellCount <- transform(with(queryResult %>% filter(roi %in% rois), as.data.frame(table(frame, roi=ac(roi)))), frame=as.numeric(levels(frame))) %>%
+    addTimeFunc(movieDb, .)
+  
+  return(cellCount)
+}
 #mqf_cellCount_withRois <- function(movieDb, rois=c()){
 #    queryResult <- data.frame(num_cells=dbGetQuery(movieDb, "select count(cell_id) from cellinfo")[1,1])
 #
@@ -59,7 +70,7 @@ mqf_cellCount <- function(movieDb){ data.frame(num_cells=dbGetQuery(movieDb, "se
 #multiQuery(mqf_cellCount_withRois, mqf_cellCount_withRois)
 
 ## Master function to query multiple movies for comparison
-multi_db_query <- function(movieDirectories, queryFun=mqf_cellCount, ...){
+multi_db_query <- function(movieDirectories, queryFun=mqf_cell_count, ...){
   ## todo get hash of range and function and cache the results somewhere
   #    require.auto(foreach); require.auto(doMC); registerDoMC(cores=6)
   #   browser()
@@ -168,19 +179,7 @@ align_movie_start <- function(movieData, moviesDirs){
 # Add time from DB
 # returns df
 
-mqf_cell_counts <- function(movieDb, movieDbDir, rois){
-  
-  queryResult <- dbGetQuery(movieDb, "select cell_id, frame from cells where frame & cell_id!=10000") %>%
-    addRois(., movieDbDir) 
-  
-  if(length(rois)==0) rois = unique(queryResult$roi)
 
-  ## filter for ROIs of interest
-  cellCount <- transform(with(queryResult %>% filter(roi %in% rois), as.data.frame(table(frame, roi=ac(roi)))), frame=as.numeric(levels(frame))) %>%
-    addTimeFunc(movieDb, .)
-  
-  return(cellCount)
-}
 
 mqf_avg_cell_area <- function(movieDb, movieDbDir, rois){
   
@@ -445,4 +444,26 @@ mqf_rate_isotropic_contrib <- function(movieDb, movieDbDir, rois=c()){
   #     facet_wrap(~roi
   
   return(relIsoContribSmooth)
+}
+
+
+
+
+mqf_rate_shear <- function(movieDb, movieDbDir, rois=c()){
+  
+  queryResult <- ldply(list.files(movieDbDir, "avgDeformTensorsLong.RData", full.names=TRUE, recursive=T), addRoiByDir)
+  
+  if(length(rois)==0) rois = unique(queryResult$roi)
+  
+  pooledShear <- filter(queryResult, roi %in% rois) %>%
+    addTimeFunc(movieDb, .) %>%
+    arrange(frame)
+  
+  ShearRateByRoi <- as.df(data.table(pooledShear)[, ":=" (xx.ma=ma(xx)/(ma(timeInt_sec)/3600),
+                                                          xy.ma=ma(xy)/(ma(timeInt_sec)/3600),
+                                                          yx.ma=ma(yx)/(ma(timeInt_sec)/3600),
+                                                          yy.ma=ma(yy)/(ma(timeInt_sec)/3600),
+                                                          TimeInt.ma=as.numeric(ma(timeInt_sec))), by=c("roi", "tensor")])
+  
+  return(ShearRateByRoi)
 }
