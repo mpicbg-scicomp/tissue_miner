@@ -40,8 +40,8 @@ output:
 * **Tutorial layout**: the code is encapsulated in shaded grey boxes that delimit **code chunks**. The **resuts** are displayed immediately below in an open box in which all lines start with the ## sign. Within code chunks, **comments** are visible in green and are prefixed with at least a # sign. The comments indicate what the following code does. Here is an example:
 
 ```{r layout example, warning=FALSE, message=FALSE, echo=T}
-# This is a comment: the code below will print "Welcome in TissueMiner"
-print("Welcome in TissueMiner")
+# This is a comment: the code below will print "Welcome to TissueMiner"
+print("Welcome to TissueMiner")
 ```
 
 
