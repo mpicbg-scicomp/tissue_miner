@@ -62,10 +62,10 @@ render_source_image(0) + geom_polygon(aes(x_pos, y_pos, group=cell_id),  color='
 } #### DEBUG end
 
 ## trace lineage groups
-cells2lg <- dbGetQuery(db, "select cell_id, lin_group from cellinfo")
+cells2lg <- dbGetQuery(db, "select cell_id, lineage_group from cell_histories")
 lgBlue <- subset(cells2lg, cell_id %in% blueCells)
 
-csBlueOnly <- subset(dt.merge(cellshapes, cells2lg, by="cell_id"), lin_group %in% lgBlue$lin_group)
+csBlueOnly <- subset(dt.merge(cellshapes, cells2lg, by="cell_id"), lineage_group %in% lgBlue$lineage_group)
 csBlueOnly <- arrange(csBlueOnly, cell_id, frame, bond_order)
 
 render_movie(csBlueOnly, "blue_strip_tracking.mp4", geom_polygon(aes(x_pos, y_pos, group=cell_id), color="blue", alpha=0.5, fill=NA))
@@ -92,13 +92,13 @@ makeTrackGrid <- function(ref_frame=0){
         filter(isROI) %>%
         with(cell_id)
 
-    cells2lg <- dbGetQuery(db, "select cell_id, lin_group from cellinfo")
+    cells2lg <- dbGetQuery(db, "select cell_id, lineage_group from cell_histories")
 
     ## extrapolate to the whole movie and add cell shapes
     trackGrid <- cells2lg %>%
         ## trace lineage groups
         filter(cell_id %in% refFrameGrid) %>%
-        select(lin_group) %>%
+        select(lineage_group) %>%
         merge(cells2lg) %>%
         dt.merge(locload(file.path(movieDir, "cellshapes.RData"))) %>%
         restoreBondOrder()
@@ -135,7 +135,7 @@ cells0 <- mutate(cells0, stripe=round_any(center_x, strip_width, floor) )
 cellshapes <- local(get(load(file.path(movieDir, "cellshapes.RData"))))
 
 ## trace including lineage group
-cells2lg <- dbGetQuery(db, "select cell_id, lin_group from cellinfo")
+cells2lg <- dbGetQuery(db, "select cell_id, lineage_group from cell_histories")
 f0StripesLg <- dt.merge(cells2lg, with(cells0, data.frame(cell_id, stripe)))
 f0StripesLgSlim <- unique(subset(f0StripesLg, select=-cell_id))
 

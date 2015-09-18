@@ -72,8 +72,8 @@ roisTracked <- dt.merge(cellshapes, subset(roiCellsBT, roi=="whole_tissue"), by=
 roisTrackedRaw <- dt.merge(cellshapes, subset(roiCellsBTRaw, roi=="whole_tissue"), by="cell_id")
 render_frame(roisTracked, 229) + geom_polygon(aes(x_pos, y_pos, fill=roi, group=cell_id), alpha=0.5) + scale_fill_discrete(guide=F)
 
-#tt <- dt.merge(cellshapes, dbGetQuery(db, "select cell_id, gained_by, lost_by from cellinfo"), by="cell_id")
-#render_frame(subset(tt, gained_by!="Division"), 100)+ geom_polygon(aes(x_pos, y_pos, fill=gained_by, group=cell_id),  alpha=0.5)
+#tt <- dt.merge(cellshapes, dbGetQuery(db, "select cell_id, appears_by, disappears_by from cell_histories"), by="cell_id")
+#render_frame(subset(tt, appears_by!="Division"), 100)+ geom_polygon(aes(x_pos, y_pos, fill=appears_by, group=cell_id),  alpha=0.5)
 } #### DEBUG end
 
 rm(cellshapesWithLineage)

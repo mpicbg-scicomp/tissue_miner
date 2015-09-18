@@ -36,12 +36,12 @@ require.auto(graph)
 ### Optimize colors for division groups
 ########################################################################################################################
 
-dbonds <- dbGetQuery(db, "select cell_id, dbond_id, conj_dbond_id from dbonds")
+dbonds <- dbGetQuery(db, "select cell_id, dbond_id, conj_dbond_id from directed_bonds")
 #dbondsSlim <- with(dbonds, data.frame(frame, cell_id=cell_id, dbond_id))
 
 ## add division group
-lgGroupInfo <- dbGetQuery(db, "select cell_id, lin_group from cellinfo")
-#lgGroupInfo <- dbGetQuery(db, "select * from cellinfo")
+lgGroupInfo <- dbGetQuery(db, "select cell_id, lineage_group from cell_histories")
+#lgGroupInfo <- dbGetQuery(db, "select * from cell_histories")
 
 ## combine bonds with lineage group info
 dbondsWithLinInfo <- dt.merge(dbonds, lgGroupInfo, by="cell_id")
@@ -51,14 +51,14 @@ dbondsWithLinInfo <- subset(dbondsWithLinInfo, cell_id != 10000)
 neighbors <- dt.merge(dbondsWithLinInfo, plyr::rename(subset(dbondsWithLinInfo, select=-dbond_id), c(conj_dbond_id="dbond_id")), by=c("dbond_id"))
 
 ## reduce group interfaces per frame
-lgInterfaces <- with(neighbors, data.frame(lin_group.x, lin_group.y)) %>% subset(!duplicated(paste(lin_group.x, lin_group.y)))
+lgInterfaces <- with(neighbors, data.frame(lineage_group.x, lineage_group.y)) %>% subset(!duplicated(paste(lineage_group.x, lineage_group.y)))
 
-lgInterfcesNoDup <- subset(lgInterfaces, ac(lin_group.x) > ac(lin_group.y))
+lgInterfcesNoDup <- subset(lgInterfaces, ac(lineage_group.x) > ac(lineage_group.y))
 
 
 grpGraph <- ftM2graphNEL(as.matrix(lgInterfcesNoDup), edgemode="undirected")
 graphColors <- sequential.vertex.coloring(grpGraph)
-graphColorsDF <- data.frame(lin_group=names(graphColors[[2]]), color=as.numeric(graphColors[[2]]))
+graphColorsDF <- data.frame(lineage_group=names(graphColors[[2]]), color=as.numeric(graphColors[[2]]))
 
 gg <- ggplot(graphColorsDF, aes(as.factor(color))) + geom_histogram() + ggtitle("color counts") + xlab("color") + ggtitle("lineage group coloring distribution")
 ggsave2(gg)
@@ -68,6 +68,6 @@ write.delim(graphColorsDF, file="lg_colors.txt")
 # graphColorsDF <- read.delim("lg_colors.txt")
 
 ## gephi export
-write.csv(data.frame(Id=names(graphColors[[2]]),Source=names(graphColors[[2]]), color=as.numeric(graphColors[[2]])), file=paste0(db_name, ".condesed_lin_groups.gephi.nodes.csv"), row.names=F)
-write.csv(with(lgInterfcesNoDup, data.frame(Source=lin_group.x, Target=lin_group.y)), file=paste0(db_name, ".condesed_lin_groups.gephi.edges.csv"), row.names=F)
+write.csv(data.frame(Id=names(graphColors[[2]]),Source=names(graphColors[[2]]), color=as.numeric(graphColors[[2]])), file=paste0(db_name, ".condesed_lineage_groups.gephi.nodes.csv"), row.names=F)
+write.csv(with(lgInterfcesNoDup, data.frame(Source=lineage_group.x, Target=lineage_group.y)), file=paste0(db_name, ".condesed_lineage_groups.gephi.edges.csv"), row.names=F)
 

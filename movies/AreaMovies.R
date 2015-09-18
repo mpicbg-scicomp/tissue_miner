@@ -127,7 +127,7 @@ if(F){ #### akima playground
 # define deltaT (in frames)
 deltaT <-3
 
-#cellAreaTime <- dbGetQuery(db, "select c.cell_id, c.frame, c.area, t.time_sec from cells c join timepoints t on c.frame=t.frame where c.cell_id!=10000")
+#cellAreaTime <- dbGetQuery(db, "select c.cell_id, c.frame, c.area, t.time_sec from cells c join frames t on c.frame=t.frame where c.cell_id!=10000")
 
 
 areaChange <- dt.merge(cellArea, transform(cellArea, frame=frame-deltaT), by=c("cell_id", "frame"), suffixes=c(".t", ".dt"))

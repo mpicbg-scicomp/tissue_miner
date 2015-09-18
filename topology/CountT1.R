@@ -58,9 +58,9 @@ thrdIntMother <- daughterInfo %>%
 ## establish normal cell neighborhood (excluding marging cell)
 
 print("Establish neighbor relationships...")
-dbonds <- dbGetQuery(db, "select cell_id, frame, dbond_id, conj_dbond_id, dbond_left_id from dbonds where cell_id!=10000")#where cell_id!=10000
+dbonds <- dbGetQuery(db, "select cell_id, frame, dbond_id, conj_dbond_id, left_dbond_id from directed_bonds where cell_id!=10000")#where cell_id!=10000
 
-cellNeighbors <- with(dbonds, data.frame(frame, cell_id, dbond_id, dbond_left_id)) %>%
+cellNeighbors <- with(dbonds, data.frame(frame, cell_id, dbond_id, left_dbond_id)) %>%
     dt.merge(with(dbonds, data.frame(dbond_id=conj_dbond_id, cell_id)), by=c("dbond_id")) %>% 
     select(frame, cell_id=cell_id.x, neighbor_cell_id=cell_id.y)
 
@@ -83,9 +83,9 @@ dbondsNoDiv <- dt.merge(dbonds, thrdIntMother) %>%
     mutate(cell_id=cell_or_mother_id) %>%
     select(-cell_or_mother_id)
 
-cellNeighborsNoDiv <- dbondsNoDiv %>% select(frame, cell_id, dbond_id, dbond_left_id) %>%
+cellNeighborsNoDiv <- dbondsNoDiv %>% select(frame, cell_id, dbond_id, left_dbond_id) %>%
     dt.merge(with(dbondsNoDiv, data.frame(dbond_id=conj_dbond_id, cell_id)), by=c("dbond_id")) %>%
-    select(frame, cell_id=cell_id.x, neighbor_cell_id=cell_id.y, dbond_id, dbond_left_id) %>%
+    select(frame, cell_id=cell_id.x, neighbor_cell_id=cell_id.y, dbond_id, left_dbond_id) %>%
     unique_rows(c("frame", "cell_id", "neighbor_cell_id")) %>%
     ## remove bonds between the dividing selfs
     filter(cell_id!=neighbor_cell_id)
@@ -173,7 +173,7 @@ if(F){
 #idsPooled <- ddply(neighborChange, .(frame), with, data.frame(cell_id=unique(c(cell_id, neighbor_cell_id))), .progress="text")
 
 #if(F){ #### DEBUG
-#cellinfo <- dbGetQuery(db, "select * from cellinfo")
+#cellinfo <- dbGetQuery(db, "select * from cell_histories")
 ## 10   10009       599517         0       70                 11267                  11268 Unclassified       Division     lg_10          1
 #
 #

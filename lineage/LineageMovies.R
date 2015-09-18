@@ -27,7 +27,7 @@ db <- openMovieDb(movieDir)
 mcdir(file.path(movieDir, "lineage"))
 
 ## load some basic data sets
-cellinfo <- dbGetQuery(db, "select * from cellinfo")
+cellinfo <- dbGetQuery(db, "select * from cell_histories")
 cells   <- dbGetQuery(db, "select cell_id, frame, center_x, center_y from cells where cell_id!=10000")
 
 
@@ -36,11 +36,11 @@ cells   <- dbGetQuery(db, "select cell_id, frame, center_x, center_y from cells 
 
 
 gained_cells <- merge(cells, cellinfo, by.x=c("cell_id", "frame"), by.y=c("cell_id", "first_occ"))
-gained_cells <- transform(gained_cells,  gained_by=as.factor(gained_by))
+gained_cells <- transform(gained_cells,  appears_by=as.factor(appears_by))
 
 ## plot gain status codes
 #render_movie(cell_divisions, "cell_divisions.mp4", geom_point(aes(center_x, center_y),  alpha=0.5, color='red'))
-render_movie(gained_cells, "cell_gain.mp4", list(geom_point(aes(center_x, center_y, color=gained_by),  alpha=0.5), scale_color_discrete(drop=F)))
+render_movie(gained_cells, "cell_gain.mp4", list(geom_point(aes(center_x, center_y, color=appears_by),  alpha=0.5), scale_color_discrete(drop=F)))
 
 
 rm(gained_cells) ## clean up
@@ -54,7 +54,7 @@ rm(gained_cells) ## clean up
 
 
 #t1Events <- with(subset(topoChangeSummary, num_t1_gained>0  | num_t1_lost>0), data.frame(cell_id, frame, t1_sum=num_t1_gained+num_t1_lost))
-cdEvents <- with(subset(cellinfo, lost_by=="Division"), data.frame(cell_id, frame=last_occ, is_cd_next_frame=T))
+cdEvents <- with(subset(cellinfo, disappears_by=="Division"), data.frame(cell_id, frame=last_occ, is_cd_next_frame=T))
 
 ## filter cell positions by with grid model
 ## note movie_grid_size comes from config file
@@ -99,13 +99,13 @@ print("rate cd rate rendering done")
 ########################################################################################################################
 #### CELL LOSS
 
-#cell_divisions <- merge(cells, subset(cellinfo, lost_by=="Division"), by.x=c("cell_id", "frame"), by.y=c("cell_id", "last_occ"))
+#cell_divisions <- merge(cells, subset(cellinfo, disappears_by=="Division"), by.x=c("cell_id", "frame"), by.y=c("cell_id", "last_occ"))
 lost_cells <- merge(cells, cellinfo, by.x=c("cell_id", "frame"), by.y=c("cell_id", "last_occ"))
-lost_cells <- transform(lost_cells,  lost_by=as.factor(lost_by)) ## convert to factor because of color scales
+lost_cells <- transform(lost_cells,  disappears_by=as.factor(disappears_by)) ## convert to factor because of color scales
 
 ## plot gain status codes
 #render_movie(cell_divisions, "cell_divisions.mp4", geom_point(aes(center_x, center_y),  alpha=0.5, color='red'))
-render_movie(lost_cells, "cell_loss.mp4", list(geom_point(aes(center_x, center_y, color=lost_by), alpha=0.5), scale_color_discrete(drop=F)))
+render_movie(lost_cells, "cell_loss.mp4", list(geom_point(aes(center_x, center_y, color=disappears_by), alpha=0.5), scale_color_discrete(drop=F)))
 
 
 ### do the same again but now fade in divisions to get locally integrated division intensities
@@ -118,18 +118,18 @@ clFadeIn <- arrange(merge(lost_cells, fadeIn, by="cell_id", suffixes=c("_origina
 clFadeIn <- subset(clFadeIn, frame>0)
 
 
-#cols <- create_palette(clFadeIn$lost_by)
+#cols <- create_palette(clFadeIn$disappears_by)
 #cols <- c("Division" = "yellow")
 
 #curFrame <- 10
 #img <- readPNG(paste0(imageBase, sprintf("Optimized_projection_%03d/original.png", curFrame)))
 #csFrame <- subset(clFadeIn, frame==curFrame)
-#render_source_image(img, curFrame) + geom_point(aes(center_x, center_y, color=lost_by, size=1+2*(frame_original-frame), alpha=1/(frame_original-frame+1)), csFrame ) + scale_alpha_continuous(guide=F) + scale_size_continuous(guide=F)
+#render_source_image(img, curFrame) + geom_point(aes(center_x, center_y, color=disappears_by, size=1+2*(frame_original-frame), alpha=1/(frame_original-frame+1)), csFrame ) + scale_alpha_continuous(guide=F) + scale_size_continuous(guide=F)
 
 #lsosh()
 render_movie(clFadeIn, "cell_loss_fadin.mp4", list(
-#    geom_point(aes(center_x, center_y, color=lost_by, size=3+3*(frame_original-frame), alpha=1/(frame_original-frame+1))),
-    geom_point(aes(center_x, center_y, color=lost_by), size=10, alpha=0.1),
+#    geom_point(aes(center_x, center_y, color=disappears_by, size=3+3*(frame_original-frame), alpha=1/(frame_original-frame+1))),
+    geom_point(aes(center_x, center_y, color=disappears_by), size=10, alpha=0.1),
 #    scale_color_manual(values = cols),
 #    scale_colour_manual(name = 'Lost By', values=cols),
     scale_alpha_continuous(guide=F)
@@ -224,9 +224,9 @@ cellinfo <- merge(cellinfo, lgColors, all.x=T)
 
 ## plot lineage groups over time
 #rm(cellshapes, cellsWithInfo, cells)
-cellsWithLin <- arrange(dt.merge(cellshapes, with(cellinfo, data.frame(cell_id, lin_group, generation, color)), "cell_id"), frame, cell_id, bond_order)
+cellsWithLin <- arrange(dt.merge(cellshapes, with(cellinfo, data.frame(cell_id, lineage_group, generation, color)), "cell_id"), frame, cell_id, bond_order)
 
-#render_movie(cellsWithLin, "lineage_groups.mp4", list(geom_polygon(aes(x_pos, y_pos, fill=lin_group, group=cell_id), alpha=0.5), scale_fill_discrete(guide=FALSE)))
+#render_movie(cellsWithLin, "lineage_groups.mp4", list(geom_polygon(aes(x_pos, y_pos, fill=lineage_group, group=cell_id), alpha=0.5), scale_fill_discrete(guide=FALSE)))
 
 ## same again but with interface-optimized colors
 render_movie(cellsWithLin, "lineage_groups_col_optimized.mp4", list(geom_polygon(aes(x_pos, y_pos, fill=factor(color), group=cell_id), alpha=0.5), scale_fill_discrete(guide=FALSE)))
@@ -259,7 +259,7 @@ rm(cellsWithLin) ## clean up
 if(F){ #### DEBUG: Track a single division group over time
 
 linGrpOI="lg_3940"
-lgOI <- subset(cellinfo, lin_group==linGrpOI)
+lgOI <- subset(cellinfo, lineage_group==linGrpOI)
 cellsWithLinOI <- subset(cellsWithLin, cell_id %in% lgOI$cell_id)
 
 zoomROI=with(cellsWithLinOI, rbind(c(range(x_pos)[[1]]-100, range(x_pos)[[2]]+100), c(range(y_pos)[[1]]-200, range(y_pos)[[2]])+100))

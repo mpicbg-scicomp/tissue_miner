@@ -110,10 +110,10 @@ docker run -t -i brandl/tissue_miner /bin/bash --login
 
 
 docker run -t -i -v /Users/brandl/Desktop/my_movies:/movies brandl/tissue_miner /bin/bash --login -c "source .bash_profile; cd demo_ForTissueMiner; sm -n all"
-docker run -t -i -v /Users/brandl/Desktop/my_movies:/movies brandl/tissue_miner /bin/bash --login -c "source .bash_profile; cd demo_ForTissueMiner; sm makedb"
+docker run -t -i -v /Users/brandl/Desktop/my_movies:/movies brandl/tissue_miner /bin/bash --login -c "source .bash_profile; cd demo_ForTissueMiner; sm make_db"
 docker run -t -i -v /Users/brandl/Desktop/my_movies:/movies brandl/tissue_miner /bin/bash --login
 #docker run -t -i -v /home/brandl/projects/flywing/:/movies brandl/tissue_miner /bin/bash --login -c "cd demo_ForTissueMiner; sm  --force -p area_movies"
-#docker run -t -i -v /home/brandl/projects/flywing/:/movies brandl/tissue_miner /bin/bash --login -c "cd demo_ForTissueMiner; sm --force makedb"
+#docker run -t -i -v /home/brandl/projects/flywing/:/movies brandl/tissue_miner /bin/bash --login -c "cd demo_ForTissueMiner; sm --force make_db"
 
 ## docker cheatsheet https://github.com/wsargent/docker-cheat-sheet
 

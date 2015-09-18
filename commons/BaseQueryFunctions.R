@@ -139,7 +139,7 @@ align_movie_start <- function(movieData, moviesDirs){
   refTime <- calcRefTime(movies)
   
   timeTables <-multi_db_query(moviesDirs, function(movieDb, movieDbDir){ 
-    time <- dbGetQuery(movieDb, "select * from timepoints")
+    time <- dbGetQuery(movieDb, "select * from frames")
     timeInt <- cbind(time[-nrow(time),], timeInt_sec=diff(time$time_sec))  }) 
 
   ## apply alignment model
@@ -327,9 +327,9 @@ mqf_triangle_elong <- function(movieDb, movieDbDir, rois=c()){
 lossRate <- function(movieDb, movieDbDir, rois, lostType){
   
   cellsInFrame   <- dbGetQuery(movieDb, "select cell_id, frame, area from cells where cell_id!=10000")
-  cellinfo <- dbGetQuery(movieDb, "select * from cellinfo")
+  cellinfo <- dbGetQuery(movieDb, "select * from cell_histories")
   
-  lossEvents <- with(subset(cellinfo, lost_by==lostType), data.frame(cell_id, frame=last_occ, is_loss_next_frame=T))
+  lossEvents <- with(subset(cellinfo, disappears_by==lostType), data.frame(cell_id, frame=last_occ, is_loss_next_frame=T))
   lossEventsInFrame <- dt.merge(cellsInFrame, lossEvents, all.x=T)
   
   lossEventsByRoi <- addRois(lossEventsInFrame, movieDbDir)
@@ -435,7 +435,7 @@ mqf_rate_isotropic_contrib <- function(movieDb, movieDbDir, rois=c()){
            frame=frame+1) # assign change to the "next" frame (tp1)
   
   # Calculate number of divisions, extrusions
-  queryResult <- dbGetQuery(movieDb, "select * from cellinfo where cell_id!=10000") %>%
+  queryResult <- dbGetQuery(movieDb, "select * from cell_histories where cell_id!=10000") %>%
     addRois(., movieDbDir)
   
   if(length(rois)==0) rois = unique(queryResult$roi)
@@ -443,20 +443,20 @@ mqf_rate_isotropic_contrib <- function(movieDb, movieDbDir, rois=c()){
   divExtrFrameSummary <- queryResult %>%
     filter(roi %in% rois) %>%
     group_by(roi,last_occ) %>%
-    summarise(division_nb=sum(ifelse(lost_by=="Division", 1, 0)),
-              extrusion_nb=sum(ifelse(lost_by=="Apoptosis", 1, 0)),
+    summarise(division_nb=sum(ifelse(disappears_by=="Division", 1, 0)),
+              extrusion_nb=sum(ifelse(disappears_by=="Apoptosis", 1, 0)),
               frame=last_occ[1]+1) %>% # assign event to the "next" frame (tp1)
     select(-last_occ)
   
   # Assign time interval valur to the next frame (tp1)
-  timepoints <- dbGetQuery(movieDb, "select * from timepoints") %>%
+  frames <- dbGetQuery(movieDb, "select * from frames") %>%
     mutate(timeIntHour=c(0,diff(time_sec))/3600) %>%
     filter(frame>0) # assign the time interval value to the "next" frame (tp1)
   
   
   # Merge data and calculate relative changes...
   relIsoContrib <- dt.merge(cellsFrameSummary, divExtrFrameSummary, by=c("roi","frame"), all.x=T) %>%
-    dt.merge(., timepoints, by=c("frame")) %>%
+    dt.merge(., frames, by=c("frame")) %>%
     mutate(division_nb=ifelse(is.na(division_nb), 0, division_nb),
            extrusion_nb=ifelse(is.na(extrusion_nb), 0, extrusion_nb),
            division=division_nb/cell_nb/timeIntHour, # relative division change

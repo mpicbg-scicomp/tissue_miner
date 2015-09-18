@@ -29,7 +29,7 @@ readMovieImg <- function(curFrame){
 # render_source_image <- function(frame, img=readMovieImg(frame), squareRoi=rbind(c(0, dim(img)[2]), c(0, dim(img)[1])), timehAPF=TRUE){
 # 
 #     ## with alignment model
-#     frameInSec <- as.numeric(dbGetQuery(db, paste0("select time_sec from timepoints where frame=", frame)))
+#     frameInSec <- as.numeric(dbGetQuery(db, paste0("select time_sec from frames where frame=", frame)))
 #     if(!timehAPF){
 #        timeApf= as.character(frame)
 #     }else {
@@ -67,7 +67,7 @@ readMovieImg <- function(curFrame){
 render_source_image <- function(frame, img=readMovieImg(frame), squareRoi=rbind(c(0, dim(img)[2]), c(0, dim(img)[1])), isTimeStamp=TRUE){
   
   ## with alignment model
-  frameInSec <- as.numeric(dbGetQuery(db, paste0("select time_sec from timepoints where frame=", frame)))
+  frameInSec <- as.numeric(dbGetQuery(db, paste0("select time_sec from frames where frame=", frame)))
   if(!isTimeStamp){
     timeStamp= as.character(frame)
   }else {

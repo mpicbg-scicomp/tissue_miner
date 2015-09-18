@@ -41,7 +41,7 @@ smooth_tissue <- function(overlayData, smooth_val, kernel_size=5, by=c("xGrid", 
     # DEBUG overlayData=subset(areaSummary, frame!=9)
     # DEBUG smooth_val="mac_in_range"
 
-    ## create missing timepoints to avoid that we smooth over gaps in time
+    ## create missing frames to avoid that we smooth over gaps in time
     if(global_min_max){
         minMaxByElement <- overlayData %$% data.frame(frame=min(frame):max(frame)) %>%
             merge(select(overlayData %>% ungroup(), one_of(by)) %>% distinct, by=NULL)
@@ -105,7 +105,7 @@ coarseGrid <- function(positionDF, gridWitdh=movie_grid_size, gridReduction=0){
 
 ## apply coarse same coarse gridding to background cell
 getBckndGridElements <- function(db, gridWitdh=movie_grid_size){
-    backgroundCellVertices <- dbGetQuery(db, "select cell_id, d.frame, x_pos as center_x, y_pos as center_y from vertices v join dbonds d on v.vertex_id=d.vertex_id where d.cell_id=10000")
+    backgroundCellVertices <- dbGetQuery(db, "select cell_id, d.frame, x_pos as center_x, y_pos as center_y from vertices v join directed_bonds d on v.vertex_id=d.vertex_id where d.cell_id=10000")
 
     # DEBUG gridWitdh=256
     bckndROIs <- backgroundCellVertices %>% coarseGrid(gridWitdh) %>% select(frame, roi) %>% distinct()

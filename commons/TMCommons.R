@@ -98,11 +98,11 @@ addCellShapes <- function(dfWithCellIdAndFrame){
 
 ## refactor into commons
 cdByDaughters <- function(db){
-  cdEvents <- dbGetQuery(db, "select cell_id as mother_cell_id, left_daughter_cell_id, right_daughter_cell_id from cellinfo")
+  cdEvents <- dbGetQuery(db, "select cell_id as mother_cell_id, left_daughter_cell_id, right_daughter_cell_id from cell_histories")
   cdEventsLong <- subset(melt(cdEvents, id.vars="mother_cell_id", value.name="cell_id"), !is.na(cell_id), select=-variable)
 
   ## first occurence to daughter
-  firstOcc <- dbGetQuery(db, "select cell_id, first_occ from cellinfo")
+  firstOcc <- dbGetQuery(db, "select cell_id, first_occ from cell_histories")
   merge(cdEventsLong, firstOcc)
 }
 
@@ -112,7 +112,7 @@ cdByDaughters <- function(db){
 
 
 addTimeFunc <- function(movieDb, df){
-  time <-  dbGetQuery(movieDb, "select * from timepoints")
+  time <-  dbGetQuery(movieDb, "select * from frames")
   timeInt <- cbind(time[-nrow(time),], timeInt_sec=diff(time$time_sec))
   result <- dt.merge(df, timeInt, by="frame")
   return(result)

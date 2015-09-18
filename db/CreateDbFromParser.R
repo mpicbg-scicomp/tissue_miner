@@ -43,7 +43,7 @@ echo("Reading parser output in:", movieDir)
 
 cells <- as.df(fread("cell_in_frame.dat"))
 cells <- cells[, 1:10]
-names(cells) <- c("frame", "track_grp_id", "trans_before", "trans_after", "daughter_id", "center_x", "center_y", "area", "elong_xx", "elong_xy")
+names(cells) <- c("frame", "tissue_analyzer_group_id", "trans_before", "trans_after", "daughter_id", "center_x", "center_y", "area", "elong_xx", "elong_xy")
 
 ## DEBUG PARSER
 #duringTransitionBefore:
@@ -65,12 +65,12 @@ with(cells, as.data.frame(table(as.factor(trans_after))))
 ## DEBUG END
 
 dbonds <- as.df(fread("directedBond_in_frame.dat"))
-names(dbonds) <- c("frame", "dbond_id", "conj_dbond_id", "ubond_id", "track_grp_id", "vertex_id", "dbond_left_id")
+names(dbonds) <- c("frame", "dbond_id", "conj_dbond_id", "bond_id", "tissue_analyzer_group_id", "vertex_id", "left_dbond_id")
 
 
 ## todo we need more bond properties here (like length)
 ubonds <- as.df(fread("undirectedBond_in_frame.dat"))
-names(ubonds) <- c("frame", "ubond_id", "bond_length")
+names(ubonds) <- c("frame", "bond_id", "bond_length")
 
 vertices <- as.df(fread("vertex_in_frame.dat"))
 names(vertices) <- c("frame", "vertex_id", "x_pos", "y_pos")
@@ -82,11 +82,11 @@ save(cells, dbonds, ubonds, vertices, file="cells_dbonds_ubonds_vertices.RData")
 ########################################################################################################################
 ### also load the time here already so that we can fail if we can not find the file
 
-timepoints <-read.delim(file.path(movieDir, "Segmentation", "cumultimesec.txt"), header=F)
-timepoints <- data.frame(frame=0:(nrow(timepoints)-1), time_sec=timepoints$V1)
+frames <-read.delim(file.path(movieDir, "Segmentation", "cumultimesec.txt"), header=F)
+frames <- data.frame(frame=0:(nrow(frames)-1), time_sec=frames$V1)
 
-save(timepoints, file="timepoints.RData")
-# timepoints <- local(get(load("timepoints.RData")))
+save(frames, file="frames.RData")
+# frames <- local(get(load("frames.RData")))
 
 
 
@@ -96,7 +96,7 @@ save(timepoints, file="timepoints.RData")
 print("Fixing cell IDs...")
 
 #testIds <- c(15170092L, 13961207L, 15170092L, 10359136L, 15170092L, 5551105L, 15170092L, 10359136L, 14878915L)
-#cells <- subset(cells, track_grp_id %in% testIds)
+#cells <- subset(cells, tissue_analyzer_group_id %in% testIds)
 
 ## fix the problem that background id and no-division-indicator are the same value
 cells <- transform(cells, daughter_id=ifelse(daughter_id==0, NA, daughter_id))
@@ -106,19 +106,19 @@ with(cells, as.data.frame(table(daughter_id>0)))
 
 ## filter for actual division elements OR first cell occurrence
 ## ie. we want to extract all the frames where something changes for a tracking group. This can be first occurence or division
-firstOccOrDiv <- subset(arrange(cells, frame, track_grp_id), !duplicated(track_grp_id) | !is.na(daughter_id))
+firstOccOrDiv <- subset(arrange(cells, frame, tissue_analyzer_group_id), !duplicated(tissue_analyzer_group_id) | !is.na(daughter_id))
 
 
 #if(F){ #### DEBUG
 #firstOccOrDiv <- subset(firstOccOrDiv, frame <30)
-#mapTrackGrpId <- function(track_grp_id, is_division) 5
+#mapTrackGrpId <- function(tissue_analyzer_group_id, is_division) 5
 #}
 
 ### define the id mapping table including a division aware lookup function
 #idCounter <<- 10000;
 #idMapping <<- list();
-#mapTrackGrpId <- function(track_grp_id, is_division){
-#    track_grp_key=ac(track_grp_id)
+#mapTrackGrpId <- function(tissue_analyzer_group_id, is_division){
+#    track_grp_key=ac(tissue_analyzer_group_id)
 #
 #    if(is.null(idMapping[[track_grp_key]]) | is_division){
 #        ## add the tracking group to the lookup table
@@ -136,8 +136,8 @@ require.auto(hash)
 ## define function to map id using dynamically growing lookup table (tracking_group --> new cell id)
 idCounter <<- 10000;
 idHashhMapping <- hash()
-mapTrackGrpId <- function(track_grp_id, is_division){
-    track_grp_key=ac(track_grp_id)
+mapTrackGrpId <- function(tissue_analyzer_group_id, is_division){
+    track_grp_key=ac(tissue_analyzer_group_id)
 
     if(!has.key(track_grp_key, idHashhMapping) | is_division){
         ## add the tracking group to the lookup table
@@ -163,7 +163,7 @@ for(row in 1:nrow(firstOccOrDiv)){
     if(row%%1000==0) echo("processed ", row, " tracking group ids")
 
     curDaughterID <- firstOccOrDiv$daughter_id[row]
-    curTrackGroupId <-firstOccOrDiv$track_grp_id[row]
+    curTrackGroupId <-firstOccOrDiv$tissue_analyzer_group_id[row]
 
     divInNextFrame = !is.na(curDaughterID)
 
@@ -179,7 +179,7 @@ for(row in 1:nrow(firstOccOrDiv)){
 
 unloadNamespace("hash") ## remove it because we don't need it anymore
 
-firstOccOrDivSlim <- with(firstOccOrDiv, data.frame(frame, track_grp_id, cell_id_tmp, parent_cell_id, left_daughter_cell_id, right_daughter_cell_id))
+firstOccOrDivSlim <- with(firstOccOrDiv, data.frame(frame, tissue_analyzer_group_id, cell_id_tmp, parent_cell_id, left_daughter_cell_id, right_daughter_cell_id))
 
 if(F){ #### DEBUG
 require.auto(digest)
@@ -193,17 +193,17 @@ digest(hashListMapper)
 } #### DEBUG end
 
 ## combine new ids with with cells data by merging in time and by tracking group
-# cells2 <- merge(firstOccOrDivSlim, cells, by=c("frame", "track_grp_id"), all=T)
-cells2 <- dt.merge(firstOccOrDivSlim, cells, by=c("frame", "track_grp_id"), all=T)
+# cells2 <- merge(firstOccOrDivSlim, cells, by=c("frame", "tissue_analyzer_group_id"), all=T)
+cells2 <- dt.merge(firstOccOrDivSlim, cells, by=c("frame", "tissue_analyzer_group_id"), all=T)
 
 ## extend new IDs to all rows
 ## http://stackoverflow.com/questions/7735647/replacing-nas-with-latest-non-na-value
-cells2 <- transform(arrange(cells2, track_grp_id, frame), cell_id_tmp=na.locf(cell_id_tmp))
+cells2 <- transform(arrange(cells2, tissue_analyzer_group_id, frame), cell_id_tmp=na.locf(cell_id_tmp))
 
 
 ## fix the look-ahead id
 cells2 <- transform(cells2, cell_id=ifelse(!is.na(parent_cell_id) & parent_cell_id!=cell_id_tmp, parent_cell_id, cell_id_tmp))
-cells2 <- arrange(cells2, track_grp_id, cell_id, frame)
+cells2 <- arrange(cells2, tissue_analyzer_group_id, cell_id, frame)
 
 if(any(is.na(cells2$cell_id))) stop("cell id assignment failed")
 
@@ -238,18 +238,18 @@ rm(cells) ## cleanup
 print("replacing cell IDs in dbonds...")
 
 ## build to table to transform other tables as well
-cellMinMax <- as.df(data.table(cells2)[, list(first_occ=min(frame), last_occ=max(frame)), by="track_grp_id,cell_id"])
+cellMinMax <- as.df(data.table(cells2)[, list(first_occ=min(frame), last_occ=max(frame)), by="tissue_analyzer_group_id,cell_id"])
 
 # cellMinMax <- read.delim("cellMinMax.txt")
 frames4merge <- unlist(apply(with(cellMinMax, cbind(first_occ, last_occ)), 1, function(x) seq(x[1],x[2])))
-cellMinMaxByFrame <- with(cellMinMax, data.frame(track_grp_id=rep(track_grp_id, last_occ-first_occ+1), cell_id=rep(cell_id, last_occ-first_occ+1), frame=frames4merge))
+cellMinMaxByFrame <- with(cellMinMax, data.frame(tissue_analyzer_group_id=rep(tissue_analyzer_group_id, last_occ-first_occ+1), cell_id=rep(cell_id, last_occ-first_occ+1), frame=frames4merge))
 
 
-dbonds2 <- dt.merge(cellMinMaxByFrame, dbonds, by=c("track_grp_id", "frame"), allow.cartesian=TRUE)
+dbonds2 <- dt.merge(cellMinMaxByFrame, dbonds, by=c("tissue_analyzer_group_id", "frame"), allow.cartesian=TRUE)
 #dbonds2 <- as.df(dbonds2)
 
 ## clean up for db-import
-dbondsDB <- subset(dbonds2, select=-c(track_grp_id))
+dbondsDB <- subset(dbonds2, select=-c(tissue_analyzer_group_id))
 if(length(unique(dbondsDB$dbond_id)) != nrow(dbondsDB)) stop("uuids broken for ubonds") ## uuid test
 
 save(dbondsDB, file="dbondsDB.RData")
@@ -261,7 +261,7 @@ rm(dbonds, dbonds2, frames4merge, cellMinMaxByFrame) ## cleanup
 ########################################################################################################################
 #### build cell lineage table
 
-print("building cellinfo table...")
+print("building cell histories table...")
 
 divDataRaw <- subset(arrange(cells2, cell_id, frame), !duplicated(cell_id) | !is.na(daughter_id))
 divData <- with(divDataRaw, data.frame(frame, cell_id, left_daughter_cell_id, right_daughter_cell_id))
@@ -299,13 +299,13 @@ lossDict = list("0"="Unclassified", "1"="Stays", "2"="Division", "3"="Apoptosis"
 
 
 ## note sorted table assumed here
-gainLoss <- as.df(data.table(cells2)[, list(gained_by=gainDict[[ac(trans_before[1])]], lost_by=lossDict[[ac(trans_after[length(trans_after)])]]), by="cell_id"])
+gainLoss <- as.df(data.table(cells2)[, list(appears_by=gainDict[[ac(trans_before[1])]], disappears_by=lossDict[[ac(trans_after[length(trans_after)])]]), by="cell_id"])
 cellinfo <- merge(cellinfo, gainLoss, by="cell_id", all.x=T)
 
 ## plot some debug graphs  todo  --> move to db report script
-ggplot(cellinfo, aes(first_occ, fill=gained_by)) + geom_bar(binwidth=1) + ggtitle("cell gain status by time")
+ggplot(cellinfo, aes(first_occ, fill=appears_by)) + geom_bar(binwidth=1) + ggtitle("cell gain status by time")
 ggsave2()
-ggplot(cellinfo, aes(last_occ, fill=factor(lost_by))) + geom_bar(binwidth=1) + ggtitle("cell loss status by time")
+ggplot(cellinfo, aes(last_occ, fill=factor(disappears_by))) + geom_bar(binwidth=1) + ggtitle("cell loss status by time")
 ggsave2()
 
 
@@ -318,7 +318,7 @@ cellInfoNoOrphans <- transform(cellinfo,
     left_daughter_cell_id=ifelse(is.na(left_daughter_cell_id) | !(left_daughter_cell_id %in% cell_id), NA, left_daughter_cell_id)
 )
 
-dyingDaughtersKids=sum(with(cellInfoNoOrphans, lost_by=="Division" & (is.na(right_daughter_cell_id) | is.na(left_daughter_cell_id))))
+dyingDaughtersKids=sum(with(cellInfoNoOrphans, disappears_by=="Division" & (is.na(right_daughter_cell_id) | is.na(left_daughter_cell_id))))
 if(dyingDaughtersKids!=0){
     warning(paste0("immediate kids death in ", dyingDaughtersKids, " cases!!!"))
 }
@@ -335,16 +335,16 @@ cellinfo <- merge(cellinfo, linEnv$cytoWithGeneration, all.x=T)
 rm(linEnv)
 
 ## make sure that we didn't loose any data while analyzing lineage
-if(any(is.na(cellinfo$lin_group))) stop("incomplete division group assignments")
+if(any(is.na(cellinfo$lineage_group))) stop("incomplete division group assignments")
 
-cellinfoDB <- with(cellinfo, data.frame(cell_id, track_grp_id, first_occ, last_occ, left_daughter_cell_id, right_daughter_cell_id, gained_by, lost_by, lin_group, generation))
+cellinfoDB <- with(cellinfo, data.frame(cell_id, tissue_analyzer_group_id, first_occ, last_occ, left_daughter_cell_id, right_daughter_cell_id, appears_by, disappears_by, lineage_group, generation))
 
 save(cellinfoDB, file="cellinfoDB.RData")
 # cellinfoDB <- local(get(load("cellinfoDB.RData")))
 
 
 ### that we actually use uuids
-if(length(unique(ubonds$ubond_id)) != nrow(ubonds)) stop("uuids broken for ubonds")  ## uuid test
+if(length(unique(ubonds$bond_id)) != nrow(ubonds)) stop("uuids broken for ubonds")  ## uuid test
 if(length(unique(vertices$vertex_id)) != nrow(vertices)) stop("uuids broken for ubonds")  ## uuid test
 if(nrow(cellinfo) == 0) stop("failed to detect cell lineage and info")  ## uuid test
 
@@ -412,7 +412,7 @@ if(T){
 
 if(F){ #### DEBUG
 load("cells_dbonds_ubonds_vertices.RData")
-timepoints <- local(get(load("timepoints.RData")))
+frames <- local(get(load("frames.RData")))
 cellinfoDB <- local(get(load("cellinfoDB.RData")))
 cellsDB <- local(get(load("cellsDB.RData")))
 dbondsDB <- local(get(load("dbondsDB.RData")))
@@ -448,30 +448,30 @@ db <- dbConnect(SQLite(), dbname=dbfile)
 ## todo use unique ids for bonds and remove frame from primary key --> talk to matthias
 
 dbGetQuery(db, "
-CREATE TABLE timepoints
+CREATE TABLE frames
 (
     frame INTEGER NOT NULL,
     time_sec INTEGER NOT NULL,
-    CONSTRAINT pk_timepoints PRIMARY KEY (frame)
+    CONSTRAINT pk_frames PRIMARY KEY (frame)
 );")
 dbGetQuery(db, "
-CREATE TABLE cellinfo
+CREATE TABLE cell_histories
 (
     cell_id INTEGER NOT NULL,
-    track_grp_id INTEGER NOT NULL,
+    tissue_analyzer_group_id INTEGER NOT NULL,
     first_occ INTEGER NOT NULL,
     last_occ INTEGER NOT NULL,
     left_daughter_cell_id INTEGER,
     right_daughter_cell_id INTEGER,
-    gained_by TEXT NOT NULL,
-    lost_by TEXT NOT NULL,
-    lin_group TEXT NOT NULL,
+    appears_by TEXT NOT NULL,
+    disappears_by TEXT NOT NULL,
+    lineage_group TEXT NOT NULL,
     generation INTEGER,
-    CONSTRAINT pk_cellinfo PRIMARY KEY (cell_id),
-    FOREIGN KEY(left_daughter_cell_id) REFERENCES cellinfo(cell_id),
-    FOREIGN KEY(right_daughter_cell_id) REFERENCES cellinfo(cell_id),
-    FOREIGN KEY(first_occ) REFERENCES timepoints(frame),
-    FOREIGN KEY(last_occ) REFERENCES timepoints(frame)
+    CONSTRAINT pk_cell_histories PRIMARY KEY (cell_id),
+    FOREIGN KEY(left_daughter_cell_id) REFERENCES cell_histories(cell_id),
+    FOREIGN KEY(right_daughter_cell_id) REFERENCES cell_histories(cell_id),
+    FOREIGN KEY(first_occ) REFERENCES frames(frame),
+    FOREIGN KEY(last_occ) REFERENCES frames(frame)
 );")
 dbGetQuery(db, "
 CREATE TABLE cells
@@ -484,17 +484,17 @@ CREATE TABLE cells
     elong_xx REAL NOT NULL,
     elong_xy REAL NOT NULL,
     CONSTRAINT pk_cells PRIMARY KEY (cell_id, frame),
-    FOREIGN KEY(cell_id) REFERENCES cellinfo(cell_id),
-    FOREIGN KEY(frame) REFERENCES timepoints(frame)
+    FOREIGN KEY(cell_id) REFERENCES cell_histories(cell_id),
+    FOREIGN KEY(frame) REFERENCES frames(frame)
 );")
 dbGetQuery(db, "
-CREATE TABLE ubonds
+CREATE TABLE bonds
 (
     frame INTEGER NOT NULL,
-    ubond_id INTEGER NOT NULL,
+    bond_id INTEGER NOT NULL,
     bond_length REAL NOT NULL,
-    CONSTRAINT pk_ubonds PRIMARY KEY (ubond_id),
-    FOREIGN KEY(frame) REFERENCES timepoints(frame)
+    CONSTRAINT pk_bonds PRIMARY KEY (bond_id),
+    FOREIGN KEY(frame) REFERENCES frames(frame)
 );")
 dbGetQuery(db, "
 CREATE TABLE vertices
@@ -504,35 +504,35 @@ CREATE TABLE vertices
     x_pos REAL NOT NULL,
     y_pos REAL NOT NULL,
     CONSTRAINT pk_vertices PRIMARY KEY (vertex_id),
-    FOREIGN KEY(frame) REFERENCES timepoints(frame)
+    FOREIGN KEY(frame) REFERENCES frames(frame)
 );")
 dbGetQuery(db, "
-CREATE TABLE dbonds
+CREATE TABLE directed_bonds
 (
     frame INTEGER NOT NULL,
     cell_id INTEGER NOT NULL,
     dbond_id INTEGER NOT NULL,
     conj_dbond_id INTEGER UNIQUE NOT NULL,
-    ubond_id INTEGER NOT NULL,
+    bond_id INTEGER NOT NULL,
     vertex_id INTEGER NOT NULL,
-    dbond_left_id INTEGER UNIQUE NOT NULL,
-    CONSTRAINT pk_dbonds PRIMARY KEY (dbond_id),
-    FOREIGN KEY(cell_id) REFERENCES cellinfo(cell_id),
-    FOREIGN KEY(conj_dbond_id) REFERENCES dbonds(conj_dbond_id),
-    FOREIGN KEY(dbond_left_id) REFERENCES dbonds(dbond_left_id),
-    FOREIGN KEY(dbond_left_id) REFERENCES dbonds(dbond_left_id),
-    FOREIGN KEY(ubond_id) REFERENCES ubonds(ubond_id),
-    FOREIGN KEY(frame) REFERENCES timepoints(frame)
+    left_dbond_id INTEGER UNIQUE NOT NULL,
+    CONSTRAINT pk_directed_bonds PRIMARY KEY (dbond_id),
+    FOREIGN KEY(cell_id) REFERENCES cell_histories(cell_id),
+    FOREIGN KEY(conj_dbond_id) REFERENCES directed_bonds(conj_dbond_id),
+    FOREIGN KEY(left_dbond_id) REFERENCES directed_bonds(left_dbond_id),
+    FOREIGN KEY(left_dbond_id) REFERENCES directed_bonds(left_dbond_id),
+    FOREIGN KEY(bond_id) REFERENCES bonds(bond_id),
+    FOREIGN KEY(frame) REFERENCES frames(frame)
     FOREIGN KEY(vertex_id) REFERENCES vertices(vertex_id)
 );")
 
 
-dbWriteTable(db, "timepoints", timepoints, row.names=F, append=TRUE)
-dbWriteTable(db, "cellinfo", cellinfoDB, row.names=F, append=TRUE)
+dbWriteTable(db, "frames", frames, row.names=F, append=TRUE)
+dbWriteTable(db, "cell_histories", cellinfoDB, row.names=F, append=TRUE)
 dbWriteTable(db, "cells", cellsDB, row.names=F, append=TRUE)
-dbWriteTable(db, "ubonds", ubonds, row.names=F, append=TRUE)
+dbWriteTable(db, "bonds", ubonds, row.names=F, append=TRUE)
 dbWriteTable(db, "vertices", vertices, row.names=F, append=TRUE)
-dbWriteTable(db, "dbonds", dbondsDB, row.names=F, append=TRUE)
+dbWriteTable(db, "directed_bonds", dbondsDB, row.names=F, append=TRUE)
 
 
 
@@ -540,7 +540,7 @@ dbWriteTable(db, "dbonds", dbondsDB, row.names=F, append=TRUE)
 #### test the db
 #dbListTables(db)              # The tables in the database
 #dbListFields(db, "cells")    # The columns in a table
-#head(dbReadTable(db, "cellinfo"))
+#head(dbReadTable(db, "dbReadTable"))
 someCells <- dbGetQuery(db, "select * from cells where frame > 50 and frame <60")
 head(someCells)
 
@@ -560,12 +560,12 @@ dbDisconnect(db)
 #dbGetQuery(conn = db, "
 #ALTER TABLE cells ADD CONSTRAINT pk_cells PRIMARY KEY (cell_id, frame);
 #ALTER TABLE dbonds ADD CONSTRAINT pk_dbonds PRIMARY KEY (dbond_id);
-#ALTER TABLE ubonds ADD CONSTRAINT pk_ubonds PRIMARY KEY (ubond_id);
+#ALTER TABLE ubonds ADD CONSTRAINT pk_ubonds PRIMARY KEY (bond_id);
 #ALTER TABLE vertices ADD CONSTRAINT pk_vertices PRIMARY KEY (vertex_id);
-#ALTER TABLE cellinfo ADD CONSTRAINT pk_cellinfo PRIMARY KEY (cell_id);
+#ALTER TABLE cell_histories ADD CONSTRAINT pk_cell_histories PRIMARY KEY (cell_id);
 #")
 
-#dbSendQuery(conn = db, "DROP TABLE cellinfo;")
+#dbSendQuery(conn = db, "DROP TABLE cell_histories;")
 # dbSendQuery(conn = db, "DROP TABLE dbonds;")
 # dbSendQuery(conn = db, "DROP TABLE cells;")
 
@@ -576,13 +576,13 @@ dbDisconnect(db)
 system(paste("sqlite3", dbfile, "'
 CREATE INDEX idx_cells_cell_id ON cells (cell_id);
 CREATE INDEX idx_dbonds_conjdbonds ON dbonds (conj_dbond_id);
-CREATE INDEX idx_dbonds_leftbonds ON dbonds (dbond_left_id);
+CREATE INDEX idx_dbonds_leftbonds ON dbonds (left_dbond_id);
 CREATE INDEX idx_dbonds_vertex ON dbonds (vertex_id);
 '"))
 
 #dbSendQuery(db, "CREATE INDEX idx_cells_cell_id ON cells (cell_id);")
 #dbSendQuery(db, "CREATE INDEX idx_dbonds_conjdbonds ON dbonds (conj_dbond_id);")
-#dbSendQuery(db, "CREATE INDEX idx_dbonds_leftbonds ON dbonds (dbond_left_id);")
+#dbSendQuery(db, "CREATE INDEX idx_dbonds_leftbonds ON dbonds (left_dbond_id);")
 #dbSendQuery(db, "CREATE INDEX idx_dbonds_vertex ON dbonds (vertex_id);")
 
 

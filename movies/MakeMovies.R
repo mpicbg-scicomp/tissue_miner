@@ -30,7 +30,7 @@ mcdir(file.path(movieDir, "state_movies"))
 ########################################################################################################################
 #### load some data from the db
 cells <- dbGetQuery(db, "select * from cells where cell_id!=10000")
-cellinfo <- dbGetQuery(db, "select * from cellinfo")
+cellinfo <- dbGetQuery(db, "select * from cell_histories")
 
 
 
@@ -59,12 +59,12 @@ subset(cellinfo, is.na(color))
 
 
 #cellshapes <- local(get(load(file.path(movieDir, "cellshapes.RData"))))
-#cellshapesLG <- restoreBondOrder(dt.merge(cellshapes, with(cellinfo, data.frame(cell_id, lin_group, color)), by=c("cell_id")))
-cellshapesLG <- with(cellinfo, data.frame(cell_id, lin_group, color)) %>% addCellShapes()
+#cellshapesLG <- restoreBondOrder(dt.merge(cellshapes, with(cellinfo, data.frame(cell_id, lineage_group, color)), by=c("cell_id")))
+cellshapesLG <- with(cellinfo, data.frame(cell_id, lineage_group, color)) %>% addCellShapes()
 
 ## filter for big groups
-#csfWithLG <- transform(csfWithLG, lg_size=table(lin_group)[lin_group])
-#ggplot(with(csfWithLG, as.data.frame(table(lin_group))), aes(Freq)) + geom_histogram()
+#csfWithLG <- transform(csfWithLG, lg_size=table(lineage_group)[lineage_group])
+#ggplot(with(csfWithLG, as.data.frame(table(lineage_group))), aes(Freq)) + geom_histogram()
 
 
 subset(dbonds, cell_id %in% c(51489, 51528, 52803, 53776, 56119, 56599))
@@ -87,7 +87,7 @@ render_source_image(frameOI) + geom_polygon(aes(x_pos, y_pos, group=cell_id), co
 ###  subset using matthias mask
 cellshapes <- local(get(load(file.path(movieDir, "cellshapes.RData"))))
 mattTrackGrpIds <- read.delim(paste0(movieDir, "shear_contrib/matthias_cells_subset.dat"))[-1,]
-mattCells <- subset(cellinfo, track_grp_id %in% mattTrackGrpIds)
+mattCells <- subset(cellinfo, tissue_analyzer_group_id %in% mattTrackGrpIds)
 mattShapes <- subset(cellshapes, cell_id %in% mattCells$cell_id)
 frameOI=100
 csF <- subset(mattShapes, frame==frameOI)
@@ -176,11 +176,11 @@ render_source_image(0) + geom_polygon(aes(x_pos, y_pos, group=cell_id),  color='
 } #### DEBUG end
 
 ## trace lineage groups
-cellinfo <- dbGetQuery(db, "select cell_id, lin_group from cellinfo")
-cells2lg <- with(cellinfo, data.frame(cell_id, lin_group))
+cellinfo <- dbGetQuery(db, "select cell_id, lineage_group from cell_histories")
+cells2lg <- with(cellinfo, data.frame(cell_id, lineage_group))
 lgBlue <- subset(cells2lg, cell_id %in% blueCells)
 
-csBlueOnly <- subset(dt.merge(cellshapes, cells2lg, by="cell_id"), lin_group %in% lgBlue$lin_group)
+csBlueOnly <- subset(dt.merge(cellshapes, cells2lg, by="cell_id"), lineage_group %in% lgBlue$lineage_group)
 csBlueOnly <- arrange(csBlueOnly, cell_id, frame, bond_order)
 
 render_movie(csBlueOnly, "blue_square_tracking.mp4", geom_polygon(aes(x_pos, y_pos, group=cell_id), color="blue", alpha=0.5, fill=NA), sampleRate=1)

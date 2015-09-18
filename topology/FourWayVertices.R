@@ -33,10 +33,10 @@ multColors =c("2" = "yellow", "3"="lightblue", "4"="red", "5"="darkgreen", "6"="
 #multColors = create_palette(1:4)
 
 
-dbonds <- dbGetQuery(db, "select frame,  frame from dbonds")
+dbonds <- dbGetQuery(db, "select frame,  frame from directed_bonds")
 
 
-dbondVertices <- dbGetQuery(db, "select vertex_id from dbonds")
+dbondVertices <- dbGetQuery(db, "select vertex_id from directed_bonds")
 vertexMultiplicities <- with(dbondVertices, as.data.frame(table(vertex_id), responseName="multiplicity"))
 
 #subset(vertexMultiplicities, multiplicity==6)

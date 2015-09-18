@@ -72,7 +72,7 @@ To run the workflow we recommend [snakemake](https://bitbucket.org/johanneskoest
     sm all | tee log.txt
     
     ## ... or just run sepecific tasks
-    sm makedb | tee log.txt
+    sm make_db | tee log.txt
     
     ## Export statistics and execution state graph visualization
     sm --dag | dot -Tpdf > dag_tbd.pdf

@@ -57,7 +57,7 @@ rm(triList)
 
 roiBT <- with(local(get(load("../roi_bt/lgRoiSmoothed.RData"))), data.frame(cell_id, roi))
 
-## add roi that includes all cells at all timepoints
+## add roi that includes all cells at all frames
 ## todo seems to cause problems for PA_Sample_correction
 roiBT <- rbind(roiBT, data.frame(cell_id=unique(cells$cell_id), roi="raw"))
 

@@ -89,10 +89,10 @@ avgCgStateProps <- function(ta){
     return(subset(QavgNoBcknd, select=-c(tri_area, roi)))
 }
 
-echo("Query DB ",basename(movieDir), " for timepoints..." )
+echo("Query DB ",basename(movieDir), " for frames..." )
 ## load time mapping for rate calculation
-timepoints <- dbGetQuery(db, "select * from timepoints")
-timeIntervals <- merge(timepoints, transform(timepoints, frame=frame-1), by="frame", suffixes=c(".t", ".tp1")) %>%
+frames <- dbGetQuery(db, "select * from frames")
+timeIntervals <- merge(frames, transform(frames, frame=frame-1), by="frame", suffixes=c(".t", ".tp1")) %>%
     with(data.frame(frame, interval_h=(time_sec.tp1-time_sec.t)/3600))
 
 

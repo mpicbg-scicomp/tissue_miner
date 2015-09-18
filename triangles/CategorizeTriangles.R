@@ -43,7 +43,7 @@ daughterInfo <- cdByDaughters(db)
 t1GainOrigID <-t1DataFilt %>%
     ## just keep gain events
     filter(!isNeighbor.t) %>%
-    select(-c(isNeighbor.t, dbond_id, dbond_left_id, isNeighbor.tp1)) %>%
+    select(-c(isNeighbor.t, dbond_id, left_dbond_id, isNeighbor.tp1)) %>%
 
     ## some of them will be fake mother cells so replace them with the original IDs
     rename(cell_or_mother_id=cell_id) %>%
@@ -61,20 +61,20 @@ t1OrigContact <- t1GainOrigID %>%
 
 #tt <- filter(t1GainOrigID, is.na(cell_id))
 #unlen(tt$cell_or_mother_id)
-#dbGetQuery(db, "select * from cellinfo") %>% filter(gained_by=="Division") %>% nrow()
-#dbGetQuery(db, "select * from cellinfo") %>% filter(cell_id==10033)
+#dbGetQuery(db, "select * from cell_histories") %>% filter(appears_by=="Division") %>% nrow()
+#dbGetQuery(db, "select * from cell_histories") %>% filter(cell_id==10033)
 
 ## combine with triangle data
 
 t1Loss <- t1DataFilt  %>% filter(!isNeighbor.tp1) %>% select(frame, neighbor_cell_id, cell_id)
 
-cdLoss <- dbGetQuery(db, "select * from cellinfo") %>%
-    filter(lost_by=="Division") %>%
+cdLoss <- dbGetQuery(db, "select * from cell_histories") %>%
+    filter(disappears_by=="Division") %>%
     transmute(cell_id, frame=last_occ) %>%
     dt.merge(cellNeighbors,  by=c("cell_id", "frame"), allow.cartesian=TRUE)
 
-cdGain <- dbGetQuery(db, "select * from cellinfo") %>%
-    filter(gained_by=="Division") %>%
+cdGain <- dbGetQuery(db, "select * from cell_histories") %>%
+    filter(appears_by=="Division") %>%
     transmute(cell_id, frame=first_occ) %>%
     dt.merge(cellNeighbors,  by=c("cell_id", "frame"), allow.cartesian=TRUE)
 

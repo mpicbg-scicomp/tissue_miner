@@ -51,14 +51,14 @@ mcdir(shearContribDir)
 print("building triangulation model...")
 
 ## create left-oriented 3-cell tuples
-dbonds <- dbGetQuery(db, "select cell_id, frame, dbond_id, conj_dbond_id, dbond_left_id from dbonds") %>%
+dbonds <- dbGetQuery(db, "select cell_id, frame, dbond_id, conj_dbond_id, left_dbond_id from directed_bonds") %>%
     filter(cell_id!=10000)
 
 ## test with some frames
 # dbonds <- subset(dbonds, frame <20)
 
 ## 1st merge with conj bond to get first neighbor
-neighbors <- dt.merge(with(dbonds, data.frame(frame, cell_id, dbond_id, dbond_left_id)), with(dbonds, data.frame(dbond_id=conj_dbond_id, cell_id)), by=c("dbond_id"))
+neighbors <- dt.merge(with(dbonds, data.frame(frame, cell_id, dbond_id, left_dbond_id)), with(dbonds, data.frame(dbond_id=conj_dbond_id, cell_id)), by=c("dbond_id"))
 
 ## save for death cell analysis
 save(neighbors, file="neighbors.RData")
@@ -67,7 +67,7 @@ save(neighbors, file="neighbors.RData")
 
 ## 2nd merge with left_bond neighbors
 triangleCells <- neighbors %>%
-    select(dbond_id=dbond_left_id, left_bond_neighbor_cell_id=cell_id.y) %>%
+    select(dbond_id=left_dbond_id, left_bond_neighbor_cell_id=cell_id.y) %>%
     dt.merge(neighbors, ., by=c("dbond_id")) %>%
     select(frame, cell_a=cell_id.x, cell_b=cell_id.y, cell_c=left_bond_neighbor_cell_id)
 

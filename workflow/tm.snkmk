@@ -17,7 +17,7 @@ TRACKED_ROIS = "roi_bt/lgRoiSmoothed.RData"
 TRIANGLES = "shear_contrib/triList.RData"
 
 # https://bitbucket.org/johanneskoester/snakemake/wiki/Documentation#markdown-header-local-rules
-localrules: parse_tables, makedb
+localrules: parse_tables, make_db
 
 ## grep output /projects/project-raphael/scripts/tissue_miner/workflow/tm.snkmk | tail -n+2 | cut -d: -f2-  | sort -u | tr "\\n" ","
 rule all:
@@ -50,8 +50,8 @@ rule parse_tables:
     shell: "imageParser $(dirname {movieDbDir}) $(basename {movieDbDir}) %03d" #optionally remove tracked and divided pngs
 
 
-rule makedb:
-    params: name="makedb"
+rule make_db:
+    params: name="make_db"
     input: "dbTablesFromParser/vertex_in_frame.dat", "Segmentation/cumultimesec.txt"
     output: DB, "cellshapes.RData"
     shell: "CreateDbFromParser.R "  + movieDbDir
@@ -176,9 +176,9 @@ rule stripe_movies:
 
 ### shear
 
-def redirect_out(ruleName):
-   return " 2>logs/"+ruleName+".err.log 1>logs/"+ ruleName + ".out.log"
-# usage: + redirect_out("shear_calculate")
+#def redirect_out(ruleName):
+#   return " 2>logs/"+ruleName+".err.log 1>logs/"+ ruleName + ".out.log"
+## usage: + redirect_out("shear_calculate")
 
 rule shear_calculate:
     params: name="shear_calculate"

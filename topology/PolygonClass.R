@@ -33,7 +33,7 @@ mcdir(file.path(movieDir, "polygon_class"))
 ########################################################################################################################
 ### Calculcate polygon-class for every cell in every frame (excluding background cell)
 
-dbonds <- dbGetQuery(db, "select cell_id, dbond_id, conj_dbond_id, frame from dbonds")
+dbonds <- dbGetQuery(db, "select cell_id, dbond_id, conj_dbond_id, frame from directed_bonds")
 dbonds <- subset(dbonds, cell_id != 10000)
 
 

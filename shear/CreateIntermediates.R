@@ -15,7 +15,7 @@ cells <- dbGetQuery(db, "select frame, cell_id, center_x, center_y, area from ce
 
 #### account for cell death ONLY
 ## project cell positions of dying cells ONLY to next frame
-lostDyingCells <-  dbGetQuery(db, "select cell_id, last_occ from cellinfo where lost_by='Apoptosis'")
+lostDyingCells <-  dbGetQuery(db, "select cell_id, last_occ from cell_histories where disappears_by='Apoptosis'")
 lastOccNeighborsDying <- dt.merge(neighbors, with(lostDyingCells, data.frame(cell_id.x=cell_id, frame=last_occ)))
 
 
@@ -78,7 +78,7 @@ neighbors<- subset(neighbors, frame < 50)
 
 #### account for cell death
 ## 1) project cell positions of lost cells to next frame
-lostCells <-  dbGetQuery(db, "select cell_id, last_occ from cellinfo where lost_by='Apoptosis' or lost_by='Division'")
+lostCells <-  dbGetQuery(db, "select cell_id, last_occ from cell_histories where disappears_by='Apoptosis' or disappears_by='Division'")
 lastOccNeighbors <- dt.merge(neighbors, with(lostCells, data.frame(cell_id.x=cell_id, frame=last_occ)))
 
 if(F){
@@ -106,7 +106,7 @@ projNeighborCenters <- subset(projNeighborCenters, frame<=max(cells$frame)) ## b
 ghostPositions <- as.df(data.table(projNeighborCenters)[, list(frame=frame[1], ghost_x=mean(center_x), ghost_y=mean(center_y), num_neighbors=length(frame)), by=c("center_cell_id")])
 
 ## 4) quick fix to set the center of mass of merged-daughter cells (mother cell id enforced at time t+1)
-mergedDaughterCenter <- dbGetQuery(db, "select cell_id as mother_cell_id, last_occ+1 as frametp1, left_daughter_cell_id, right_daughter_cell_id from cellinfo where lost_by='Division'") %>%
+mergedDaughterCenter <- dbGetQuery(db, "select cell_id as mother_cell_id, last_occ+1 as frametp1, left_daughter_cell_id, right_daughter_cell_id from cell_histories where disappears_by='Division'") %>%
   dt.merge(select(cells, left_daughter_cell_id=cell_id, frametp1=frame, matches(".")), by=c("frametp1","left_daughter_cell_id")) %>%
   dt.merge(select(cells, right_daughter_cell_id=cell_id, frametp1=frame, matches(".")), by=c("frametp1","right_daughter_cell_id"), suffixes=c(".left", ".right")) %>%
   transmute(frametp1, mother_cell_id, left_daughter_cell_id, right_daughter_cell_id,
@@ -120,7 +120,7 @@ ghostPositions <- ghostPositions %>%
   select(-c(avg_center_x,avg_center_y))
 
 
-## numExpectedGhostPositions <- nrow(dbGetQuery(db, "select cell_id, last_occ from cellinfo where lost_by='Apoptosis' and last_occ<50"))
+## numExpectedGhostPositions <- nrow(dbGetQuery(db, "select cell_id, last_occ from cell_histories where disappears_by='Apoptosis' and last_occ<50"))
 
 ## note some will have NA positions because they have just dead neighbors
 if(F){ #### DEBUG
@@ -187,31 +187,31 @@ naSndInt <- arrange(naSndInt, tri_id, cell_id, tri_order) #... including cell du
 
 naSndIntNoDup <- subset(naSndInt, !duplicated(cell_id))
 
-cellinfo <-  dbGetQuery(db, "select * from cellinfo")
+cellinfo <-  dbGetQuery(db, "select * from cell_histories")
 naSndIntCI <- dt.merge(naSndIntNoDup, cellinfo)
 
-ggplot(naSndIntCI, aes(frame, fill=lost_by)) + geom_bar() + ggtitle("i2 cells with na positions")
-ggplot(naSndIntCI, aes(frame-last_occ, fill=lost_by)) + geom_bar()
+ggplot(naSndIntCI, aes(frame, fill=disappears_by)) + geom_bar() + ggtitle("i2 cells with na positions")
+ggplot(naSndIntCI, aes(frame-last_occ, fill=disappears_by)) + geom_bar()
 
-naSndIntCIWithoutMaskLoss <- subset(naSndIntCI, lost_by!='MovesOutOfMask')
-ggplot(naSndIntCIWithoutMaskLoss, aes(frame, fill=lost_by)) + geom_bar() + ggtitle("i2 cells with na positions")
-ggplot(naSndIntCIWithoutMaskLoss, aes(frame-last_occ, fill=lost_by)) + geom_bar()
+naSndIntCIWithoutMaskLoss <- subset(naSndIntCI, disappears_by!='MovesOutOfMask')
+ggplot(naSndIntCIWithoutMaskLoss, aes(frame, fill=disappears_by)) + geom_bar() + ggtitle("i2 cells with na positions")
+ggplot(naSndIntCIWithoutMaskLoss, aes(frame-last_occ, fill=disappears_by)) + geom_bar()
 
-ggplot(naSndIntCIWithoutMaskLoss, aes(lost_by)) + geom_bar() + ggtitle("lost by status of NA cells")
+ggplot(naSndIntCIWithoutMaskLoss, aes(disappears_by)) + geom_bar() + ggtitle("lost by status of NA cells")
 
 ## plot it
 #simpleTri <- dt.merge(triList, cells, by=c("frame", "cell_id"), all.x=T)
 
-naSndIntCIPrevFrame <- dt.merge(cells, with(naSndIntCI, data.frame(cell_id, lost_by, frame=frame-1)), by=c("cell_id", "frame"))
+naSndIntCIPrevFrame <- dt.merge(cells, with(naSndIntCI, data.frame(cell_id, disappears_by, frame=frame-1)), by=c("cell_id", "frame"))
 
-render_movie(naSndIntCIPrevFrame, "secondIntNAs.mp4", geom_point(aes(center_x, center_y, color=lost_by), alpha=0.5, size=5))
-render_movie(subset(naSndIntCIPrevFrame, lost_by!="MovesOutOfMask"), "secondIntNAsWithoutMaskLoss.mp4", geom_point(aes(center_x, center_y, color=lost_by), alpha=0.5, size=5), createZip=T)
+render_movie(naSndIntCIPrevFrame, "secondIntNAs.mp4", geom_point(aes(center_x, center_y, color=disappears_by), alpha=0.5, size=5))
+render_movie(subset(naSndIntCIPrevFrame, disappears_by!="MovesOutOfMask"), "secondIntNAsWithoutMaskLoss.mp4", geom_point(aes(center_x, center_y, color=disappears_by), alpha=0.5, size=5), createZip=T)
 
 
-naSndIntCIPrevFrameWithoutMaskLoss <- subset(naSndIntCIPrevFrame, lost_by!="MovesOutOfMask")
+naSndIntCIPrevFrameWithoutMaskLoss <- subset(naSndIntCIPrevFrame, disappears_by!="MovesOutOfMask")
 cellsOI <- subset(naSndIntCIPrevFrameWithoutMaskLoss)[1,]
 debugROI <- with(cellsOI, square_hull(center_x, center_y, ext=100))
-render_source_image(cellsOI$frame[1], squareRoi=debugROI) + geom_point(aes(center_x, center_y, color=lost_by), alpha=0.5, size=5, data=cellsOI) #+ scale_fill_discrete(guide=FALSE)
+render_source_image(cellsOI$frame[1], squareRoi=debugROI) + geom_point(aes(center_x, center_y, color=disappears_by), alpha=0.5, size=5, data=cellsOI) #+ scale_fill_discrete(guide=FALSE)
 
 subset(ghostPositions, center_cell_id ==11008)
 subset(sndIntWithGhostsFilt, cell_id==11008 & frame==33)
@@ -264,7 +264,7 @@ table(with(plyr::rename(daughterInfo, c(first_occ="frame")), as.data.frame(table
 
 subset(with(plyr::rename(daughterInfo, c(first_occ="frame")), as.data.frame(table(cell_id, frame))), Freq>1)
 subset(daughterInfo, cell_id==37809)
-dbGetQuery(db, "select * from cellinfo where cell_id=37809")
+dbGetQuery(db, "select * from cell_histories where cell_id=37809")
 
 } #### DEBUG end
 
@@ -313,7 +313,7 @@ if(max(paste0IdCountsPerFrame$Freq)>1){
 #
 ### imporant: do we loose or gain cells at the frame -->
 #involvedCells <- subset(thrdIntMergedCDFilt1, tri_id %in% dupTriangles)
-#subset(dbGetQuery(db, "select * from cellinfo"), cell_id %in% involvedCells$cell_id)
+#subset(dbGetQuery(db, "select * from cell_histories"), cell_id %in% involvedCells$cell_id)
 #
 #dupCells <- subset(thrdIntMergedCDFilt1, tri_id %in% dupTriIDs)
 #dupTris <- subset(triList, tri_id %in% dupTriIDs)

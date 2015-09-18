@@ -298,7 +298,7 @@ avgCellArea <- dbGetQuery(db, "select cell_id, frame, area from cells") %>%
   # cancel grouping
   ungroup() %>%
   # bring time in seconds into the current table by matching the frame number
-  inner_join(dbGetQuery(db, "select * from timepoints"), by="frame") %>%
+  inner_join(dbGetQuery(db, "select * from frames"), by="frame") %>%
   # convert time to hours
   mutate(time_h=round(time_sec/3600, 1)) %>%
   # remove the unecessary columns
@@ -318,7 +318,7 @@ avgCellArea <- dbGetQuery(db, "select cell_id, frame, area from cells") %>% prin
   group_by(frame) %>% 
   summarize(area_avg=mean(area_real)) %>% 
   ungroup() %>% 
-  inner_join(dbGetQuery(db, "select * from timepoints"), by="frame") %>% 
+  inner_join(dbGetQuery(db, "select * from frames"), by="frame") %>%
   mutate(time_h=round(time_sec/3600, 1)) %>% 
   select(-c(frame, time_sec)) %>% 
   arrange(time_h) %>% print_head()

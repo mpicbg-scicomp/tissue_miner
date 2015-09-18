@@ -174,10 +174,10 @@ save(cellsInROI, file="cellsInROI.RData")
 ########################################################################################################################
 #### Prepare uncorrected lineage data and make movie
 
-cellinfo <- dbGetQuery(db, "select cell_id, lin_group from cellinfo")
+cellinfo <- dbGetQuery(db, "select cell_id, lineage_group from cell_histories")
 
 ## collect all cell_ids by lineage group in each roi
-linGroupsInROi <- merge(cellsInROI, cellinfo, by="cell_id") %>% unique_rows(c("lin_group", "roi")) %>% select(-cell_id)
+linGroupsInROi <- merge(cellsInROI, cellinfo, by="cell_id") %>% unique_rows(c("lineage_group", "roi")) %>% select(-cell_id)
 roiCellsBTRaw <- merge(linGroupsInROi, cellinfo)
 
 save(roiCellsBTRaw, file="roiCellsBTRaw.RData")
@@ -185,9 +185,9 @@ save(roiCellsBTRaw, file="roiCellsBTRaw.RData")
 
 
 ## filter for moving in cells to fix margin (also filter for segmenation errors as they often appear at the margin)
-completeCellInfo <- dbGetQuery(db, "select * from cellinfo")
-inMoversLGs <- subset(completeCellInfo, gained_by %in% c("SegErrAppearance", "MovedIntoMask"))$lin_group
-roiCellsBT <- subset(roiCellsBTRaw, !(lin_group %in% inMoversLGs))
+completeCellInfo <- dbGetQuery(db, "select * from cell_histories")
+inMoversLGs <- subset(completeCellInfo, appears_by %in% c("SegErrAppearance", "MovedIntoMask"))$lineage_group
+roiCellsBT <- subset(roiCellsBTRaw, !(lineage_group %in% inMoversLGs))
 
 save(roiCellsBT, file="roiCellsBT.RData")
 # roiCellsBT <- local(get(load("roiCellsBT.RData")))
@@ -198,7 +198,7 @@ save(roiCellsBT, file="roiCellsBT.RData")
 #### peel of the first 2 lines of cells that are in contact with the margin of the first frame
 # detect cells in co
 
-dbondsF1 <- dbGetQuery(db, "select cell_id, dbond_id, conj_dbond_id, frame from dbonds where frame=1")
+dbondsF1 <- dbGetQuery(db, "select cell_id, dbond_id, conj_dbond_id, frame from directed_bonds where frame=1")
 
 neighborsF1 <- dt.merge(dbondsF1, with(dbondsF1, data.frame(dbond_id=conj_dbond_id, neighbor_cell_id=cell_id)), by=c("dbond_id"), all=T, allow.cartesian=TRUE)
 
@@ -214,13 +214,13 @@ f1PeelingCells <- unique(c(marginNeighbors$cell_id, secondRow$cell_id))
 
 
 ## extract lin-groups for removal
-firstFrameMarginLGs <- subset(roiCellsBT, cell_id %in% f1PeelingCells)$lin_group
+firstFrameMarginLGs <- subset(roiCellsBT, cell_id %in% f1PeelingCells)$lineage_group
 
 ## ... and remove those groups from the rois
 peeledRoiCellsBT <- roiCellsBT %>%
-    filter(!(lin_group %in% firstFrameMarginLGs)) %>%
+    filter(!(lineage_group %in% firstFrameMarginLGs)) %>%
     arrange(roi) %>%
-    select(-lin_group)
+    select(-lineage_group)
 
 save(peeledRoiCellsBT, file="peeledRoiCellsBT.RData")
 # peeledRoiCellsBT <- local(get(load("peeledRoiCellsBT.RData")))
@@ -245,7 +245,7 @@ save(peeledRoiCellsBT, file="peeledRoiCellsBT.RData")
 
 
 
-dbonds <- dbGetQuery(db, "select cell_id, dbond_id, conj_dbond_id, frame from dbonds")
+dbonds <- dbGetQuery(db, "select cell_id, dbond_id, conj_dbond_id, frame from directed_bonds")
 
 ## define utility functions to merge frame with cell_id --> not needed here but nice idea, so better keep them
 #calcCfid <- function(cell_id, frame) { return(as.numeric((frame+1)*1000000 + cell_id)) }
@@ -463,13 +463,13 @@ q(save="no")
 stop("should never reach this line")
 
 ### 1) get all last occurrence frame of dying cells which are not part of a roi
-dyingCells <- dbGetQuery(db, "select * from cellinfo where lost_by='Apoptosis' or gained_by='SegErrAppearance' ")
+dyingCells <- dbGetQuery(db, "select * from cell_histories where disappears_by='Apoptosis' or appears_by='SegErrAppearance' ")
 
 
 ### filter for those which have an area <100 in the last occurrence (the others are tracking mistakes)
 cellAreas <- dbGetQuery(db, "select cell_id, frame, area from cells")
 dyingCellsArea <- merge(dyingCells,cellAreas, by.x=c("cell_id", "last_occ"), by.y=c("cell_id", "frame"))
-#with(dyingCellsArea, as.data.frame(table(gained_by)))
+#with(dyingCellsArea, as.data.frame(table(appears_by)))
 
 ## todo discuss with Raphael: disabled because would conflict with SegErrAppearance
 #dyingCellsSmall <- subset(dyingCellsArea, area < 100)
@@ -481,7 +481,7 @@ dyingCellsSmallNoRoi <- subset(dyingCellsSmall, !(cell_id %in% roiCellsBT$cell_i
 
 ### 2) get most frequent neighbor roi
 
-dbonds <- dbGetQuery(db, "select * from dbonds where cell_id!=10000")
+dbonds <- dbGetQuery(db, "select * from directed_bonds where cell_id!=10000")
 deadDbonds <- dt.merge(dbonds, with(dyingCellsSmallNoRoi, data.frame(frame=last_occ, cell_id)), c("cell_id", "frame"))
 
 deadDbondsSlim <- with(deadDbonds, data.frame(cell_id, frame, conj_dbond_id))
@@ -536,8 +536,8 @@ render_movie(misRoiDeadCellshapes, "unfixedDyingCells.mp4", list(geom_polygon(ae
 #with(dyingCellRoiFix, as.data.frame(table(is.na(max_roi))))
 ## note: the filter has only an effect if we use concordant voting
 dyingCellRoiFixFilt <- subset(dyingCellRoiFix, !is.na(max_roi))
-dyingCellRoiFixFiltSlimUnique <- unique(with(dyingCellRoiFixFilt, data.frame(max_roi, lin_group)))
-cellsInDyingLG <- merge(dyingCellRoiFixFiltSlimUnique, with(cellinfo, data.frame(cell_id, lin_group)))
+dyingCellRoiFixFiltSlimUnique <- unique(with(dyingCellRoiFixFilt, data.frame(max_roi, lineage_group)))
+cellsInDyingLG <- merge(dyingCellRoiFixFiltSlimUnique, with(cellinfo, data.frame(cell_id, lineage_group)))
 
 
 
@@ -578,13 +578,13 @@ if(F){ #### DEBUG duplicates cell cell_id  (done for 120531_PW_from16h00_EcadGFP
     with(dyingCellsSmallNoRoi, as.data.frame(table(table(cell_id))))
 
     ## is inconsistent movie
-    cellinfo <- dbGetQuery(db, "select * from cellinfo")
-    with(cellinfo, as.data.frame(table(lost_by=="Apoptosis")))
+    cellinfo <- dbGetQuery(db, "select * from cell_histories")
+    with(cellinfo, as.data.frame(table(disappears_by=="Apoptosis")))
     with(cellinfo, as.data.frame(table(is.na(generation))))
 
     ## duplicates of detected groups
     nrow(dyingCellRoiFixFilt)
-    nrow(unique(with(dyingCellRoiFixFilt, data.frame(max_roi, lin_group))))
+    nrow(unique(with(dyingCellRoiFixFilt, data.frame(max_roi, lineage_group))))
     ## YES --> use unique to remove duplicates before merging
 } #### DEBUG end
 
