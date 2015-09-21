@@ -168,7 +168,7 @@ calcGenerationForSubtreeNEW <- function(cell_id_ST, in_degree_ST){
     if(procLG%%100==0) echo("percont done ", procLG/numLGs)
     procLG <<- procLG+1
 
-    if(length(cell_id_ST)==1) return(1) ##  just speedup for single node lineage_groups
+    if(length(cell_id_ST)==1) return(0) ##  just speedup for single node lineage_groups
 
     #if(nrow(subset(curSubTree, in_degree==0))>1) {stop(paste("division tree with multiple roots as in ", curSubTree$lineage_group[1], "should not happen")) }
     ## todo remove this ugly hack by reenabling the original stop criterion
@@ -189,6 +189,9 @@ calcGenerationForSubtreeNEW <- function(cell_id_ST, in_degree_ST){
     # todo necessary?
     genSorted <- generations$generation[with(generations, match(cell_id_ST, cell_id))]
 #    print(genSorted)
+
+    ## remove offset because from a geneticist point of view, cells that never divide correspond to the F0 parental line.
+    genSorted <- genSorted - 1;
 
     return(as.numeric(genSorted))
 }
