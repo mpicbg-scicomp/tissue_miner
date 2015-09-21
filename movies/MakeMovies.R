@@ -59,7 +59,7 @@ subset(cellinfo, is.na(color))
 
 
 #cellshapes <- local(get(load(file.path(movieDir, "cellshapes.RData"))))
-#cellshapesLG <- restoreBondOrder(dt.merge(cellshapes, with(cellinfo, data.frame(cell_id, lineage_group, color)), by=c("cell_id")))
+#cellshapesLG <- rearrange_cell_bonds(dt.merge(cellshapes, with(cellinfo, data.frame(cell_id, lineage_group, color)), by=c("cell_id")))
 cellshapesLG <- with(cellinfo, data.frame(cell_id, lineage_group, color)) %>% addCellShapes()
 
 ## filter for big groups

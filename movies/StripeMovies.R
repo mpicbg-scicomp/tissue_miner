@@ -101,7 +101,7 @@ makeTrackGrid <- function(ref_frame=0){
         select(lineage_group) %>%
         merge(cells2lg) %>%
         dt.merge(locload(file.path(movieDir, "cellshapes.RData"))) %>%
-        restoreBondOrder()
+        rearrange_cell_bonds()
 
     return(trackGrid)
 }

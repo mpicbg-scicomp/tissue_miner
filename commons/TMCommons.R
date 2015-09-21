@@ -81,7 +81,7 @@ openMovieDb <- function(movieDir){
 ma <- function(x,n=11, ...){as.numeric(stats::filter(x,rep(1/n,n), sides=2, ...))}
 
 
-restoreBondOrder <- function(df) arrange(df,  frame, cell_id, bond_order)
+rearrange_cell_bonds <- function(df) arrange(df,  frame, cell_id, bond_order)
 
 
 addCellShapes <- function(dfWithCellIdAndFrame){
@@ -89,7 +89,7 @@ addCellShapes <- function(dfWithCellIdAndFrame){
 
     local(get(load(file.path(movieDir, "cellshapes.RData")))) %>%
         inner_join(dfWithCellIdAndFrame, by=c("frame", "cell_id")) %>%
-        restoreBondOrder()
+        rearrange_cell_bonds()
 }
 
 
