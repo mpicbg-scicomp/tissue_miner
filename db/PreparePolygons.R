@@ -1,17 +1,9 @@
 
 print("Querying db for dbonds and vertices...")
 
-## todo  use uuid and remove frame from merge
-cellshapes <- dbGetQuery(db, "
-select d.frame, dbond_id, left_dbond_id, d.cell_id, x_pos, y_pos from directed_bonds d join vertices v on d.vertex_id=v.vertex_id
-")
-
-
-## remove background cell
-cellshapes <- subset(cellshapes, cell_id!=10000)
-
-## remove unused columns
-#cellshapes  <- subset(cellshapes, select=-c(conj_dbond_id,vertex_id))
+cellshapes <- dbGetQuery(db, "select d.frame, dbond_id, left_dbond_id, d.cell_id, x_pos, y_pos from directed_bonds d join vertices v on d.vertex_id=v.vertex_id") %>%
+    ## remove background cell
+    filter(cell_id!=10000)
 
 print("Creating bond order attribute...")
 
@@ -30,14 +22,17 @@ findCircle <- function(nextEdge){
     return(pos)
 }
 
-# define order attribute for each cell in each frame
-cellshapes <- as.df(data.table(cellshapes)[, bond_order:=findCircle(match(left_dbond_id, dbond_id)), by=c("cell_id", "frame")])
+cellshapes %<>%
+    # define order attribute for each cell in each frame
+    group_by(frame, cell_id) %>%
+    mutate(bond_order=findCircle(match(left_dbond_id, dbond_id))) %>% ungroup()
 
-## resort them to allow for cell shape visulization
-cellshapes <- arrange(cellshapes, frame, cell_id, bond_order)
-
-cellshapes <- subset(cellshapes, select=-c(dbond_id, left_dbond_id))
+cellshapes %<>%
+    ## resort them to allow for cell shape visulization
+    rearrange_cell_bonds() %>%
+    ## remove unused columns
+    select(-c(dbond_id, left_dbond_id))
 
 save(cellshapes, file="cellshapes.RData")
 # cellshapes <- local(get(load("cellshapes.RData")))
-
+cellshapes %>% filter(cell_id==10001, frame==3)
