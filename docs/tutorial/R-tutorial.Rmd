@@ -500,6 +500,46 @@ cellshapes %>%
 
 ```
 
+### Example 5: Bond Statistics
+
+To analyze bonds and their properties we first need to aggregate the vertex, bond, and directed bond information. This allows for instance to calculate an average bond position from both vertices as shown in the example. Please note that we need to remove duplicates due to the directionality of the bonds in the database.
+
+To encourage and advocate reusable code, we use a small helper function here to aggreate to calcualte mean bond positions.
+
+```{r Bond Statistics, warning=FALSE, message=FALSE, fig.width=11, cache=TRUE}
+
+get_bond_stats <- function(db){
+    dbonds <- dbGetQuery(db, "select dbond_id, conj_dbond_id, vertex_id, bond_id from directed_bonds")
+
+    bondStats <- dbonds %>%
+        ## use conjugated nature of db to create pairs for connected vertices
+        inner_join(., transmute(., conj_dbond_id, vertex_id), by=c("dbond_id"="conj_dbond_id")) %>%
+        distinct(bond_id) %>%
+        select(-dbond_id, -conj_dbond_id) %>%
+        ## reshape into long format to ease downstream vertex data merging and aggregation
+        gather(vertex, vertex_id, -bond_id) %>% arrange(bond_id)
+
+    bondStats %<>%
+        ## add vertex info and aggregate to mean position
+        inner_join(dbGetQuery(db, "select * from vertices")) %>%
+        group_by(bond_id) %>%
+        summarize(
+            bond_mean_x=mean(x_pos),
+            bond_mean_y=mean(y_pos)
+        ) %>%
+        ## add bond information (just length at the moment)
+        inner_join(dbGetQuery(db, "select * from bonds"))
+
+    return(bondStats)
+}
+
+bondStats <- get_bond_stats(db)
+
+bondStats %>% render_frame(25) + geom_point(aes(bond_mean_x, bond_mean_y, color=bond_length), size=1) +
+    scale_color_gradient(name="age", low="green", high="red", limits=c(0, 50))
+
+```
+
 ### Further reading: the render_frame() function
 Please, read the current definition of the render_frame() function at the [following location](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/commons/MovieFunctions.R)
 
