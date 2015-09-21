@@ -35,4 +35,3 @@ cellshapes %<>%
 
 save(cellshapes, file="cellshapes.RData")
 # cellshapes <- local(get(load("cellshapes.RData")))
-cellshapes %>% filter(cell_id==10001, frame==3)
