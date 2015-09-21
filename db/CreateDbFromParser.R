@@ -518,8 +518,8 @@ CREATE TABLE directed_bonds
     left_dbond_id INTEGER UNIQUE NOT NULL,
     CONSTRAINT pk_directed_bonds PRIMARY KEY (dbond_id),
     FOREIGN KEY(cell_id) REFERENCES cell_histories(cell_id),
-    FOREIGN KEY(conj_dbond_id) REFERENCES directed_bonds(conj_dbond_id),
-    FOREIGN KEY(left_dbond_id) REFERENCES directed_bonds(left_dbond_id),
+    FOREIGN KEY(conj_dbond_id) REFERENCES directed_bonds(dbond_id),
+    FOREIGN KEY(left_dbond_id) REFERENCES directed_bonds(dbond_id),
     FOREIGN KEY(bond_id) REFERENCES bonds(bond_id),
     FOREIGN KEY(frame) REFERENCES frames(frame)
     FOREIGN KEY(vertex_id) REFERENCES vertices(vertex_id)
