@@ -517,7 +517,7 @@ get_bond_stats <- function(db){
         distinct(bond_id) %>%
         select(-dbond_id, -conj_dbond_id) %>%
         ## reshape into long format to ease downstream vertex data merging and aggregation
-        gather(vertex, vertex_id, -bond_id) %>% arrange(bond_id)
+        gather(vertex, vertex_id, -bond_id)
 
     bondStats %<>%
         ## add vertex info and aggregate to mean position
