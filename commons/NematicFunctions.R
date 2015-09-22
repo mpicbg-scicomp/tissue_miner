@@ -146,7 +146,7 @@ get_nematics_CD <- function(movieDir, displayFactor=default_cell_display_factor(
     melt(id.vars=c("mother_cell_id", "last_occ"), value.name="cell_id") %>%
     # add frame of cytokinesis
     mutate(first_daughter_occ=last_occ+1) %>%
-    select(-last_occ,-variable)  %>% print_head()
+    select(-last_occ,-variable) 
   
   # Get cell positions
   cells <- dbGetQuery(movieDb, "select cell_id, frame, center_x, center_y, area from cells where cell_id!=10000")
@@ -213,7 +213,7 @@ get_nematics_CD_cg <- function(movieDir, gridSize=128, kernSize=11, displayFacto
     # average nematics in each frame and grid element
     group_by(frame, xGrid, yGrid) %>%
     summarise(cgCDxx=mean(normCDxx),
-              cgCDxy=mean(normCDxy)) %>% print_head()
+              cgCDxy=mean(normCDxy))
 
   # do a time averaging over N frames in each grid element
   cgCDnematicsSmooth <- cgCDnematics %>%
@@ -290,7 +290,7 @@ get_nematics_T1 <- function(movieDir, displayFactor=default_cell_display_factor(
            y1=center_y-0.5*displayFactor*sin(phi),
            x2=center_x+0.5*displayFactor*cos(phi),
            y2=center_y+0.5*displayFactor*sin(phi)) %>% 
-    select(-c(T1xx,T1xy,phi)) %>% print_head()
+    select(-c(center_x.1,center_x.2,center_y.1,center_y.2,T1xx,T1xy,phi)) 
   
   dbDisconnect(movieDb)
   
@@ -329,7 +329,7 @@ get_nematics_T1_cg <- function(movieDir, gridSize=128, kernSize=11, displayFacto
     # average nematics in each frame and grid element
     group_by(frame, xGrid, yGrid) %>%
     summarise(cgT1xx=mean(normT1xx),
-              cgT1xy=mean(normT1xy)) %>% print_head()
+              cgT1xy=mean(normT1xy))
   
   # do a time averaging over 11 frames in each grid element
   cgT1nematicsSmooth <- cgT1nematics %>%
@@ -343,7 +343,9 @@ get_nematics_T1_cg <- function(movieDir, gridSize=128, kernSize=11, displayFacto
            x1=xGrid-0.5*norm*scaledFact*cos(phi),
            y1=yGrid-0.5*norm*scaledFact*sin(phi),
            x2=xGrid+0.5*norm*scaledFact*cos(phi),
-           y2=yGrid+0.5*norm*scaledFact*sin(phi))
+           y2=yGrid+0.5*norm*scaledFact*sin(phi)) %>%
+    # remove unnecessary columns
+    select(-c(cgT1xx,cgT1xy))
     
   dbDisconnect(movieDb)
   
