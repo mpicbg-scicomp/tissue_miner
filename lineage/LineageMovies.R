@@ -224,26 +224,29 @@ cellinfo <- merge(cellinfo, lgColors, all.x=T)
 
 ## plot lineage groups over time
 #rm(cellshapes, cellsWithInfo, cells)
-cellsWithLin <- arrange(dt.merge(cellshapes, with(cellinfo, data.frame(cell_id, lineage_group, generation, color)), "cell_id"), frame, cell_id, bond_order)
+cellsWithLin <- with(cellinfo, data.frame(cell_id, lineage_group, generation, color)) %>% inner_join(cellshapes, by="cell_id") %>% rearrange_cell_bonds()
 
 #render_movie(cellsWithLin, "lineage_groups.mp4", list(geom_polygon(aes(x_pos, y_pos, fill=lineage_group, group=cell_id), alpha=0.5), scale_fill_discrete(guide=FALSE)))
 
 ## same again but with interface-optimized colors
 render_movie(cellsWithLin, "lineage_groups_col_optimized.mp4", list(geom_polygon(aes(x_pos, y_pos, fill=factor(color), group=cell_id), alpha=0.5), scale_fill_discrete(guide=FALSE)))
 
+#cellsWithLin %>% render_frame(0) + geom_polygon(aes(x_pos, y_pos, fill=generation, group=cell_id), alpha=0.5) + scale_fill_gradient(name="generation", low="green", high="darkred", limits=range(cellsWithLin$generation), trans = function(x)log(x+1))
 
-
-render_movie(cellsWithLin, "generation.mp4", list(
-geom_polygon(aes(x_pos, y_pos, fill=generation, group=cell_id), alpha=0.5),
-scale_fill_gradient(name="generation", low="green", high="darkred", limits=range(cellsWithLin$generation), trans = "log")
+## add offset to allow for log scale
+## todo use correct range and fix log-scale
+cellsWithLin %>%
+    render_movie( "generation.mp4", list(
+geom_polygon(aes(x_pos, y_pos, fill=generation+1, group=cell_id), alpha=0.5),
+scale_fill_gradient(name="generation", low="green", high="darkred", limits=range(cellsWithLin$generation)+1, trans = "log")
 ))
 
 
 
 ## limit generation to a more reasonable range
-genColors =c("1"="black", "2" = "white", "3"="red", "4"="green", ">4"="grey")
+genColors =c("0"="black", "1" = "white", "2"="red", "3"="green", ">3"="grey")
 
-cellsWithLin <- mutate(cellsWithLin, generation_cutoff=ifelse(generation>4, ">4", ac(generation)))
+cellsWithLin <- mutate(cellsWithLin, generation_cutoff=ifelse(generation>3, ">3", ac(generation)))
 with(cellsWithLin, as.data.frame(table(generation_cutoff)))
 
 #cellsWithLin <-  cellsWithLin %>% sample_frac(0.01) %>% arrange(frame, cell_id, bond_order)
