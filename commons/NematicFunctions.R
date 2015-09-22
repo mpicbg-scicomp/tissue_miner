@@ -87,17 +87,17 @@ get_nematics_DBelong_cg <- function(movieDir, gridSize=128, kernSize=1, displayF
     # average nematics in each frame and grid element
     group_by(frame, xGrid, yGrid) %>%
     summarise(cgExx=mean(elong_xx, na.rm=T),
-              cgExy=mean(elong_xy, na.rm=T)) %>%
-    ungroup() %>%
-    mutate(phi=0.5*(atan2(cgExy, cgExx)),
-           norm=sqrt(cgExy^2+cgExx^2)) %>%
-    # automatic scaling to grig size and nematic coordinates
-    mutate(scaledFactor=ifelse(autoscale,gridSize/quantile(norm, na.rm=T, probs=0.95),displayFactor),
-           x1=xGrid-0.5*norm*scaledFactor*cos(phi),
-           y1=yGrid-0.5*norm*scaledFactor*sin(phi),
-           x2=xGrid+0.5*norm*scaledFactor*cos(phi),
-           y2=yGrid+0.5*norm*scaledFactor*sin(phi)) %>%
-    select(-scaledFactor) 
+              cgExy=mean(elong_xy, na.rm=T)) # %>%
+#     ungroup() %>%
+#     mutate(phi=0.5*(atan2(cgExy, cgExx)),
+#            norm=sqrt(cgExy^2+cgExx^2)) %>%
+#     # automatic scaling to grig size and nematic coordinates
+#     mutate(scaledFactor=ifelse(autoscale,gridSize/quantile(norm, na.rm=T, probs=0.95),displayFactor),
+#            x1=xGrid-0.5*norm*scaledFactor*cos(phi),
+#            y1=yGrid-0.5*norm*scaledFactor*sin(phi),
+#            x2=xGrid+0.5*norm*scaledFactor*cos(phi),
+#            y2=yGrid+0.5*norm*scaledFactor*sin(phi)) %>%
+#     select(-scaledFactor) 
     
   
   # do a time averaging over 5 frames in each grid element
@@ -114,7 +114,8 @@ get_nematics_DBelong_cg <- function(movieDir, gridSize=128, kernSize=1, displayF
            y1=yGrid-0.5*norm*scaledFact*sin(phi),
            x2=xGrid+0.5*norm*scaledFact*cos(phi),
            y2=yGrid+0.5*norm*scaledFact*sin(phi)) %>%
-    select(-scaledFact)
+    # Remove unnecessary columns
+    select(-c(scaledFact,cgExx,cgExy))
   
   dbDisconnect(movieDb)
   
@@ -139,9 +140,9 @@ get_nematics_CD <- function(movieDir, displayFactor=default_cell_display_factor(
     movieDb <- openMovieDb(movieDir)
   
   # Get cell division events including mother and daughter cells and frame of cytokinesis
-  cdEvents <- dbGetQuery(movieDb, "select cell_id as mother_cell_id, last_occ, left_daughter_cell_id, lost_by, right_daughter_cell_id from cellinfo") %>%
-    filter(lost_by=="Division")  %>%
-    select(-lost_by) %>%
+  cdEvents <- dbGetQuery(movieDb, "select cell_id as mother_cell_id, last_occ, left_daughter_cell_id, appears_by, right_daughter_cell_id from cell_histories") %>%
+    filter(appears_by=="Division")  %>%
+    select(-appears_by) %>%
     # create one column "cell_id" out of the 2 daughter cells
     melt(id.vars=c("mother_cell_id", "last_occ"), value.name="cell_id") %>%
     # add frame of cytokinesis
@@ -290,7 +291,7 @@ get_nematics_T1 <- function(movieDir, displayFactor=default_cell_display_factor(
            y1=center_y-0.5*displayFactor*sin(phi),
            x2=center_x+0.5*displayFactor*cos(phi),
            y2=center_y+0.5*displayFactor*sin(phi)) %>% 
-    select(-c(center_x.1,center_x.2,center_y.1,center_y.2,T1xx,T1xy,phi)) 
+    select(-c(center_x.1,center_x.2,center_y.1,center_y.2,T1xx,T1xy,area.1,area.2)) 
   
   dbDisconnect(movieDb)
   
