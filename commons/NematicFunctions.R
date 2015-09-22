@@ -60,9 +60,9 @@ get_nematics_DBelong_cg <- function(movieDir, gridSize=128, kernSize=1, scalingF
   if (scalingFactor==-1) autoscale=T else autoscale=F
   
   cgNematics <- get_nematics_DBelong(movieDb) %>%
-    coarseGrid(gridSize) %>%
+    coarseGrid(gridSize) %>% 
     # remove grid elements that overlap the margin cell
-    removeBckndGridOvlp(getBckndGridElements(movieDb, gridSize)) %>%
+    removeBckndGridOvlp(getBckndGridElements(movieDb, gridSize)) %>% 
     # average nematics in each frame and grid element
     group_by(frame, xGrid, yGrid) %>%
     summarise(cgExx=mean(elong_xx, na.rm=T),
@@ -81,8 +81,8 @@ get_nematics_DBelong_cg <- function(movieDir, gridSize=128, kernSize=1, scalingF
   
   # do a time averaging over 5 frames in each grid element
   cgNematicsSmooth <- cgNematics %>%
-    smooth_tissue(cgExx, kernel_size=kernSize, gap_fill = NA, global_min_max = T) %>%
-    smooth_tissue(cgExy, kernel_size=kernSize, gap_fill = NA, global_min_max = T) %>%
+    smooth_tissue(cgExx, kernel_size=kernSize, gap_fill = NA, global_min_max = F) %>%
+    smooth_tissue(cgExy, kernel_size=kernSize, gap_fill = NA, global_min_max = F) %>%
     # calculate the angle and norm of coarse-grained nematics
     mutate(#phi=mod2pi(0.5*(atan2(cgExy_smooth, cgExx_smooth))),
            phi=(0.5*(atan2(cgExy_smooth, cgExx_smooth))),
@@ -101,7 +101,7 @@ get_nematics_DBelong_cg <- function(movieDir, gridSize=128, kernSize=1, scalingF
 }
 ## DEBUG get_nematics_DBelong_cg() ####
 get_nematics_DBelong_cg(movieDir) %>%
-render_frame(120) +
+render_frame(70) +
   geom_segment(aes(x=x1, y=y1,xend=x2, yend=y2),
                size=2, lineend="round", color="red", na.rm=T)
 
@@ -255,7 +255,6 @@ get_nematics_T1<- function(movieDir, scalingFactor=default_cell_display_factor(m
   return(t1nematics)
   
 }
-
 ## DEBUG get_nematics_T1() ####
 get_nematics_T1(movieDir) %>% 
   render_frame(20, squareRoi=rbind(c(1500,2000),c(1300,1700))) + 
@@ -266,12 +265,45 @@ get_nematics_T1(movieDir) %>%
   ggtitle("Cell neighbor exchanges")
 
 ## get_nematics_T1_cg() ####
-get_nematics_T1_cg<- function(movieDb, gridSize=128, kernSize=11, scalingFactor=-1){
+get_nematics_T1_cg<- function(movieDir, gridSize=128, kernSize=11, scalingFactor=-1){
+  
+  if (scalingFactor==-1) autoscale=T else autoscale=F
   
   movieDb <- openMovieDb(movieDir)
+  cgT1nematics <- get_nematics_T1(movieDir) %>%
+    # coarse-grain nematics (assume the presence of center_x and center_y in the data)
+    coarseGrid(gridSize) %>%
+    # remove grid elements that overlap the margin cell
+    removeBckndGridOvlp(getBckndGridElements(movieDb, gridSize)) %>%
+    # average nematics in each frame and grid element
+    group_by(frame, xGrid, yGrid) %>%
+    summarise(cgT1xx=mean(normT1xx),
+              cgT1xy=mean(normT1xy)) %>% print_head()
   
+  # do a time averaging over 11 frames in each grid element
+  cgT1nematicsSmooth <- cgT1nematics %>%
+    smooth_tissue(cgT1xx, kernel_size=kernSize, gap_fill = 0, global_min_max = T) %>%
+    smooth_tissue(cgT1xy, kernel_size=kernSize, gap_fill = 0, global_min_max = T) %>%
+    # calculate the coarse-grained nematic angle and norm
+    mutate(phi=mod2pi(0.5*(atan2(cgT1xy_smooth, cgT1xx_smooth))),
+           norm=sqrt(cgT1xy_smooth^2+cgT1xx_smooth^2)) %>%
+    # calculate the nematic coordinates
+    mutate(scaledFact=ifelse(autoscale,gridSize/quantile(norm, na.rm=T, probs=0.95),scalingFactor),
+           x1=xGrid-0.5*norm*scaledFact*cos(phi),
+           y1=yGrid-0.5*norm*scaledFact*sin(phi),
+           x2=xGrid+0.5*norm*scaledFact*cos(phi),
+           y2=yGrid+0.5*norm*scaledFact*sin(phi))
+    
   dbDisconnect(movieDb)
   
-  return()
+  return(cgT1nematicsSmooth)
 }
+## DEBUG get_nematics_T1() ####
+get_nematics_T1_cg(movieDir) %>% 
+  render_frame(20) + 
+  # geom_polygon(data=csWithTopoT1 %>% filter(frame==20),aes(x_pos, y_pos, group=cell_id, fill=t1_type), alpha=0.5) +
+  # scale_fill_manual(values = T1cols, drop = FALSE) +
+  geom_segment(aes(x=x1,y=y1,xend=x2,yend=y2),
+               size=2, alpha=0.7, lineend="round", color="red", na.rm=T)  +
+  ggtitle("Coarse grained cell neighbor exchanges")
 
