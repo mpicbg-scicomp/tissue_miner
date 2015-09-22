@@ -115,5 +115,5 @@ getBckndGridElements <- function(db, gridWitdh=movie_grid_size){
 
 ## this should be optional
 removeBckndGridOvlp <- function(dataWithRoiAndFrame, bckndGridElements){
-    anti_join(dataWithRoiAndFrame, bckndGridElements)
+    anti_join(data.table(dataWithRoiAndFrame), data.table(bckndGridElements)) %>% as.df()
 }
