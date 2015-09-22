@@ -44,8 +44,8 @@ check_version = function(pkg_name, min_version) {
                found %s, need at least %s", pkg_name, cur_version, min_version))
 }
 
-check_version("dplyr", "0.4-1")
-check_version("magrittr", "1.5")
+check_version("dplyr", "0.4-3")
+#check_version("magrittr", "1.5")
 
 ####################################################################################################
 ## Helper functions
