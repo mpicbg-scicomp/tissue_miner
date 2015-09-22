@@ -1,24 +1,36 @@
-## Setup paths for debugging ####
-# Define path to all time-lapses
-movieDbBaseDir <- "/media/project_raphael@fileserver/movieSegmentation"
-# Define path a particular time-lapse called "WT_25deg_111102"
-movieDir <- file.path(movieDbBaseDir, c("WT_25deg_111102"))
+## Set up paths for debugging ####
+if (F){
+  # Define path to all time-lapses
+  movieDbBaseDir <- "/media/project_raphael@fileserver/movieSegmentation"
+  # Define path a particular time-lapse called "WT_25deg_111102"
+  movieDir <- file.path(movieDbBaseDir, c("WT_25deg_111102"))
+}
 
 ## default_cell_display_factor() ####
-default_cell_display_factor <- function(movieDb) {
-  queryResults <- dbGetQuery(movieDb,
-                        "select cell_id, frame, area from cells where cell_id!=10000")
+default_cell_display_factor <- function(movieDir) {
+  
+  # Description: calculate a nematic display factor based on the average cell area
+  # Usage: default_cell_display_factor(movieDir)
+  # Arguments: movieDir = path to movie directory
+  # Output: a scalar
+  
+  movieDb <- openMovieDb(movieDir)
+  queryResults <- dbGetQuery(movieDb, "select cell_id, frame, area from cells where cell_id!=10000")
+  dbDisconnect(movieDb)
+  
   # calculate averaged cell area for automated nematic scaling (considering cells as regular hexagons)
   scalingFactor=2*sqrt(2*median(queryResults$area, na.rm=T)/(3*sqrt(3)))
+  
   return(scalingFactor)
 }
 
 ## get_nematics_DBelong() ####
-get_nematics_DBelong <- function(movieDir, scalingFactor=default_cell_display_factor(movieDb)){
+get_nematics_DBelong <- function(movieDir, scalingFactor=default_cell_display_factor(movieDir)){
   
   # Description: retrieve cell elongation nematics from the DB
-  # Usage: get_nematics_DBelong(movieDb,selectedRoi)
-  # Arguments: movieDb = opened DB connection
+  # Usage: get_nematics_DBelong(movieDir, scalingFactor) where scalingFactor is optional
+  # Arguments: movieDir = path to movie directory, scalingFactor = display factor that is either user-defined or automatically calculated
+  # Output: a dataframe
   
   movieDb <- openMovieDb(movieDir)
   
@@ -44,17 +56,26 @@ get_nematics_DBelong <- function(movieDir, scalingFactor=default_cell_display_fa
   return(results)
 }
 ## DEBUG get_nematics_DBelong() ####
-get_nematics_DBelong(movieDir) %>%
-  # crop the image by defining squareRoi
-  render_frame(120, squareRoi=rbind(c(1500,2000),c(1000,1500))) +
-  # plot nematics as segments
-  geom_segment(aes(x=x1,y=y1,xend=x2,yend=y2),
-               size=1.2, alpha=0.7, lineend="round", color="red", na.rm=T) +
-  ggtitle("Cell elongation pattern")
+if (F){
+  get_nematics_DBelong(movieDir) %>%
+    # crop the image by defining squareRoi
+    render_frame(120, squareRoi=rbind(c(1500,2000),c(1000,1500))) +
+    # plot nematics as segments
+    geom_segment(aes(x=x1,y=y1,xend=x2,yend=y2),
+                 size=1.2, alpha=0.7, lineend="round", color="red", na.rm=T) +
+    ggtitle("Cell elongation pattern")
+}
 
 ## get_nematics_DBelong_cg()####
 get_nematics_DBelong_cg <- function(movieDir, gridSize=128, kernSize=1, scalingFactor=-1){
-
+  
+  # Description: retrieve and coarse-grain cell elongation nematics from the DB
+  # Usage: get_nematics_DBelong_cg(movieDir, gridSize=128, kernSize=1, scalingFactor=-1) where gridSize, kernSize, scalingFactor are optional
+  # Arguments: movieDir = path to movie directory, gridSize = square-grid sides in pixels (128 by default),
+  #            kernSize = time-window size in frames for time smoothing (no smoothing by default),
+  #            scalingFactor = display factor that is either user-defined or automatically calculated (default)
+  # Output: a dataframe
+  
   movieDb <- openMovieDb(movieDir)
   
   if (scalingFactor==-1) autoscale=T else autoscale=F
@@ -100,16 +121,22 @@ get_nematics_DBelong_cg <- function(movieDir, gridSize=128, kernSize=1, scalingF
   return(cgNematicsSmooth)
 }
 ## DEBUG get_nematics_DBelong_cg() ####
-get_nematics_DBelong_cg(movieDir) %>%
-render_frame(70) +
-  geom_segment(aes(x=x1, y=y1,xend=x2, yend=y2),
-               size=2, lineend="round", color="red", na.rm=T)
+if (F){
+  get_nematics_DBelong_cg(movieDir) %>%
+    render_frame(70) +
+    geom_segment(aes(x=x1, y=y1,xend=x2, yend=y2),
+                 size=2, lineend="round", color="red", na.rm=T)
+}
 
 ## get_nematics_CD() ####
-get_nematics_CD <- function(movieDir, scalingFactor=default_cell_display_factor(movieDb)){
+get_nematics_CD <- function(movieDir, scalingFactor=default_cell_display_factor(movieDir)){
   
+  # Description: retrieve cell division nematics from the DB
+  # Usage: get_nematics_CD(movieDir, scalingFactor) where scalingFactor is optional
+  # Arguments: movieDir = path to movie directory, scalingFactor = display factor that is either user-defined or automatically calculated
+  # Output: a dataframe
   
-  movieDb <- openMovieDb(movieDir)
+    movieDb <- openMovieDb(movieDir)
   
   # Get cell division events including mother and daughter cells and frame of cytokinesis
   cdEvents <- dbGetQuery(movieDb, "select cell_id as mother_cell_id, last_occ, left_daughter_cell_id, lost_by, right_daughter_cell_id from cellinfo") %>%
@@ -155,25 +182,34 @@ get_nematics_CD <- function(movieDir, scalingFactor=default_cell_display_factor(
   return(cdNematics)
 }
 ## DEBUG get_nematics_CD() ####
-get_nematics_CD(movieDir) %>%
-  # crop the image by defining squareRoi
-  render_frame(70, squareRoi=rbind(c(1500,2000),c(1000,1500))) +
-  # plot nematics as segments
-  geom_segment(aes(x=x1,y=y1,xend=x2,yend=y2),
-               size=1.2, alpha=0.7, lineend="round", color="red", na.rm=T) +
-  ggtitle("Cell division nematics")
+if (F){
+  get_nematics_CD(movieDir) %>%
+    # crop the image by defining squareRoi
+    render_frame(70, squareRoi=rbind(c(1500,2000),c(1000,1500))) +
+    # plot nematics as segments
+    geom_segment(aes(x=x1,y=y1,xend=x2,yend=y2),
+                 size=1.2, alpha=0.7, lineend="round", color="red", na.rm=T) +
+    ggtitle("Cell division nematics")
+}
 
 ## get_nematics_CD_cg() ####
 get_nematics_CD_cg <- function(movieDir, gridSize=128, kernSize=11, scalingFactor=-1){
+  
+  # Description: retrieve and coarse-grain cell division nematics from the DB
+  # Usage: get_nematics_CD_cg(movieDir, gridSize=128, kernSize=11, scalingFactor=-1) where gridSize, kernSize, scalingFactor are optional
+  # Arguments: movieDir = path to movie directory, gridSize = square-grid sides in pixels (128 by default),
+  #            kernSize = time-window size in frames for time smoothing (+/- 5 frames by default),
+  #            scalingFactor = display factor that is either user-defined or automatically calculated (default)
+  # Output: a dataframe
   
   movieDb <- openMovieDb(movieDir)
   
   if (scalingFactor==-1) autoscale=T else autoscale=F
   
-  cgCDnematics <- get_nematics_CD(movieDb) %>%
+  cgCDnematics <- get_nematics_CD(movieDir) %>%
     coarseGrid(gridSize) %>%
     # remove grid elements that overlap the margin cell
-    removeBckndGridOvlp(getBckndGridElements(db, gridSize)) %>%
+    removeBckndGridOvlp(getBckndGridElements(movieDb, gridSize)) %>%
     # average nematics in each frame and grid element
     group_by(frame, xGrid, yGrid) %>%
     summarise(cgBxx=mean(normBxx),
@@ -181,8 +217,8 @@ get_nematics_CD_cg <- function(movieDir, gridSize=128, kernSize=11, scalingFacto
 
   # do a time averaging over N frames in each grid element
   cgCDnematicsSmooth <- cgCDnematics %>%
-    smooth_tissue(cgBxx, kernel_size=5, gap_fill = 0, global_min_max = T) %>%
-    smooth_tissue(cgBxy, kernel_size=5, gap_fill = 0, global_min_max = T) %>%
+    smooth_tissue(cgBxx, kernel_size=5, gap_fill = 0, global_min_max = F) %>%
+    smooth_tissue(cgBxy, kernel_size=5, gap_fill = 0, global_min_max = F) %>%
     # calculate the angle and norm of coarse-grained nematics
     mutate(phi=mod2pi(0.5*(atan2(cgBxy_smooth, cgBxx_smooth))),
            norm=sqrt(cgBxy_smooth^2+cgBxx_smooth^2)) %>%
@@ -199,17 +235,23 @@ get_nematics_CD_cg <- function(movieDir, gridSize=128, kernSize=11, scalingFacto
   
 }
 ## DEBUG get_nematics_CD_cg() ####
-get_nematics_CD_cg(movieDir) %>%
-  # crop the image by defining squareRoi
-  render_frame(70) +
-  # plot nematics as segments
-  geom_segment(aes(x=x1,y=y1,xend=x2,yend=y2),
-               size=2, alpha=0.7, lineend="round", color="orange", na.rm=T) +
-  ggtitle("Coarse-grained cell division nematics")
-
+if (F){
+  get_nematics_CD_cg(movieDir) %>%
+    # crop the image by defining squareRoi
+    render_frame(30) +
+    # plot nematics as segments
+    geom_segment(aes(x=x1,y=y1,xend=x2,yend=y2),
+                 size=2, alpha=0.7, lineend="round", color="orange", na.rm=T) +
+    ggtitle("Coarse-grained cell division nematics")
+}
 
 ## get_nematics_T1() ####
-get_nematics_T1<- function(movieDir, scalingFactor=default_cell_display_factor(movieDb)){
+get_nematics_T1 <- function(movieDir, scalingFactor=default_cell_display_factor(movieDir)){
+  
+  # Description: retrieve T1 nematics 
+  # Usage: get_nematics_T1(movieDir, scalingFactor) where scalingFactor is optional
+  # Arguments: movieDir = path to movie directory, scalingFactor = display factor that is either user-defined or automatically calculated
+  # Output: a dataframe
   
   movieDb <- openMovieDb(movieDir)
   
@@ -256,16 +298,25 @@ get_nematics_T1<- function(movieDir, scalingFactor=default_cell_display_factor(m
   
 }
 ## DEBUG get_nematics_T1() ####
-get_nematics_T1(movieDir) %>% 
-  render_frame(20, squareRoi=rbind(c(1500,2000),c(1300,1700))) + 
-  # geom_polygon(data=csWithTopoT1 %>% filter(frame==20),aes(x_pos, y_pos, group=cell_id, fill=t1_type), alpha=0.5) +
-  # scale_fill_manual(values = T1cols, drop = FALSE) +
-  geom_segment(aes(x=x1,y=y1,xend=x2,yend=y2),
-               size=1, alpha=0.7, lineend="round", color="red", na.rm=T)  +
-  ggtitle("Cell neighbor exchanges")
+if (F){
+  get_nematics_T1(movieDir) %>% 
+    render_frame(20, squareRoi=rbind(c(1500,2000),c(1300,1700))) + 
+    # geom_polygon(data=csWithTopoT1 %>% filter(frame==20),aes(x_pos, y_pos, group=cell_id, fill=t1_type), alpha=0.5) +
+    # scale_fill_manual(values = T1cols, drop = FALSE) +
+    geom_segment(aes(x=x1,y=y1,xend=x2,yend=y2),
+                 size=1, alpha=0.7, lineend="round", color="red", na.rm=T)  +
+    ggtitle("Cell neighbor exchanges")
+}
 
 ## get_nematics_T1_cg() ####
-get_nematics_T1_cg<- function(movieDir, gridSize=128, kernSize=11, scalingFactor=-1){
+get_nematics_T1_cg <- function(movieDir, gridSize=128, kernSize=11, scalingFactor=-1){
+  
+  # Description: retrieve and coarse-grain T1 nematics 
+  # Usage: get_nematics_T1_cg(movieDir, gridSize=128, kernSize=11, scalingFactor=-1) where gridSize, kernSize, scalingFactor are optional
+  # Arguments: movieDir = path to movie directory, gridSize = square-grid sides in pixels (128 by default),
+  #            kernSize = time-window size in frames for time smoothing (+/- 5 frames by default),
+  #            scalingFactor = display factor that is either user-defined or automatically calculated (default)
+  # Output: a dataframe
   
   if (scalingFactor==-1) autoscale=T else autoscale=F
   
@@ -282,8 +333,8 @@ get_nematics_T1_cg<- function(movieDir, gridSize=128, kernSize=11, scalingFactor
   
   # do a time averaging over 11 frames in each grid element
   cgT1nematicsSmooth <- cgT1nematics %>%
-    smooth_tissue(cgT1xx, kernel_size=kernSize, gap_fill = 0, global_min_max = T) %>%
-    smooth_tissue(cgT1xy, kernel_size=kernSize, gap_fill = 0, global_min_max = T) %>%
+    smooth_tissue(cgT1xx, kernel_size=kernSize, gap_fill = 0, global_min_max = F) %>%
+    smooth_tissue(cgT1xy, kernel_size=kernSize, gap_fill = 0, global_min_max = F) %>%
     # calculate the coarse-grained nematic angle and norm
     mutate(phi=mod2pi(0.5*(atan2(cgT1xy_smooth, cgT1xx_smooth))),
            norm=sqrt(cgT1xy_smooth^2+cgT1xx_smooth^2)) %>%
@@ -299,11 +350,12 @@ get_nematics_T1_cg<- function(movieDir, gridSize=128, kernSize=11, scalingFactor
   return(cgT1nematicsSmooth)
 }
 ## DEBUG get_nematics_T1() ####
-get_nematics_T1_cg(movieDir) %>% 
-  render_frame(20) + 
-  # geom_polygon(data=csWithTopoT1 %>% filter(frame==20),aes(x_pos, y_pos, group=cell_id, fill=t1_type), alpha=0.5) +
-  # scale_fill_manual(values = T1cols, drop = FALSE) +
-  geom_segment(aes(x=x1,y=y1,xend=x2,yend=y2),
-               size=2, alpha=0.7, lineend="round", color="red", na.rm=T)  +
-  ggtitle("Coarse grained cell neighbor exchanges")
-
+if (F){
+  get_nematics_T1_cg(movieDir) %>% 
+    render_frame(120) + 
+    # geom_polygon(data=csWithTopoT1 %>% filter(frame==20),aes(x_pos, y_pos, group=cell_id, fill=t1_type), alpha=0.5) +
+    # scale_fill_manual(values = T1cols, drop = FALSE) +
+    geom_segment(aes(x=x1,y=y1,xend=x2,yend=y2),
+                 size=2, alpha=0.7, lineend="round", color="red", na.rm=T)  +
+    ggtitle("Coarse grained cell neighbor exchanges")
+}
