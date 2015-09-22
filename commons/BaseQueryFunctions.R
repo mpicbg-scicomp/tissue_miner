@@ -14,6 +14,11 @@
 #source(file.path(Sys.getenv("TM_HOME"), "commons/ShearQueriesFunctions.R"))
 ## Establish DB connection ####
 openMovieDb <- function(movieDir){
+  
+  # Description: open a SQLite database connection
+  # Usage: openMovieDb(movieDir)
+  # Arguments: movieDbDir = path to a given movie folder
+  
   db_name=basename(movieDir)
   dbFile=file.path(movieDir, paste0(db_name, ".sqlite"))
   
@@ -61,7 +66,13 @@ mqf_cell_count <- function(movieDb, movieDbDir, rois){
 multi_db_query <- function(movieDirectories, queryFun=mqf_cell_count, ...){
   ## todo get hash of range and function and cache the results somewhere
   #    require.auto(foreach); require.auto(doMC); registerDoMC(cores=6)
-  #   browser()
+  
+  # Description: query multiple databases and aggregate data into a dataframe
+  # Usage: in combination with mqf_* functions, ex: multi_db_query(movieDirs, mqf_cell_count, selectedRois)
+  # Arguments: movieDirs = list of paths to a given movie folder, 
+  #            queryFun = the definition of a query function to apply,
+  #            selectedRois = the user-defined ROIs (all ROIs by default)
+  
   queryResults <- ldply(movieDirectories, function(movieDbDir){
     dbName=basename(movieDbDir)
     movieDb <- openMovieDb(movieDbDir)
