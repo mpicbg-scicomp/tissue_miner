@@ -19,17 +19,17 @@ default_cell_display_factor <- function(movieDir) {
   dbDisconnect(movieDb)
   
   # calculate averaged cell area for automated nematic scaling (considering cells as regular hexagons)
-  scalingFactor=2*sqrt(2*median(queryResults$area, na.rm=T)/(3*sqrt(3)))
+  displayFactor=2*sqrt(2*median(queryResults$area, na.rm=T)/(3*sqrt(3)))
   
-  return(scalingFactor)
+  return(displayFactor)
 }
 
 ## get_nematics_DBelong() ####
-get_nematics_DBelong <- function(movieDir, scalingFactor=default_cell_display_factor(movieDir)){
+get_nematics_DBelong <- function(movieDir, displayFactor=default_cell_display_factor(movieDir)){
   
   # Description: retrieve cell elongation nematics from the DB
-  # Usage: get_nematics_DBelong(movieDir, scalingFactor) where scalingFactor is optional
-  # Arguments: movieDir = path to movie directory, scalingFactor = display factor that is either user-defined or automatically calculated
+  # Usage: get_nematics_DBelong(movieDir, displayFactor) where displayFactor is optional
+  # Arguments: movieDir = path to movie directory, displayFactor = display factor that is either user-defined or automatically calculated
   # Output: a dataframe
   
   movieDb <- openMovieDb(movieDir)
@@ -44,12 +44,12 @@ get_nematics_DBelong <- function(movieDir, scalingFactor=default_cell_display_fa
     mutate(phi=0.5*(atan2(elong_xy, elong_xx)), 
            norm= sqrt(elong_xx^2+elong_xy^2)) %>%
     # scale nematic norm for display and calculate the x and y nematic coordinates for ploting
-    mutate(x1=center_x-0.5*scalingFactor*norm*cos(phi),
-           y1=center_y-0.5*scalingFactor*norm*sin(phi),
-           x2=center_x+0.5*scalingFactor*norm*cos(phi),
-           y2=center_y+0.5*scalingFactor*norm*sin(phi)) %>%
+    mutate(x1=center_x-0.5*displayFactor*norm*cos(phi),
+           y1=center_y-0.5*displayFactor*norm*sin(phi),
+           x2=center_x+0.5*displayFactor*norm*cos(phi),
+           y2=center_y+0.5*displayFactor*norm*sin(phi)) %>%
     # remove unecessary columns
-    select(-c(phi,norm,scalingFactor))
+    select(-c(phi,norm,displayFactor))
   
   dbDisconnect(movieDb)
   
@@ -67,20 +67,20 @@ if (F){
 }
 
 ## get_nematics_DBelong_cg()####
-get_nematics_DBelong_cg <- function(movieDir, gridSize=128, kernSize=1, scalingFactor=-1){
+get_nematics_DBelong_cg <- function(movieDir, gridSize=128, kernSize=1, displayFactor=-1){
   
   # Description: retrieve and coarse-grain cell elongation nematics from the DB
-  # Usage: get_nematics_DBelong_cg(movieDir, gridSize=128, kernSize=1, scalingFactor=-1) where gridSize, kernSize, scalingFactor are optional
+  # Usage: get_nematics_DBelong_cg(movieDir, gridSize=128, kernSize=1, displayFactor=-1) where gridSize, kernSize, displayFactor are optional
   # Arguments: movieDir = path to movie directory, gridSize = square-grid sides in pixels (128 by default),
   #            kernSize = time-window size in frames for time smoothing (no smoothing by default),
-  #            scalingFactor = display factor that is either user-defined or automatically calculated (default)
+  #            displayFactor = display factor that is either user-defined or automatically calculated (default)
   # Output: a dataframe
   
   movieDb <- openMovieDb(movieDir)
   
-  if (scalingFactor==-1) autoscale=T else autoscale=F
+  if (displayFactor==-1) autoscale=T else autoscale=F
   
-  cgNematics <- get_nematics_DBelong(movieDb) %>%
+  cgNematics <- get_nematics_DBelong(movieDir) %>%
     coarseGrid(gridSize) %>% 
     # remove grid elements that overlap the margin cell
     removeBckndGridOvlp(getBckndGridElements(movieDb, gridSize)) %>% 
@@ -92,7 +92,7 @@ get_nematics_DBelong_cg <- function(movieDir, gridSize=128, kernSize=1, scalingF
     mutate(phi=0.5*(atan2(cgExy, cgExx)),
            norm=sqrt(cgExy^2+cgExx^2)) %>%
     # automatic scaling to grig size and nematic coordinates
-    mutate(scaledFactor=ifelse(autoscale,gridSize/quantile(norm, na.rm=T, probs=0.95),scalingFactor),
+    mutate(scaledFactor=ifelse(autoscale,gridSize/quantile(norm, na.rm=T, probs=0.95),displayFactor),
            x1=xGrid-0.5*norm*scaledFactor*cos(phi),
            y1=yGrid-0.5*norm*scaledFactor*sin(phi),
            x2=xGrid+0.5*norm*scaledFactor*cos(phi),
@@ -129,11 +129,11 @@ if (F){
 }
 
 ## get_nematics_CD() ####
-get_nematics_CD <- function(movieDir, scalingFactor=default_cell_display_factor(movieDir)){
+get_nematics_CD <- function(movieDir, displayFactor=default_cell_display_factor(movieDir)){
   
   # Description: retrieve cell division nematics from the DB
-  # Usage: get_nematics_CD(movieDir, scalingFactor) where scalingFactor is optional
-  # Arguments: movieDir = path to movie directory, scalingFactor = display factor that is either user-defined or automatically calculated
+  # Usage: get_nematics_CD(movieDir, displayFactor) where displayFactor is optional
+  # Arguments: movieDir = path to movie directory, displayFactor = display factor that is either user-defined or automatically calculated
   # Output: a dataframe
   
     movieDb <- openMovieDb(movieDir)
@@ -172,10 +172,10 @@ get_nematics_CD <- function(movieDir, scalingFactor=default_cell_display_factor(
     # calculate nematic center position and coordinates
     mutate(center_x=0.5*(left_center_x+right_center_x),
            center_y=0.5*(left_center_y+right_center_y),
-           x1=center_x-0.5*scalingFactor*cos(phi),
-           y1=center_y-0.5*scalingFactor*sin(phi),
-           x2=center_x+0.5*scalingFactor*cos(phi),
-           y2=center_y+0.5*scalingFactor*sin(phi))
+           x1=center_x-0.5*displayFactor*cos(phi),
+           y1=center_y-0.5*displayFactor*sin(phi),
+           x2=center_x+0.5*displayFactor*cos(phi),
+           y2=center_y+0.5*displayFactor*sin(phi))
   
   dbDisconnect(movieDb)
   
@@ -193,18 +193,18 @@ if (F){
 }
 
 ## get_nematics_CD_cg() ####
-get_nematics_CD_cg <- function(movieDir, gridSize=128, kernSize=11, scalingFactor=-1){
+get_nematics_CD_cg <- function(movieDir, gridSize=128, kernSize=11, displayFactor=-1){
   
   # Description: retrieve and coarse-grain cell division nematics from the DB
-  # Usage: get_nematics_CD_cg(movieDir, gridSize=128, kernSize=11, scalingFactor=-1) where gridSize, kernSize, scalingFactor are optional
+  # Usage: get_nematics_CD_cg(movieDir, gridSize=128, kernSize=11, displayFactor=-1) where gridSize, kernSize, displayFactor are optional
   # Arguments: movieDir = path to movie directory, gridSize = square-grid sides in pixels (128 by default),
   #            kernSize = time-window size in frames for time smoothing (+/- 5 frames by default),
-  #            scalingFactor = display factor that is either user-defined or automatically calculated (default)
+  #            displayFactor = display factor that is either user-defined or automatically calculated (default)
   # Output: a dataframe
   
   movieDb <- openMovieDb(movieDir)
   
-  if (scalingFactor==-1) autoscale=T else autoscale=F
+  if (displayFactor==-1) autoscale=T else autoscale=F
   
   cgCDnematics <- get_nematics_CD(movieDir) %>%
     coarseGrid(gridSize) %>%
@@ -223,7 +223,7 @@ get_nematics_CD_cg <- function(movieDir, gridSize=128, kernSize=11, scalingFacto
     mutate(phi=mod2pi(0.5*(atan2(cgBxy_smooth, cgBxx_smooth))),
            norm=sqrt(cgBxy_smooth^2+cgBxx_smooth^2)) %>%
     # automatic scaling to grig size and nematic coordinates
-    mutate(scaledFact=ifelse(autoscale, gridSize/quantile(norm, na.rm=T, probs=0.99),scalingFactor),
+    mutate(scaledFact=ifelse(autoscale, gridSize/quantile(norm, na.rm=T, probs=0.99),displayFactor),
            x1=xGrid-0.5*norm*scaledFact*cos(phi),
            y1=yGrid-0.5*norm*scaledFact*sin(phi),
            x2=xGrid+0.5*norm*scaledFact*cos(phi),
@@ -246,11 +246,11 @@ if (F){
 }
 
 ## get_nematics_T1() ####
-get_nematics_T1 <- function(movieDir, scalingFactor=default_cell_display_factor(movieDir)){
+get_nematics_T1 <- function(movieDir, displayFactor=default_cell_display_factor(movieDir)){
   
   # Description: retrieve T1 nematics 
-  # Usage: get_nematics_T1(movieDir, scalingFactor) where scalingFactor is optional
-  # Arguments: movieDir = path to movie directory, scalingFactor = display factor that is either user-defined or automatically calculated
+  # Usage: get_nematics_T1(movieDir, displayFactor) where displayFactor is optional
+  # Arguments: movieDir = path to movie directory, displayFactor = display factor that is either user-defined or automatically calculated
   # Output: a dataframe
   
   movieDb <- openMovieDb(movieDir)
@@ -286,10 +286,10 @@ get_nematics_T1 <- function(movieDir, scalingFactor=default_cell_display_factor(
     # caculate nematic coordinates
     mutate(center_x=0.5*(center_x.1+center_x.2),
            center_y=0.5*(center_y.1+center_y.2),
-           x1=center_x-0.5*scalingFactor*cos(phi),
-           y1=center_y-0.5*scalingFactor*sin(phi),
-           x2=center_x+0.5*scalingFactor*cos(phi),
-           y2=center_y+0.5*scalingFactor*sin(phi)) %>% 
+           x1=center_x-0.5*displayFactor*cos(phi),
+           y1=center_y-0.5*displayFactor*sin(phi),
+           x2=center_x+0.5*displayFactor*cos(phi),
+           y2=center_y+0.5*displayFactor*sin(phi)) %>% 
     select(-c(T1xx,T1xy,phi)) %>% print_head()
   
   dbDisconnect(movieDb)
@@ -309,16 +309,16 @@ if (F){
 }
 
 ## get_nematics_T1_cg() ####
-get_nematics_T1_cg <- function(movieDir, gridSize=128, kernSize=11, scalingFactor=-1){
+get_nematics_T1_cg <- function(movieDir, gridSize=128, kernSize=11, displayFactor=-1){
   
   # Description: retrieve and coarse-grain T1 nematics 
-  # Usage: get_nematics_T1_cg(movieDir, gridSize=128, kernSize=11, scalingFactor=-1) where gridSize, kernSize, scalingFactor are optional
+  # Usage: get_nematics_T1_cg(movieDir, gridSize=128, kernSize=11, displayFactor=-1) where gridSize, kernSize, displayFactor are optional
   # Arguments: movieDir = path to movie directory, gridSize = square-grid sides in pixels (128 by default),
   #            kernSize = time-window size in frames for time smoothing (+/- 5 frames by default),
-  #            scalingFactor = display factor that is either user-defined or automatically calculated (default)
+  #            displayFactor = display factor that is either user-defined or automatically calculated (default)
   # Output: a dataframe
   
-  if (scalingFactor==-1) autoscale=T else autoscale=F
+  if (displayFactor==-1) autoscale=T else autoscale=F
   
   movieDb <- openMovieDb(movieDir)
   cgT1nematics <- get_nematics_T1(movieDir) %>%
@@ -339,7 +339,7 @@ get_nematics_T1_cg <- function(movieDir, gridSize=128, kernSize=11, scalingFacto
     mutate(phi=mod2pi(0.5*(atan2(cgT1xy_smooth, cgT1xx_smooth))),
            norm=sqrt(cgT1xy_smooth^2+cgT1xx_smooth^2)) %>%
     # calculate the nematic coordinates
-    mutate(scaledFact=ifelse(autoscale,gridSize/quantile(norm, na.rm=T, probs=0.95),scalingFactor),
+    mutate(scaledFact=ifelse(autoscale,gridSize/quantile(norm, na.rm=T, probs=0.95),displayFactor),
            x1=xGrid-0.5*norm*scaledFact*cos(phi),
            y1=yGrid-0.5*norm*scaledFact*sin(phi),
            x2=xGrid+0.5*norm*scaledFact*cos(phi),
