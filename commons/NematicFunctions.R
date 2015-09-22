@@ -164,21 +164,21 @@ get_nematics_CD <- function(movieDir, displayFactor=default_cell_display_factor(
     dcast(mother_cell_id+first_daughter_occ ~ ...) %>% 
     dplyr::rename(frame=first_daughter_occ) %>%
     # calculate division axis nematics based on daughter cell positions
-    mutate(Bxx=0.5*((left_center_x-right_center_x)^2 - (left_center_y-right_center_y)^2),
-           Bxy=(left_center_x-right_center_x)*(left_center_y-right_center_y),
-           normBxx=(1/sqrt(Bxx^2+Bxy^2))*Bxx,
-           normBxy=(1/sqrt(Bxx^2+Bxy^2))*Bxy,
-           phi=mod2pi(0.5*(atan2(normBxy, normBxx)))) %>%
+    mutate(CDxx=0.5*((left_center_x-right_center_x)^2 - (left_center_y-right_center_y)^2),
+           CDxy=(left_center_x-right_center_x)*(left_center_y-right_center_y),
+           normCDxx=(1/sqrt(CDxx^2+CDxy^2))*CDxx,
+           normCDxy=(1/sqrt(CDxx^2+CDxy^2))*CDxy,
+           phi=mod2pi(0.5*(atan2(normCDxy, normCDxx)))) %>%
     # calculate nematic center position and coordinates
     mutate(center_x=0.5*(left_center_x+right_center_x),
            center_y=0.5*(left_center_y+right_center_y),
            x1=center_x-0.5*displayFactor*cos(phi),
            y1=center_y-0.5*displayFactor*sin(phi),
            x2=center_x+0.5*displayFactor*cos(phi),
-           y2=center_y+0.5*displayFactor*sin(phi))
-  
-  dbDisconnect(movieDb)
-  
+           y2=center_y+0.5*displayFactor*sin(phi)) %>%
+    # remove unnecessary columns
+    select(-c(left_center_x,left_center_y,right_center_x,right_center_y,CDxx,CDxy))
+              
   return(cdNematics)
 }
 ## DEBUG get_nematics_CD() ####
@@ -212,16 +212,16 @@ get_nematics_CD_cg <- function(movieDir, gridSize=128, kernSize=11, displayFacto
     removeBckndGridOvlp(getBckndGridElements(movieDb, gridSize)) %>%
     # average nematics in each frame and grid element
     group_by(frame, xGrid, yGrid) %>%
-    summarise(cgBxx=mean(normBxx),
-              cgBxy=mean(normBxy)) %>% print_head()
+    summarise(cgCDxx=mean(normCDxx),
+              cgCDxy=mean(normCDxy)) %>% print_head()
 
   # do a time averaging over N frames in each grid element
   cgCDnematicsSmooth <- cgCDnematics %>%
-    smooth_tissue(cgBxx, kernel_size=5, gap_fill = 0, global_min_max = F) %>%
-    smooth_tissue(cgBxy, kernel_size=5, gap_fill = 0, global_min_max = F) %>%
+    smooth_tissue(cgCDxx, kernel_size=kernSize, gap_fill = 0, global_min_max = T) %>%
+    smooth_tissue(cgCDxy, kernel_size=kernSize, gap_fill = 0, global_min_max = T) %>%
     # calculate the angle and norm of coarse-grained nematics
-    mutate(phi=mod2pi(0.5*(atan2(cgBxy_smooth, cgBxx_smooth))),
-           norm=sqrt(cgBxy_smooth^2+cgBxx_smooth^2)) %>%
+    mutate(phi=mod2pi(0.5*(atan2(cgCDxy_smooth, cgCDxx_smooth))),
+           norm=sqrt(cgCDxy_smooth^2+cgCDxx_smooth^2)) %>%
     # automatic scaling to grig size and nematic coordinates
     mutate(scaledFact=ifelse(autoscale, gridSize/quantile(norm, na.rm=T, probs=0.99),displayFactor),
            x1=xGrid-0.5*norm*scaledFact*cos(phi),
