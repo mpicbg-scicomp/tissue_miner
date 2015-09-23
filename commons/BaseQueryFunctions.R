@@ -12,36 +12,6 @@
 #
 ## to use the shear query methods just source them in via
 #source(file.path(Sys.getenv("TM_HOME"), "commons/ShearQueriesFunctions.R"))
-## align_movie_start: apply a time offset such that the counting starts at the min common time point of the selected movies ####
-calcRefTime <- function(movies){ get_movie_time_shift(movies) %$% max(time_shift) }
-align_movie_start <- function(movieData, moviesDirs){
-  
-  # Description: count number of cells per frame, in ROIs
-  # Usage: in combination with multi_db_query(), ex: multi_db_query(movieDirs, mqf_cell_count, selectedRois)
-  # Arguments: movieDb = opened DB connection,  movieDbDir = path to a given movie folder
-  
-  movies <- ac(unique(movieData$movie))
-  refTime <- calcRefTime(movies)
-  
-  timeTables <-multi_db_query(moviesDirs, function(movieDb, movieDbDir){ 
-    time <- dbGetQuery(movieDb, "select * from frames")
-    timeInt <- cbind(time[-nrow(time),], timeInt_sec=diff(time$time_sec))  }) 
-  
-  ## apply alignment model
-  closestFrameByMovie <- timeTables %>%
-    mutate(time_algn=time_sec+time_shift) %>%
-    group_by(movie) %>%
-    mutate(time_diff_to_ref=abs(time_algn-refTime)) %>%
-    filter( min(time_diff_to_ref)==time_diff_to_ref) %>%
-    select(movie, closestFrame=frame)
-  
-  ## now apply the actual filtering
-  mdCumSumFilt <-  dt.merge(movieData, closestFrameByMovie) %>%
-    filter(frame>=closestFrame) #%>%
-  #     select(-closestFrame)
-  
-  return(mdCumSumFilt)
-}
 
 ## Establish DB connection ####
 openMovieDb <- function(movieDir){
