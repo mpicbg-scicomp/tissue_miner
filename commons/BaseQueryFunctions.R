@@ -12,6 +12,37 @@
 #
 ## to use the shear query methods just source them in via
 #source(file.path(Sys.getenv("TM_HOME"), "commons/ShearQueriesFunctions.R"))
+## align_movie_start: apply a time offset such that the counting starts at the min common time point of the selected movies ####
+calcRefTime <- function(movies){ get_movie_time_shift(movies) %$% max(time_shift) }
+align_movie_start <- function(movieData, moviesDirs){
+  
+  # Description: count number of cells per frame, in ROIs
+  # Usage: in combination with multi_db_query(), ex: multi_db_query(movieDirs, mqf_cell_count, selectedRois)
+  # Arguments: movieDb = opened DB connection,  movieDbDir = path to a given movie folder
+  
+  movies <- ac(unique(movieData$movie))
+  refTime <- calcRefTime(movies)
+  
+  timeTables <-multi_db_query(moviesDirs, function(movieDb, movieDbDir){ 
+    time <- dbGetQuery(movieDb, "select * from frames")
+    timeInt <- cbind(time[-nrow(time),], timeInt_sec=diff(time$time_sec))  }) 
+  
+  ## apply alignment model
+  closestFrameByMovie <- timeTables %>%
+    mutate(time_algn=time_sec+time_shift) %>%
+    group_by(movie) %>%
+    mutate(time_diff_to_ref=abs(time_algn-refTime)) %>%
+    filter( min(time_diff_to_ref)==time_diff_to_ref) %>%
+    select(movie, closestFrame=frame)
+  
+  ## now apply the actual filtering
+  mdCumSumFilt <-  dt.merge(movieData, closestFrameByMovie) %>%
+    filter(frame>=closestFrame) #%>%
+  #     select(-closestFrame)
+  
+  return(mdCumSumFilt)
+}
+
 ## Establish DB connection ####
 openMovieDb <- function(movieDir){
   
@@ -43,6 +74,92 @@ openMovieDb <- function(movieDir){
   
   return(db)
 }
+
+## Single movie query functions ####
+## get_bond_properties() ####
+get_bond_properties <- function(movieDir){
+  
+  # Description: retrieve bond properties and positions from the DB
+  # Usage: get_bond_properties(movieDir)
+  # Arguments: movieDir = path to movie directory automatically calculated
+  # Output: a dataframe
+  
+  movieDb <- openMovieDb(movieDir)
+  
+  # Send SQL query to the DB to get directed bond properties into a table called dbond:
+  dbond <- dbGetQuery(movieDb, "select frame, dbond_id, conj_dbond_id, bond_id, vertex_id from directed_bonds") 
+  # Send SQL query to the DB to get vertices into a table called vertices:
+  vertices <- dbGetQuery(movieDb, "select * from vertices") 
+  # Send SQL query to the DB to get bond properties into a table called bond:
+  bonds <- dbGetQuery(movieDb, "select * from bonds")
+  
+  # Aggregrate aggregate the vertex, bond, and directed bond information
+  bond_2vx <- dbond %>%
+    # join dbond with itself to get the 2 vertices of each undirected bond
+    dt.merge(with(dbond, data.frame(dbond_id=conj_dbond_id,vertex_id)),
+             by= c("dbond_id"), suffixes=c(".1", ".2")) %>%
+    # join the resulting table to vertices to add (x,y) coordinates of vertex #1
+    dt.merge(with(vertices, data.frame(vertex_id.1=vertex_id, x_pos.1=x_pos, y_pos.1=y_pos)),
+             by = c("vertex_id.1")) %>%
+    # join the resulting table to vertices to add (x,y) coordinates of vertex #2
+    dt.merge(with(vertices, data.frame(vertex_id.2=vertex_id, x_pos.2=x_pos, y_pos.2=y_pos)),
+             by = c("vertex_id.2")) %>% 
+    # remove unecessary columns
+    select (-c(dbond_id,conj_dbond_id)) %>% 
+    # remove duplicated bond ids resulting from the above join operations
+    distinct(bond_id) %>% 
+    # join the resulting table with bonds to add the bond_length property
+    dt.merge(bonds, by=c("bond_id")) 
+  
+  dbDisconnect(movieDb)
+  
+  return(bond_2vx)
+}
+## get_bond_stats() ####
+get_bond_stats <- function(movieDir){
+
+  # Description: retrieve bond properties and average positions from the DB
+  # Usage: get_bond_stats(movieDir)
+  # Arguments: movieDir = path to movie directory automatically calculated
+  # Output: a dataframe
+
+  movieDb <- openMovieDb(movieDir)
+  
+  dbonds <- dbGetQuery(movieDb, "select dbond_id, conj_dbond_id, vertex_id, bond_id from directed_bonds")
+  
+  bondStats <- dbonds %>%
+    ## use conjugated nature of db to create pairs for connected vertices
+    inner_join(., transmute(., conj_dbond_id, vertex_id), by=c("dbond_id"="conj_dbond_id")) %>%
+    distinct(bond_id) %>%
+    select(-dbond_id, -conj_dbond_id) %>%
+    ## reshape into long format to ease downstream vertex data merging and aggregation
+    gather(vertex, vertex_id, -bond_id) %>% arrange(bond_id)
+  
+  bondStats %<>%
+    ## add vertex info and aggregate to mean position
+    inner_join(dbGetQuery(movieDb, "select * from vertices")) %>%
+    group_by(bond_id) %>%
+    summarize(
+      bond_mean_x=mean(x_pos),
+      bond_mean_y=mean(y_pos)
+    ) %>%
+    ## add bond information (just length at the moment)
+    inner_join(dbGetQuery(movieDb, "select * from bonds"))
+  
+  dbDisconnect(movieDb)
+  
+  return(bondStats)
+}
+## DEBUG get_bond_stats() ####
+if (F) {
+  movieDir <- "/media/project_raphael@fileserver/movieSegmentation/WT_25deg_111102"
+  db <- openMovieDb(movieDir)
+  bondStats <- get_bond_stats(movieDir) %>% print_head()
+  bondStats %>% render_frame(25) + geom_point(aes(bond_mean_x, bond_mean_y, color=bond_length), size=1) +
+    scale_color_gradient(name="length", low="green", high="red", limits=c(0, 50))
+}
+
+
 ## mqf_cell_count ####
 mqf_cell_count <- function(movieDb, movieDbDir, rois){
   
@@ -61,7 +178,6 @@ mqf_cell_count <- function(movieDb, movieDbDir, rois){
   
   return(cellCount)
 }
-
 ## Master function to query multiple movies for comparison ####
 multi_db_query <- function(movieDirectories, queryFun=mqf_cell_count, ...){
   ## todo get hash of range and function and cache the results somewhere
@@ -136,38 +252,6 @@ addRois <-function(data, movieDbDir){
   return(cellsRoiFilt)
 }
 
-
-
-## align_movie_start: apply a time offset such that the counting starts at the min common time point of the selected movies ####
-calcRefTime <- function(movies){ get_movie_time_shift(movies) %$% max(time_shift) }
-align_movie_start <- function(movieData, moviesDirs){
-  
-  # Description: count number of cells per frame, in ROIs
-  # Usage: in combination with multi_db_query(), ex: multi_db_query(movieDirs, mqf_cell_count, selectedRois)
-  # Arguments: movieDb = opened DB connection,  movieDbDir = path to a given movie folder
-  
-  movies <- ac(unique(movieData$movie))
-  refTime <- calcRefTime(movies)
-  
-  timeTables <-multi_db_query(moviesDirs, function(movieDb, movieDbDir){ 
-    time <- dbGetQuery(movieDb, "select * from frames")
-    timeInt <- cbind(time[-nrow(time),], timeInt_sec=diff(time$time_sec))  }) 
-
-  ## apply alignment model
-  closestFrameByMovie <- timeTables %>%
-    mutate(time_algn=time_sec+time_shift) %>%
-    group_by(movie) %>%
-    mutate(time_diff_to_ref=abs(time_algn-refTime)) %>%
-    filter( min(time_diff_to_ref)==time_diff_to_ref) %>%
-    select(movie, closestFrame=frame)
-  
-  ## now apply the actual filtering
-  mdCumSumFilt <-  dt.merge(movieData, closestFrameByMovie) %>%
-    filter(frame>=closestFrame) #%>%
-  #     select(-closestFrame)
-  
-  return(mdCumSumFilt)
-}
 
 ## mqf_functions synopsis (multiple queries functions) ####
 ## Synopsis:
