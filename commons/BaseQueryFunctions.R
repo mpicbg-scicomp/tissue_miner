@@ -61,7 +61,7 @@ get_bond_properties <- function(movieDir){
   # Send SQL query to the DB to get vertices into a table called vertices:
   vertices <- dbGetQuery(movieDb, "select * from vertices") 
   # Send SQL query to the DB to get bond properties into a table called bond:
-  bonds <- dbGetQuery(movieDb, "select * from bonds")
+  bonds <- dbGetQuery(movieDb, "select * from bonds") %>% select(-frame)
   
   # Aggregrate aggregate the vertex, bond, and directed bond information
   bond_2vx <- dbond %>%
