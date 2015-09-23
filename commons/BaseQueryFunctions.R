@@ -572,3 +572,14 @@ mqf_rate_shear <- function(movieDb, movieDbDir, rois=c()){
   
   return(ShearRateByRoi)
 }
+## mqf_dev_time ####
+mqf_dev_time <- function(movieDb, movieDbDir, rois=c()){
+  
+  # Description: get developmental time regardless ROIs
+  # Usage: in combination with multi_db_query(), ex: multi_db_query(movieDirs, mqf_dev_time)
+  # Arguments: movieDb = opened DB connection,  movieDbDir = path to a given movie folder
+
+  dev_time <- dbGetQuery(movieDb, "select * from frames")
+  
+  return(dev_time)
+}
