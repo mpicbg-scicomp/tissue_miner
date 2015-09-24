@@ -42,8 +42,22 @@ echo("Reading parser output in:", movieDir)
 # cells <- read.delim("./cell_in_frame.dat", header=T)
 
 cells <- as.df(fread("cell_in_frame.dat"))
-cells <- cells[, 1:10]
-names(cells) <- c("frame", "tissue_analyzer_group_id", "trans_before", "trans_after", "daughter_id", "center_x", "center_y", "area", "elong_xx", "elong_xy")
+
+
+# cells <- cells[, 1:10]
+# names(cells) <- c("frame", "tissue_analyzer_group_id", "trans_before", "trans_after", "daughter_id", "center_x", "center_y", "area", "elong_xx", "elong_xy")
+
+names(cells) <- c("frame", "tissue_analyzer_group_id", "trans_before", "trans_after",
+                  "daughter_id", "center_x", "center_y", "area", "elong_xx", "elong_xy",
+                  "polarity_xx_RED", "polarity_xy_RED", "area_sum_intensity_RED",
+                  "polarity_xx_GREEN", "polarity_xy_GREEN", "area_sum_intensity_GREEN",
+                  "polarity_xx_BLUE", "polarity_xy_BLUE", "area_sum_intensity_BLUE")
+
+buggyParser=TRUE
+if (buggyParser){
+  cells %<>% mutate(elong_xy=-elong_xy)  
+}
+
 
 ## DEBUG PARSER
 #duringTransitionBefore:
@@ -214,7 +228,11 @@ save(cells2, file=".cells2.RData")
 
 
 #### clean up tables for db import
-cellsDB <- subset(cells2, select=c(frame, cell_id,center_x, center_y,area, elong_xx, elong_xy))
+# cellsDB <- subset(cells2, select=c(frame, cell_id,center_x, center_y,area, elong_xx, elong_xy))
+cellsDB <- subset(cells2, select=c(frame, cell_id,center_x, center_y,area, elong_xx, elong_xy,
+                                   polarity_xx_RED, polarity_xy_RED, area_sum_intensity_RED,
+                                   polarity_xx_GREEN, polarity_xy_GREEN, area_sum_intensity_GREEN,
+                                   polarity_xx_BLUE, polarity_xy_BLUE, area_sum_intensity_BLUE))
 
 ## do we really wan to keep the background as a cell? We will have to filter it inalmost all analyses -->YES
 
@@ -390,6 +408,16 @@ if(T){
     eNemNew <- with(cellsDB, trafoNematic(affTrafo, elong_xx, elong_xy))
     cellsDB <- transform(cellsDB, elong_xx=eNemNew$newTxx, elong_xy=eNemNew$newTxy)
     
+    ## 4) transform polarity nematics for R,G and B channels
+    pNemNew <- with(cellsDB, trafoNematic(affTrafo, polarity_xx_RED, polarity_xy_RED))
+    cellsDB <- transform(cellsDB, polarity_xx_RED=pNemNew$newTxx, polarity_xy_RED=pNemNew$newTxy)
+    
+    pNemNew <- with(cellsDB, trafoNematic(affTrafo, polarity_xx_GREEN, polarity_xy_GREEN))
+    cellsDB <- transform(cellsDB, polarity_xx_GREEN=pNemNew$newTxx, polarity_xy_GREEN=pNemNew$newTxy)
+    
+    pNemNew <- with(cellsDB, trafoNematic(affTrafo, polarity_xx_BLUE, polarity_xy_BLUE))
+    cellsDB <- transform(cellsDB, polarity_xx_BLUE=pNemNew$newTxx, polarity_xy_BLUE=pNemNew$newTxy)
+    
     #    if(F){ #### DEBUG
     #        Txy = cellsDB$elong_xx
     #        Txx = cellsDB$elong_xy
@@ -482,7 +510,16 @@ CREATE TABLE cells
     center_y REAL NOT NULL,
     area REAL NOT NULL,
     elong_xx REAL NOT NULL,
-    elong_xy REAL NOT NULL,
+    elong_xy REA NOT NULL,
+    polarity_xx_RED REAL NOT NULL,
+    polarity_xy_RED REAL NOT NULL,
+    area_sum_intensity_RED REAL NOT NULL,
+    polarity_xx_GREEN REAL NOT NULL,
+    polarity_xy_GREEN REAL NOT NULL,
+    area_sum_intensity_GREEN REAL NOT NULL,
+    polarity_xx_BLUE REAL NOT NULL,
+    polarity_xy_BLUE REAL NOT NULL,
+    area_sum_intensity_BLUE REAL NOT NULL,
     CONSTRAINT pk_cells PRIMARY KEY (cell_id, frame),
     FOREIGN KEY(cell_id) REFERENCES cell_histories(cell_id),
     FOREIGN KEY(frame) REFERENCES frames(frame)
@@ -542,7 +579,6 @@ dbWriteTable(db, "directed_bonds", dbondsDB, row.names=F, append=TRUE)
 #head(dbReadTable(db, "dbReadTable"))
 someCells <- dbGetQuery(db, "select * from cells where frame > 50 and frame <60")
 head(someCells)
-
 
 dbDisconnect(db)
 
