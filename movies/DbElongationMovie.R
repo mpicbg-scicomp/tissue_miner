@@ -118,7 +118,7 @@ normScaleFactor=0.9*gridSize
 avgElongSmooth <- mutate(avgElongSmooth,
     Nnorm= sqrt(elong_xx.avg_smooth^2+elong_xy.avg_smooth^2),
     # negation is required here because y-coordinates are flipped
-    Nangle=-0.5*(atan2(elong_xy.avg_smooth, elong_xx.avg_smooth)),
+    Nangle=0.5*(atan2(elong_xy.avg_smooth, elong_xx.avg_smooth)),
     scaledNorm=normScaleFactor*Nnorm,
     nem_x_pos= scaledNorm*cos(Nangle),
     nem_y_pos= scaledNorm*sin(Nangle)
