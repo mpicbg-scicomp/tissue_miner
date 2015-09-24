@@ -55,7 +55,7 @@ get_cell_properties <- function(movieDir){
   
   movieDb <- openMovieDb(movieDir)
   
-  cellsWithContour <- dbGetQuery(movieDb, "select * from cells") %>%
+  cellsWithContour <- dbGetQuery(movieDb, "select * from cells where cell_id!=10000") %>%
     dt.merge(locload(file.path(movieDir, "cellshapes.RData")), by = c("frame","cell_id")) %>%
     arrange(frame, cell_id, bond_order)
 
