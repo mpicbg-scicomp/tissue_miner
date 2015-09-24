@@ -38,8 +38,6 @@ get_nematics_DBelong <- function(movieDir, displayFactor=default_cell_display_fa
   results <- dbGetQuery(movieDb,
                                 "select cell_id, frame, center_x, center_y, elong_xx, elong_xy 
                               from cells where cell_id!=10000") %>%
-    # TODO: fix sign of elong_xy in DB direcly
-    mutate(elong_xy=-elong_xy) %>%
     # calculate the phi angle and norm of nematics
     mutate(phi=0.5*(atan2(elong_xy, elong_xx)), 
            norm= sqrt(elong_xx^2+elong_xy^2)) %>%
