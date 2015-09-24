@@ -1,4 +1,3 @@
-## todo fill me with code!!
 
 ## to use the base query methods  just source them in via
 # scriptsDir=Sys.getenv("TM_HOME")
@@ -46,12 +45,28 @@ openMovieDb <- function(movieDir){
 }
 
 ## Single movie query functions ####
+## get_cell_properties() ####
+get_cell_properties <- function(movieDir){
+  
+  # Description: retrieve all cell properties and the ordered list of vertices from the DB
+  # Usage: get_cell_properties(movieDir)
+  # Arguments: movieDir = path to movie directory 
+  # Output: a dataframe
+  
+  movieDb <- openMovieDb(movieDir)
+  
+  cellsWithContour <- dbGetQuery(movieDb, "select * from cells") %>%
+    dt.merge(locload(file.path(movieDir, "cellshapes.RData")), by = c("frame","cell_id")) %>%
+    arrange(frame, cell_id, bond_order)
+
+  return(cellsWithContour)
+}
 ## get_bond_properties() ####
 get_bond_properties <- function(movieDir){
   
   # Description: retrieve bond properties and positions from the DB
   # Usage: get_bond_properties(movieDir)
-  # Arguments: movieDir = path to movie directory automatically calculated
+  # Arguments: movieDir = path to movie directory 
   # Output: a dataframe
   
   movieDb <- openMovieDb(movieDir)
@@ -127,6 +142,20 @@ if (F) {
   bondStats <- get_bond_stats(movieDir) %>% print_head()
   bondStats %>% render_frame(25) + geom_point(aes(bond_mean_x, bond_mean_y, color=bond_length), size=1) +
     scale_color_gradient(name="length", low="green", high="red", limits=c(0, 50))
+}
+## get_vertex_properties() ####
+get_vertex_properties <- function(movieDir){
+  
+  # Description: retrieve all vertex properties from the DB
+  # Usage: get_vertex_properties(movieDir)
+  # Arguments: movieDir = path to movie directory 
+  # Output: a dataframe
+  
+  movieDb <- openMovieDb(movieDir)
+  
+  vertices <- dbGetQuery(movieDb, "select * from vertices")
+  
+  return(vertices)
 }
 
 
