@@ -38,9 +38,9 @@ Second, just grab a copy of TissueMiner and run the setup procedure in a termina
     git clone https://github.com/mpicbg-scicomp/tissue_miner.git ${TM_HOME}
         
     ## or update existing local copy with
-    cd  ${TM_HOME}; git pull origin
+    cd  ${TM_HOME} && git pull origin && cd parser && make clean all
     
-    ## Install all required R packages
+    ## Install all required R packages (or run Setup.R in RStudio)
     ${TM_HOME}/Setup.R | tee tm_setup.log
     
     ## compile the parser needed to convert TissueAnalyzer outputs into csv
