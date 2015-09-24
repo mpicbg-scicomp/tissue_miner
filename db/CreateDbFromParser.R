@@ -53,7 +53,7 @@ names(cells) <- c("frame", "tissue_analyzer_group_id", "trans_before", "trans_af
                   "polarity_xx_GREEN", "polarity_xy_GREEN", "area_sum_intensity_GREEN",
                   "polarity_xx_BLUE", "polarity_xy_BLUE", "area_sum_intensity_BLUE")
 
-buggyParser=TRUE
+buggyParser=FALSE
 if (buggyParser){
   cells %<>% mutate(elong_xy=-elong_xy)  
 }
