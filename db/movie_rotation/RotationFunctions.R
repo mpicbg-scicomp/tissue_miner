@@ -92,7 +92,7 @@ if(F){ #### DEBUG
     # nematic angle distribution
     normScaleFactor <- 25
     nemAngle <- cells %>%
-      mutate(., phi=-0.5*(atan2(elong_xy, elong_xx)),
+      mutate(., phi=0.5*(atan2(elong_xy, elong_xx)),
              norm= sqrt(elong_xx^2+elong_xy^2),
              scaledNorm=normScaleFactor*norm,
              nem_x_pos= scaledNorm*cos(phi),
