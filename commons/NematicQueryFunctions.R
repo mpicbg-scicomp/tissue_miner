@@ -25,6 +25,27 @@ default_cell_display_factor <- function(movieDir) {
   return(displayFactor)
 }
 
+## default_roi_display_factor() ####
+default_roi_display_factor <- function(movieDir) {
+  
+  # Description: calculate a nematic display factor based on the average roi area
+  # Usage: default_roi_display_factor(movieDir)
+  # Arguments: movieDir = path to movie directory
+  # Output: a scalar
+  
+  movieDb <- openMovieDb(movieDir)
+  queryResults <- dbGetQuery(movieDb, "select cell_id, frame, area from cells where cell_id!=10000") %>%
+    addRois(movieDir) %>% group_by(roi, frame) %>%
+    summarise(roi_area=sum(area, na.rm=T)) %>% group_by(roi) %>%
+    summarise(avg_roi_area=mean(roi_area))
+  dbDisconnect(movieDb)
+  
+  # calculate averaged roi area for automated nematic scaling
+  displayFactor=2*sqrt(median(queryResults$avg_roi_area, na.rm=T))
+  
+  return(displayFactor)
+}
+
 ## mqf_nematics_cell_elong() ####
 mqf_nematics_cell_elong <- function(movieDir, rois=c(), displayFactor=default_cell_display_factor(movieDir)){
   
@@ -36,13 +57,13 @@ mqf_nematics_cell_elong <- function(movieDir, rois=c(), displayFactor=default_ce
   movieDb <- openMovieDb(movieDir)
   
   # Send a SQL query to get the cell elongation tensor in each frame
-  results <- dbGetQuery(movieDb,
+  queryResult <- dbGetQuery(movieDb,
                                 "select cell_id, frame, center_x, center_y, elong_xx, elong_xy 
                               from cells where cell_id!=10000") %>% addRois(., movieDir) 
   
   if(length(rois)==0) rois = unique(queryResult$roi)
   
-  results %<>%
+  queryResult %<>%
     filter(roi %in% rois) %>%
     # calculate the phi angle and norm of nematics
     mutate(phi=0.5*(atan2(elong_xy, elong_xx)), 
@@ -59,7 +80,7 @@ mqf_nematics_cell_elong <- function(movieDir, rois=c(), displayFactor=default_ce
   
   dbDisconnect(movieDb)
   
-  return(results)
+  return(queryResult)
 }
 ## DEBUG mqf_nematics_cell_elong() ####
 if (F){
@@ -127,15 +148,22 @@ mqf_nematics_cell_elong_coarse_grid <- function(movieDir, rois="raw", gridSize=1
   
   return(cgNematicsSmooth)
 }
-## DEBUG get_nematics_DBelong_cg() ####
+## DEBUG mqf_nematics_cell_elong_coarse_grid() ####
 if (F){
-  mqf_nematics_cell_elong_coarse_grid(movieDir) %>%
+  mqf_nematics_cell_elong_coarse_grid(movieDir) %>% 
     render_frame(70) +
     geom_segment(aes(x=x1, y=y1,xend=x2, yend=y2),
                  size=2, lineend="round", color="red", na.rm=T)
   
-  multi_db_query(movieDirs, mqf_nematics_cell_elong_coarse_grid, c("raw", "blade")) %>% print_head() %>%
+  res <- multi_db_query(movieDirs, mqf_nematics_cell_elong_coarse_grid, c("raw", "blade"))  %>% print_head()
+  res %>%
     filter(movie=="WT_25deg_111102" & roi=="blade") %>%
+    render_frame(70) +
+    geom_segment(aes(x=x1, y=y1,xend=x2, yend=y2),
+                 size=2, lineend="round", color="red", na.rm=T)
+  
+  res %>%
+    filter(movie=="WT_25deg_111102" & roi=="raw") %>%
     render_frame(70) +
     geom_segment(aes(x=x1, y=y1,xend=x2, yend=y2),
                  size=2, lineend="round", color="red", na.rm=T)
@@ -143,6 +171,74 @@ if (F){
 
 ## mqf_nematics_cell_elong_roi_avg()
 ## DEBUG mqf_nematics_cell_elong_roi_avg()
+
+## mqf_nematics_cell_elong_avg_roi()####
+mqf_nematics_cell_elong_avg_roi <- function(movieDir, rois=c(), kernSize=1, displayFactor=default_roi_display_factor(movieDir) ){
+  
+  # Description: retrieve cell elongation nematics from the DB and coarse-grain by ROI
+  # Usage: mqf_nematics_cell_elong_avg_roi(movieDir, rois=c(), kernSize=1, displayFactor=default_roi_display_factor(movieDir)) where gridSize, kernSize, displayFactor are optional
+  # Arguments: movieDir = path to movie directory, rois = list of ROIs (all ROIs by default),
+  #            kernSize = time-window size in frames for time smoothing (no time smoothing by default),
+  #            displayFactor = display factor that is either user-defined or automatically calculated (default)
+  # Output: a dataframe
+  
+  movieDb <- openMovieDb(movieDir)
+  
+  cgNematics <- mqf_nematics_cell_elong(movieDir, rois=rois) %>%
+    # average nematics in each frame and roi
+    group_by(frame, roi) %>%
+    summarise(cgExx=mean(elong_xx, na.rm=T),
+              cgExy=mean(elong_xy, na.rm=T),
+              roi_center_x=mean(center_x),
+              roi_center_y=mean(center_y)) 
+  
+  # do a time averaging over 5 frames in each grid element (grouping is kept)
+  cgNematicsSmooth <-cgNematics %>%
+    smooth_tissue(cgExx, kernel_size=kernSize, by="roi", gap_fill = NA, global_min_max = F) %>%
+    smooth_tissue(cgExy, kernel_size=kernSize, by="roi", gap_fill = NA, global_min_max = F) %>%
+    # calculate the angle and norm of coarse-grained nematics
+    mutate(phi=0.5*(atan2(cgExy_smooth, cgExx_smooth)),
+           norm=sqrt(cgExy_smooth^2+cgExx_smooth^2)) %>%
+    # automatic scaling to grig size and nematic coordinates
+    mutate(x1=roi_center_x-0.5*norm*displayFactor*cos(phi),
+           y1=roi_center_y-0.5*norm*displayFactor*sin(phi),
+           x2=roi_center_x+0.5*norm*displayFactor*cos(phi),
+           y2=roi_center_y+0.5*norm*displayFactor*sin(phi)) %>%
+    # Remove unnecessary columns
+    select(-c(cgExx,cgExy)) %>%
+    # add time and movie name
+    addTimeFunc(movieDb, .) %>% 
+    mutate(movie=basename(movieDir)) %>% add_dev_time()
+  
+  dbDisconnect(movieDb)
+  
+  return(cgNematicsSmooth)
+}
+## DEBUG mqf_nematics_cell_elong_avg_roi() ####
+if(F){
+  mqf_nematics_cell_elong_avg_roi(movieDir) %>% 
+    render_frame(70) +
+    geom_segment(aes(x=x1, y=y1,xend=x2, yend=y2),
+                 size=2, lineend="round", color="red", na.rm=T)
+  
+  mqf_nematics_cell_elong_avg_roi(movieDir) %>% 
+    render_frame(70) +
+    geom_segment(aes(x=x1, y=y1,xend=x2, yend=y2, color=roi),
+                 size=2, lineend="round", na.rm=T)
+  
+  
+  res <- multi_db_query(movieDirs, mqf_nematics_cell_elong_avg_roi, c("raw", "blade"))  %>% print_head()
+  res %>%
+    filter(movie=="WT_25deg_111102") %>%
+    render_frame(70) +
+    geom_segment(aes(x=x1, y=y1,xend=x2, yend=y2, color=roi),
+                 size=2, lineend="round", na.rm=T)
+  
+  res %>% ggplot(aes(dev_time, cgExx_smooth, color=movie)) + geom_line() +
+    facet_wrap(~roi)
+    
+  
+}
 
 ## get_unitary_nematics_CD() ####
 get_unitary_nematics_CD <- function(movieDir, displayFactor=default_cell_display_factor(movieDir)){
