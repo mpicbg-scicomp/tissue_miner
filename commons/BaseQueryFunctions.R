@@ -303,6 +303,29 @@ addRois <-function(data, movieDir){
 # Aggregate/summarize
 # Add time from DB
 # returns a dataframe
+## mqf_cell_area ####
+mqf_cell_area <- function(movieDir, rois=c()){
+  
+  # Description: get cell area per frame, in ROIs
+  # Usage: in combination with multi_db_query(), ex: multi_db_query(movieDirs, mqf_cell_area, selectedRois)
+  # Arguments: movieDb = opened DB connection,  movieDir = path to a given movie folder
+  
+  movieDb <- openMovieDb(movieDir)
+  
+  queryResult <- dbGetQuery(movieDb, "select cell_id, frame, area from cells where cell_id!=10000") %>%
+    addRois(., movieDir)
+  
+  if(length(rois)==0) rois = unique(queryResult$roi)
+  
+  area <- queryResult %>%
+    filter(roi %in% rois) %>%
+    addTimeFunc(movieDb, .) %>% 
+    mutate(movie=basename(movieDir)) %>% add_dev_time()
+  
+  dbDisconnect(movieDb)
+  
+  return(area)
+}
 ## mqf_avg_cell_area ####
 mqf_avg_cell_area <- function(movieDir, rois=c()){
   
@@ -321,29 +344,6 @@ mqf_avg_cell_area <- function(movieDir, rois=c()){
     filter(roi %in% rois) %>%
     group_by(roi, frame) %>%
     summarise(area.avg=mean(area, na.rm=T), area.sum=sum(area, na.rm=T), nbcell=length(cell_id)) %>%
-    addTimeFunc(movieDb, .) %>% 
-    mutate(movie=basename(movieDir)) %>% add_dev_time()
-  
-  dbDisconnect(movieDb)
-  
-  return(area)
-}
-## mqf_cell_area ####
-mqf_cell_area <- function(movieDir, rois=c()){
-  
-  # Description: get cell area per frame, in ROIs
-  # Usage: in combination with multi_db_query(), ex: multi_db_query(movieDirs, mqf_cell_area, selectedRois)
-  # Arguments: movieDb = opened DB connection,  movieDir = path to a given movie folder
-  
-  movieDb <- openMovieDb(movieDir)
-  
-  queryResult <- dbGetQuery(movieDb, "select cell_id, frame, area from cells where cell_id!=10000") %>%
-    addRois(., movieDir)
-  
-  if(length(rois)==0) rois = unique(queryResult$roi)
- 
-  area <- queryResult %>%
-    filter(roi %in% rois) %>%
     addTimeFunc(movieDb, .) %>% 
     mutate(movie=basename(movieDir)) %>% add_dev_time()
   
@@ -434,7 +434,7 @@ mqf_cell_elongDB <- function(movieDir, rois=c()){
   # Description: get all cell elongtation nematics per frame, in ROIs
   # Usage: in combination with multi_db_query(), ex: multi_db_query(movieDirs, mqf_cell_elongDB, selectedRois)
   # Arguments: movieDb = opened DB connection,  movieDir = path to a given movie folder
-  
+  warning("OBSELETE, use mqf_nematics_cell_elong")
   movieDb <- openMovieDb(movieDir)
   
   queryResult <- dbGetQuery(movieDb, "select cell_id, frame, center_x, center_y, elong_xx, elong_xy from cells where cell_id!=10000") %>%
