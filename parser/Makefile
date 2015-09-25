@@ -43,7 +43,7 @@ clean:
 	rm -f Framework/*~ Parser/*~ Mainfiles/*~ *~
 	rm -f $(DEPS_FILE)
 	rm -f $(EXECUTABLE)
-	rm -r archiveTemp
+	rm -rf archiveTemp
 	
 archive:
 	mkdir -p archiveTemp archiveTemp/Framework archiveTemp/Parser archiveTemp/Mainfiles
