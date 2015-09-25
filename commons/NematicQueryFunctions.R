@@ -4,6 +4,7 @@ if (F){
   movieDbBaseDir <- "/media/project_raphael@fileserver/movieSegmentation"
   # Define path a particular time-lapse called "WT_25deg_111102"
   movieDir <- file.path(movieDbBaseDir, c("WT_25deg_111102"))
+  db <- openMovieDb(movieDir)
 }
 
 ## default_cell_display_factor() ####
@@ -24,8 +25,8 @@ default_cell_display_factor <- function(movieDir) {
   return(displayFactor)
 }
 
-## get_nematics_DBelong() ####
-get_nematics_DBelong <- function(movieDir, displayFactor=default_cell_display_factor(movieDir)){
+## mqf_nematics_cell_elong() ####
+mqf_nematics_cell_elong <- function(movieDir, rois=c(), displayFactor=default_cell_display_factor(movieDir)){
   
   # Description: retrieve cell elongation nematics from the DB
   # Usage: get_nematics_DBelong(movieDir, displayFactor) where displayFactor is optional
@@ -37,7 +38,12 @@ get_nematics_DBelong <- function(movieDir, displayFactor=default_cell_display_fa
   # Send a SQL query to get the cell elongation tensor in each frame
   results <- dbGetQuery(movieDb,
                                 "select cell_id, frame, center_x, center_y, elong_xx, elong_xy 
-                              from cells where cell_id!=10000") %>%
+                              from cells where cell_id!=10000") %>% addRois(., movieDir) 
+  
+  if(length(rois)==0) rois = unique(queryResult$roi)
+  
+  results %<>%
+    filter(roi %in% rois) %>%
     # calculate the phi angle and norm of nematics
     mutate(phi=0.5*(atan2(elong_xy, elong_xx)), 
            norm= sqrt(elong_xx^2+elong_xy^2)) %>%
@@ -47,16 +53,26 @@ get_nematics_DBelong <- function(movieDir, displayFactor=default_cell_display_fa
            x2=center_x+0.5*displayFactor*norm*cos(phi),
            y2=center_y+0.5*displayFactor*norm*sin(phi)) %>%
     # remove unecessary columns
-    select(-c(phi,norm,displayFactor))
+    select(-c(displayFactor)) %>%
+    addTimeFunc(movieDb, .) %>% 
+    mutate(movie=basename(movieDir)) %>% add_dev_time()
   
   dbDisconnect(movieDb)
   
   return(results)
 }
-## DEBUG get_nematics_DBelong() ####
+## DEBUG mqf_nematics_cell_elong() ####
 if (F){
-  get_nematics_DBelong(movieDir) %>%
+  mqf_nematics_cell_elong(movieDir, rois = "raw") %>%
     # crop the image by defining squareRoi
+    render_frame(120, squareRoi=rbind(c(1500,2000),c(1000,1500))) +
+    # plot nematics as segments
+    geom_segment(aes(x=x1,y=y1,xend=x2,yend=y2),
+                 size=1.2, alpha=0.7, lineend="round", color="red", na.rm=T) +
+    ggtitle("Cell elongation pattern")
+  
+  multi_db_query(movieDirs, mqf_nematics_cell_elong, c("blade","hinge"), displayFactor=70) %>% print_head() %>%
+    filter(movie=="WT_25deg_111102" & roi=="blade") %>%
     render_frame(120, squareRoi=rbind(c(1500,2000),c(1000,1500))) +
     # plot nematics as segments
     geom_segment(aes(x=x1,y=y1,xend=x2,yend=y2),
@@ -64,8 +80,8 @@ if (F){
     ggtitle("Cell elongation pattern")
 }
 
-## get_nematics_DBelong_cg()####
-get_nematics_DBelong_cg <- function(movieDir, gridSize=128, kernSize=1, displayFactor=-1){
+## mqf_nematics_cell_elong_coarse_grid()####
+mqf_nematics_cell_elong_coarse_grid <- function(movieDir, rois="raw", gridSize=128, kernSize=1, displayFactor=-1){
   
   # Description: retrieve and coarse-grain cell elongation nematics from the DB
   # Usage: get_nematics_DBelong_cg(movieDir, gridSize=128, kernSize=1, displayFactor=-1) where gridSize, kernSize, displayFactor are optional
@@ -78,27 +94,16 @@ get_nematics_DBelong_cg <- function(movieDir, gridSize=128, kernSize=1, displayF
   
   if (displayFactor==-1) autoscale=T else autoscale=F
   
-  cgNematics <- get_nematics_DBelong(movieDir) %>%
+  cgNematics <- mqf_nematics_cell_elong(movieDir, rois) %>%
     coarseGrid(gridSize) %>% 
     # remove grid elements that overlap the margin cell
     removeBckndGridOvlp(getBckndGridElements(movieDb, gridSize)) %>% 
     # average nematics in each frame and grid element
-    group_by(frame, xGrid, yGrid) %>%
+    group_by(frame, roi, xGrid, yGrid) %>%
     summarise(cgExx=mean(elong_xx, na.rm=T),
-              cgExy=mean(elong_xy, na.rm=T)) # %>%
-#     ungroup() %>%
-#     mutate(phi=0.5*(atan2(cgExy, cgExx)),
-#            norm=sqrt(cgExy^2+cgExx^2)) %>%
-#     # automatic scaling to grig size and nematic coordinates
-#     mutate(scaledFactor=ifelse(autoscale,gridSize/quantile(norm, na.rm=T, probs=0.95),displayFactor),
-#            x1=xGrid-0.5*norm*scaledFactor*cos(phi),
-#            y1=yGrid-0.5*norm*scaledFactor*sin(phi),
-#            x2=xGrid+0.5*norm*scaledFactor*cos(phi),
-#            y2=yGrid+0.5*norm*scaledFactor*sin(phi)) %>%
-#     select(-scaledFactor) 
-    
+              cgExy=mean(elong_xy, na.rm=T)) 
   
-  # do a time averaging over 5 frames in each grid element
+  # do a time averaging over 5 frames in each grid element (grouping is kept)
   cgNematicsSmooth <- cgNematics %>%
     smooth_tissue(cgExx, kernel_size=kernSize, gap_fill = NA, global_min_max = F) %>%
     smooth_tissue(cgExy, kernel_size=kernSize, gap_fill = NA, global_min_max = F) %>%
@@ -113,7 +118,10 @@ get_nematics_DBelong_cg <- function(movieDir, gridSize=128, kernSize=1, displayF
            x2=xGrid+0.5*norm*scaledFact*cos(phi),
            y2=yGrid+0.5*norm*scaledFact*sin(phi)) %>%
     # Remove unnecessary columns
-    select(-c(scaledFact,cgExx,cgExy))
+    select(-c(scaledFact,cgExx,cgExy)) %>%
+    # add time and movie name
+    addTimeFunc(movieDb, .) %>% 
+    mutate(movie=basename(movieDir)) %>% add_dev_time()
   
   dbDisconnect(movieDb)
   
@@ -121,11 +129,20 @@ get_nematics_DBelong_cg <- function(movieDir, gridSize=128, kernSize=1, displayF
 }
 ## DEBUG get_nematics_DBelong_cg() ####
 if (F){
-  get_nematics_DBelong_cg(movieDir) %>%
+  mqf_nematics_cell_elong_coarse_grid(movieDir) %>%
+    render_frame(70) +
+    geom_segment(aes(x=x1, y=y1,xend=x2, yend=y2),
+                 size=2, lineend="round", color="red", na.rm=T)
+  
+  multi_db_query(movieDirs, mqf_nematics_cell_elong_coarse_grid, c("raw", "blade")) %>% print_head() %>%
+    filter(movie=="WT_25deg_111102" & roi=="blade") %>%
     render_frame(70) +
     geom_segment(aes(x=x1, y=y1,xend=x2, yend=y2),
                  size=2, lineend="round", color="red", na.rm=T)
 }
+
+## mqf_nematics_cell_elong_roi_avg()
+## DEBUG mqf_nematics_cell_elong_roi_avg()
 
 ## get_unitary_nematics_CD() ####
 get_unitary_nematics_CD <- function(movieDir, displayFactor=default_cell_display_factor(movieDir)){
@@ -369,7 +386,6 @@ if (F){
 # Aggregate/summarize
 # Add time from DB
 # returns a dataframe
-
 ## mqf_unitaryNematicsT1() ####
 mqf_unitary_nematics_T1 <- function(movieDb, movieDbDir,rois=c()){
   
@@ -428,7 +444,6 @@ mqf_unitary_nematics_T1 <- function(movieDb, movieDbDir,rois=c()){
   return(T1Nematics)
   
 }
-
 ## mqf_unitary_nematics_CD() ####
 mqf_unitary_nematics_CD <- function(movieDb, movieDbDir,rois=c()){
   
