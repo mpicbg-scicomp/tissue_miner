@@ -92,7 +92,7 @@ coarseGrid <- function(positionDF, gridWitdh=movie_grid_size, gridReduction=0){
         ## create bins
         xGrid=round_any(center_x, gridWitdh, floor)+0.5*gridWitdh + 1, ## +1 to fix rendering at left image margin
         yGrid=round_any(center_y, gridWitdh, floor)+0.5*gridWitdh + 1,
-        roi=paste(xGrid, yGrid, sep="_")
+        grid_id=paste(xGrid, yGrid, sep="_")
 
         ## subset for reduced square regions
 #        xGrp=ifelse(abs(xGrid-center_x)>box_size_x*0.3, NA, xGrid),
@@ -108,7 +108,7 @@ getBckndGridElements <- function(db, gridWitdh=movie_grid_size){
     backgroundCellVertices <- dbGetQuery(db, "select cell_id, d.frame, x_pos as center_x, y_pos as center_y from vertices v join directed_bonds d on v.vertex_id=d.vertex_id where d.cell_id=10000")
 
     # DEBUG gridWitdh=256
-    bckndROIs <- backgroundCellVertices %>% coarseGrid(gridWitdh) %>% select(frame, roi) %>% distinct()
+    bckndROIs <- backgroundCellVertices %>% coarseGrid(gridWitdh) %>% select(frame, grid_id) %>% distinct()
 
     return(bckndROIs)
 }
