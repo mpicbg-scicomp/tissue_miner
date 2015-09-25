@@ -58,7 +58,9 @@ get_cell_properties <- function(movieDir){
   cellsWithContour <- dbGetQuery(movieDb, "select * from cells where cell_id!=10000") %>%
     dt.merge(locload(file.path(movieDir, "cellshapes.RData")), by = c("frame","cell_id")) %>%
     arrange(frame, cell_id, bond_order)
-
+  
+  dbDisconnect(movieDb)
+  
   return(cellsWithContour)
 }
 ## get_bond_properties() ####
@@ -155,7 +157,42 @@ get_vertex_properties <- function(movieDir){
   
   vertices <- dbGetQuery(movieDb, "select * from vertices")
   
+  dbDisconnect(movieDb)
+  
   return(vertices)
+}
+## get_cell_neighbor_count() ####
+get_cell_neighbor_count <- function(movieDir){
+  
+  # Description: count cell neighbors and retrieve the ordered list of vertices 
+  # Usage: get_cell_neighbor_count(movieDir)
+  # Arguments: movieDir = path to movie directory 
+  # Output: a dataframe
+  
+  movieDb <- openMovieDb(movieDir)
+  
+  # Send a SQL query to get the cell elongation tensor in each frame
+  dbonds <- dbGetQuery(movieDb, "select cell_id, dbond_id, conj_dbond_id, frame from directed_bonds")
+  
+  csWithPoly <- dt.merge(dbonds, 
+                         with(dbonds, data.frame(dbond_id=conj_dbond_id, neighbor_cell_id=cell_id)),
+                         by=c("dbond_id"), all=T, allow.cartesian=TRUE) %>%
+    group_by(cell_id, frame) %>%
+    mutate(polygon_class=length(neighbor_cell_id)) %>%
+    ungroup() %>%
+    # we retrict polygon classes to most common ones in the tissue
+    mutate(polygon_class_trimmed=limitRange(polygon_class, c(4, 8))) %>%
+    # only keep relevent columns
+    select(cell_id, frame, polygon_class_trimmed) %>%
+    unique_rows(c("cell_id","frame")) %>%
+    dt.merge(locload(file.path(movieDir, "cellshapes.RData")), by=c("cell_id","frame")) %>%
+    arrange(frame, cell_id, bond_order) %>% ## .. because merge messed up the ordering
+    # remove marging cell surrounding the tissue
+    filter(cell_id!=10000) %>% print_head()
+  
+  dbDisconnect(movieDb)
+  
+  return(csWithPoly)
 }
 
 
