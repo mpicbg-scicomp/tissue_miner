@@ -17,7 +17,7 @@ openMovieDb <- function(movieDir){
   
   # Description: open a SQLite database connection
   # Usage: openMovieDb(movieDir)
-  # Arguments: movieDbDir = path to a given movie folder
+  # Arguments: movieDir = path to a given movie folder
   
   db_name=basename(movieDir)
   dbFile=file.path(movieDir, paste0(db_name, ".sqlite"))
@@ -197,20 +197,25 @@ get_cell_neighbor_count <- function(movieDir){
 
 
 ## mqf_cell_count ####
-mqf_cell_count <- function(movieDb, movieDbDir, rois){
+mqf_cell_count <- function(movieDir, rois=c()){
   
   # Description: count number of cells per frame, in ROIs
   # Usage: in combination with multi_db_query(), ex: multi_db_query(movieDirs, mqf_cell_count, selectedRois)
-  # Arguments: movieDb = opened DB connection,  movieDbDir = path to a given movie folder
+  # Arguments: movieDb = opened DB connection,  movieDir = path to a given movie folder
+  
+  movieDb <- openMovieDb(movieDir)
   
   queryResult <- dbGetQuery(movieDb, "select cell_id, frame from cells where frame & cell_id!=10000") %>%
-    addRois(., movieDbDir) 
+    addRois(., movieDir) 
   
   if(length(rois)==0) rois = unique(queryResult$roi)
   
   ## filter for ROIs of interest
   cellCount <- transform(with(queryResult %>% filter(roi %in% rois), as.data.frame(table(frame, roi=ac(roi)))), frame=as.numeric(levels(frame))) %>%
-    addTimeFunc(movieDb, .)
+    addTimeFunc(movieDb, .) %>% 
+    mutate(movie=basename(movieDir)) %>% add_dev_time()
+  
+  dbDisconnect(movieDb)
   
   return(cellCount)
 }
@@ -225,14 +230,14 @@ multi_db_query <- function(movieDirectories, queryFun=mqf_cell_count, ...){
   #            queryFun = the definition of a query function to apply,
   #            selectedRois = the user-defined ROIs (all ROIs by default)
   
-  queryResults <- ldply(movieDirectories, function(movieDbDir){
-    dbName=basename(movieDbDir)
-    movieDb <- openMovieDb(movieDbDir)
+  queryResults <- ldply(movieDirectories, function(movieDir){
+    #dbName=basename(movieDir)
+    #movieDb <- openMovieDb(movieDir)
+    results <- queryFun(movieDir, ...)
+    # results <- queryFun(movieDir, ...) %>% mutate(movie=basename(movieDir)) %>% add_dev_time()
+    # results <-transform(queryFun(movieDb, movieDir, ...), movie=dbName)
     
-    results <- queryFun(movieDb, movieDbDir, ...) %>% mutate(movie=dbName) %>% add_dev_time()
-    # results <-transform(queryFun(movieDb, movieDbDir, ...), movie=dbName)
-    
-    dbDisconnect(movieDb)
+    #dbDisconnect(movieDb)
     return(results)
     
   }, .progress="text", .parallel=T, .inform=T)
@@ -255,15 +260,16 @@ multi_db_query <- function(movieDirectories, queryFun=mqf_cell_count, ...){
 ## used to restore roi for shear contributions or other data stored in Roi folders ####
 addRoiByDir <- function(rdataFile) transform(local(get(load(rdataFile))), roi=basename(dirname((rdataFile))))
 ## Attach ROIs to a data set. Note: rois are defined on a cell level here irrespective of frame ####
-addRois <-function(data, movieDbDir){
+addRois <-function(data, movieDir){
   ## dummy roi
-  if(basename(movieDbDir)=="120531_Debug_Tissue_Sample") return(transform(data, roi="ttt"))
+  if(basename(movieDir)=="120531_Debug_Tissue_Sample") return(transform(data, roi="ttt"))
   
   ## merge with data
-  roiTrackFile=file.path(movieDbDir, "roi_bt/lgRoiSmoothed.RData")
+  roiTrackFile=file.path(movieDir, "roi_bt/lgRoiSmoothed.RData")
   
   if(file.exists(roiTrackFile)){
-    rois <- local(get(load(roiTrackFile)))
+    rois <- local(get(load(roiTrackFile))) %>%
+      rbind(data.frame(cell_id=unique(data$cell_id), roi="raw"))
   }else{
     stop(paste0(roiTrackFile," doesn't exit"))
   }
@@ -277,9 +283,9 @@ addRois <-function(data, movieDbDir){
 #  selectedRois <- getCT("selectedRois")
 #  filtRois <- subset(rois, roi %in% selectedRois)
 #
-#  if("raw" %in% selectedRois){
-#    filtRois <- addRawRoi(filtRois, data)
-#  }
+ # if("raw" %in% selectedRois){
+   # filtRois <- addRawRoi(filtRois, data)
+ # }
   
   
   ## filter for ROIs of interest
@@ -291,21 +297,23 @@ addRois <-function(data, movieDbDir){
 
 ## mqf_functions synopsis (multiple queries functions) ####
 ## Synopsis:
-# mqf_* definition: args(DBconnection=movieDb, pathToMovie=movieDbDir)
+# mqf_* definition: args(DBconnection=movieDb, pathToMovie=movieDir)
 # Get data from DB / files
 # Add Rois and subset by Rois
 # Aggregate/summarize
 # Add time from DB
 # returns a dataframe
 ## mqf_avg_cell_area ####
-mqf_avg_cell_area <- function(movieDb, movieDbDir, rois){
+mqf_avg_cell_area <- function(movieDir, rois=c()){
   
   # Description: calculate average cell area per frame, in ROIs
   # Usage: in combination with multi_db_query(), ex: multi_db_query(movieDirs, mqf_avg_cell_area, selectedRois)
-  # Arguments: movieDb = opened DB connection,  movieDbDir = path to a given movie folder
+  # Arguments: movieDb = opened DB connection,  movieDir = path to a given movie folder
+  
+  movieDb <- openMovieDb(movieDir)
   
   queryResult <- dbGetQuery(movieDb, "select cell_id, frame, area from cells where cell_id!=10000") %>%
-    addRois(., movieDbDir)
+    addRois(., movieDir)
   
   if(length(rois)==0) rois = unique(queryResult$roi)
   
@@ -313,37 +321,47 @@ mqf_avg_cell_area <- function(movieDb, movieDbDir, rois){
     filter(roi %in% rois) %>%
     group_by(roi, frame) %>%
     summarise(area.avg=mean(area, na.rm=T), area.sum=sum(area, na.rm=T), nbcell=length(cell_id)) %>%
-    addTimeFunc(movieDb, .)
-    
+    addTimeFunc(movieDb, .) %>% 
+    mutate(movie=basename(movieDir)) %>% add_dev_time()
+  
+  dbDisconnect(movieDb)
+  
   return(area)
 }
 ## mqf_cell_area ####
-mqf_cell_area <- function(movieDb, movieDbDir, rois=c()){
+mqf_cell_area <- function(movieDir, rois=c()){
   
   # Description: get cell area per frame, in ROIs
   # Usage: in combination with multi_db_query(), ex: multi_db_query(movieDirs, mqf_cell_area, selectedRois)
-  # Arguments: movieDb = opened DB connection,  movieDbDir = path to a given movie folder
+  # Arguments: movieDb = opened DB connection,  movieDir = path to a given movie folder
+  
+  movieDb <- openMovieDb(movieDir)
   
   queryResult <- dbGetQuery(movieDb, "select cell_id, frame, area from cells where cell_id!=10000") %>%
-  addRois(., movieDbDir)
+    addRois(., movieDir)
   
   if(length(rois)==0) rois = unique(queryResult$roi)
  
   area <- queryResult %>%
     filter(roi %in% rois) %>%
-    addTimeFunc(movieDb, .)
+    addTimeFunc(movieDb, .) %>% 
+    mutate(movie=basename(movieDir)) %>% add_dev_time()
+  
+  dbDisconnect(movieDb)
   
   return(area)
 }
 ## mqf_avg_cell_neighbor_counts ####
-mqf_avg_cell_neighbor_counts <- function(movieDb, movieDbDir, rois=c()){
+mqf_avg_cell_neighbor_counts <- function(movieDir, rois=c()){
   
   # Description: get averaged cell neighbor count per frame, in ROIs
   # Usage: in combination with multi_db_query(), ex: multi_db_query(movieDirs, mqf_avg_cell_neighbor_counts, selectedRois)
-  # Arguments: movieDb = opened DB connection,  movieDbDir = path to a given movie folder
+  # Arguments: movieDb = opened DB connection,  movieDir = path to a given movie folder
   
-  queryResult <- locload(file.path(movieDbDir, "topochanges/topoChangeSummary.RData")) %>%
-    addRois(., movieDbDir)
+  movieDb <- openMovieDb(movieDir)
+  
+  queryResult <- locload(file.path(movieDir, "topochanges/topoChangeSummary.RData")) %>%
+    addRois(., movieDir)
   
   if(length(rois)==0) rois = unique(queryResult$roi)
   
@@ -351,19 +369,24 @@ mqf_avg_cell_neighbor_counts <- function(movieDb, movieDbDir, rois=c()){
     filter(roi %in% rois) %>%
     group_by(roi,frame) %>%
     summarise(avg_num_neighbors=mean(num_neighbors_t)) %>%
-    addTimeFunc(movieDb, .)
+    addTimeFunc(movieDb, .) %>% 
+    mutate(movie=basename(movieDir)) %>% add_dev_time()
     
+  dbDisconnect(movieDb)
+  
   return(neighborCount)
 }
 ## mqf_avg_polygon_class ####
-mqf_avg_polygon_class <- function(movieDb, movieDbDir, rois=c()){
+mqf_avg_polygon_class <- function(movieDir, rois=c()){
   
   # Description: count number of cells in each polygon class, per frame, in ROIs
   # Usage: in combination with multi_db_query(), ex: multi_db_query(movieDirs, mqf_avg_polygon_class, selectedRois)
-  # Arguments: movieDb = opened DB connection,  movieDbDir = path to a given movie folder
+  # Arguments: movieDb = opened DB connection,  movieDir = path to a given movie folder
   
-  queryResult <- locload(file.path(movieDbDir, "polygon_class/pgClass.RData")) %>%
-    addRois(., movieDbDir) %>%
+  movieDb <- openMovieDb(movieDir)
+  
+  queryResult <- locload(file.path(movieDir, "polygon_class/pgClass.RData")) %>%
+    addRois(., movieDir) %>%
     arrange(frame)
   
   if(length(rois)==0) rois = unique(queryResult$roi)
@@ -372,19 +395,24 @@ mqf_avg_polygon_class <- function(movieDb, movieDbDir, rois=c()){
   cellCountByFrame <-with(queryResult %>% filter(roi %in% rois), data.frame(table(frame,roi)))
   
   pgClassSummary <- dt.merge(with(pgClassCountByFrame, data.frame(frame=as.integer(frame),roi,polygon_class, pgFreq=Freq)), with(cellCountByFrame, data.frame(frame=as.integer(frame),roi, nbcell=Freq)), by=c("frame","roi")) %>%
-    addTimeFunc(movieDb,.)
+    addTimeFunc(movieDb,.) %>% 
+    mutate(movie=basename(movieDir)) %>% add_dev_time()
+  
+  dbDisconnect(movieDb)
   
   return(pgClassSummary)
 }
 ## mqf_avg_cell_elongDB ####
-mqf_avg_cell_elongDB <- function(movieDb, movieDbDir, rois=c()){
+mqf_avg_cell_elongDB <- function(movieDir, rois=c()){
   
   # Description: get averaged cell elongtation nematics per frame, in ROIs
   # Usage: in combination with multi_db_query(), ex: multi_db_query(movieDirs, mqf_avg_cell_elongDB, selectedRois)
-  # Arguments: movieDb = opened DB connection,  movieDbDir = path to a given movie folder
+  # Arguments: movieDb = opened DB connection,  movieDir = path to a given movie folder
+  
+  movieDb <- openMovieDb(movieDir)
   
   queryResult <- dbGetQuery(movieDb, "select cell_id, frame, elong_xx, elong_xy from cells where cell_id!=10000") %>%
-    addRois(., movieDbDir)
+    addRois(., movieDir)
 
   if(length(rois)==0) rois = unique(queryResult$roi)
   
@@ -393,69 +421,87 @@ mqf_avg_cell_elongDB <- function(movieDb, movieDbDir, rois=c()){
     group_by(roi,frame) %>%
     summarise(elong_xx.avg=mean(elong_xx, na.rm=T), elong_xy.avg=mean(elong_xy, na.rm=T)) %>%
     arrange(roi, frame) %>%
-    addTimeFunc(movieDb, .)
+    addTimeFunc(movieDb, .) %>% 
+    mutate(movie=basename(movieDir)) %>% add_dev_time()
+  
+  dbDisconnect(movieDb)
   
   return(avgElong)
 }
 ## mqf_cell_elongDB ####
-mqf_cell_elongDB <- function(movieDb, movieDbDir, rois=c()){
+mqf_cell_elongDB <- function(movieDir, rois=c()){
   
   # Description: get all cell elongtation nematics per frame, in ROIs
   # Usage: in combination with multi_db_query(), ex: multi_db_query(movieDirs, mqf_cell_elongDB, selectedRois)
-  # Arguments: movieDb = opened DB connection,  movieDbDir = path to a given movie folder
+  # Arguments: movieDb = opened DB connection,  movieDir = path to a given movie folder
+  
+  movieDb <- openMovieDb(movieDir)
   
   queryResult <- dbGetQuery(movieDb, "select cell_id, frame, center_x, center_y, elong_xx, elong_xy from cells where cell_id!=10000") %>%
-    addRois(., movieDbDir)
+    addRois(., movieDir)
   
   if(length(rois)==0) rois = unique(queryResult$roi)
   
   cellElong <- queryResult %>%
     filter(roi %in% rois) %>%
-    addTimeFunc(movieDb, .)
+    addTimeFunc(movieDb, .) %>% 
+    mutate(movie=basename(movieDir)) %>% add_dev_time()
+  
+  dbDisconnect(movieDb)
   
   return(cellElong)
 }
 ## mqf_avg_triangle_elong ####
-mqf_avg_triangle_elong <- function(movieDb, movieDbDir, rois=c()){
+mqf_avg_triangle_elong <- function(movieDir, rois=c()){
   
   # Description: get averaged triangle elongtation nematics per frame, in ROIs
   # Usage: in combination with multi_db_query(), ex: multi_db_query(movieDirs, mqf_avg_triangle_elong, selectedRois)
-  # Arguments: movieDb = opened DB connection,  movieDbDir = path to a given movie folder
+  # Arguments: movieDb = opened DB connection,  movieDir = path to a given movie folder
   
-  queryResult <- ldply(list.files(movieDbDir, "avgDeformTensorsWide.RData", full.names=TRUE, recursive=T), addRoiByDir)  %>%
+  movieDb <- openMovieDb(movieDir)
+  
+  queryResult <- ldply(list.files(movieDir, "avgDeformTensorsWide.RData", full.names=TRUE, recursive=T), addRoiByDir)  %>%
     select(frame, roi, Q_xx, Q_xy)
   
   if(length(rois)==0) rois = unique(queryResult$roi)
   
   pooledCEstate <- queryResult %>%
     filter(roi %in% rois) %>%
-    addTimeFunc(movieDb, .)
+    addTimeFunc(movieDb, .) %>% 
+    mutate(movie=basename(movieDir)) %>% add_dev_time()
+  
+  dbDisconnect(movieDb)
   
   return(pooledCEstate)
 }
 ## mqf_triangle_elong ####
-mqf_triangle_elong <- function(movieDb, movieDbDir, rois=c()){
+mqf_triangle_elong <- function(movieDir, rois=c()){
   
   # Description: get all triangle elongtation nematics per frame, in ROIs
   # Usage: in combination with multi_db_query(), ex: multi_db_query(movieDirs, mqf_triangle_elong, selectedRois)
-  # Arguments: movieDb = opened DB connection,  movieDbDir = path to a given movie folder
+  # Arguments: movieDb = opened DB connection,  movieDir = path to a given movie folder
   
-  queryResult <- ldply(list.files(movieDbDir, "Ta_t.RData", full.names=TRUE, recursive=T), addRoiByDir)
+  movieDb <- openMovieDb(movieDir)
+  
+  queryResult <- ldply(list.files(movieDir, "Ta_t.RData", full.names=TRUE, recursive=T), addRoiByDir)
   
   if(length(rois)==0) rois = unique(queryResult$roi)
   
   # add frame to triangle data
-  filepath <- file.path(movieDbDir, "shear_contrib", "triList.RData")
+  filepath <- file.path(movieDir, "shear_contrib", "triList.RData")
   allRoiData <- with(local(get(load(filepath))), data.frame(frame, tri_id)) %>% 
     filter(!duplicated(tri_id)) %>%
     dt.merge(., queryResult, by="tri_id") %>%
     filter(roi %in% rois) %>%
-    addTimeFunc(movieDb, .)
+    addTimeFunc(movieDb, .) %>% 
+    mutate(movie=basename(movieDir)) %>% add_dev_time()
+  
+  dbDisconnect(movieDb)
   
   return(allRoiData)
 }
 ## mqf_rate_CD and mqf_rate_T2 ####
-lossRate <- function(movieDb, movieDbDir, rois, lostType){
+lossRate <- function(movieDb, movieDir, rois, lostType){
   
   cellsInFrame   <- dbGetQuery(movieDb, "select cell_id, frame, area from cells where cell_id!=10000")
   cellinfo <- dbGetQuery(movieDb, "select * from cell_histories")
@@ -463,7 +509,7 @@ lossRate <- function(movieDb, movieDbDir, rois, lostType){
   lossEvents <- with(subset(cellinfo, disappears_by==lostType), data.frame(cell_id, frame=last_occ, is_loss_next_frame=T))
   lossEventsInFrame <- dt.merge(cellsInFrame, lossEvents, all.x=T)
   
-  lossEventsByRoi <- addRois(lossEventsInFrame, movieDbDir)
+  lossEventsByRoi <- addRois(lossEventsInFrame, movieDir)
   
   if(length(rois)==0) rois = unique(lossEventsByRoi$roi)
   
@@ -481,27 +527,41 @@ lossRate <- function(movieDb, movieDbDir, rois, lostType){
   return(lossSummary)
 }
 
-mqf_rate_CD <- function(movieDb, movieDbDir, rois=c()){
+mqf_rate_CD <- function(movieDir, rois=c()){
   
   # Description: get cell division rate per frame, in ROIs
   # Usage: in combination with multi_db_query(), ex: multi_db_query(movieDirs, mqf_rate_CD, selectedRois)
-  # Arguments: movieDb = opened DB connection,  movieDbDir = path to a given movie folder
+  # Arguments: movieDb = opened DB connection,  movieDir = path to a given movie folder
   
-  lossRate(movieDb, movieDbDir, rois, "Division")
+  movieDb <- openMovieDb(movieDir)
+  
+  results <- lossRate(movieDb, movieDir, rois, "Division") %>% 
+    mutate(movie=basename(movieDir)) %>% add_dev_time()
+  
+  dbDisconnect(movieDb)
+  return(results)
+  
   }
-mqf_rate_T2 <- function(movieDb, movieDbDir, rois=c()){
+mqf_rate_T2 <- function(movieDir, rois=c()){
   
   # Description: get cell extrusion rate per frame, in ROIs
   # Usage: in combination with multi_db_query(), ex: multi_db_query(movieDirs, mqf_rate_T2, selectedRois)
-  # Arguments: movieDb = opened DB connection,  movieDbDir = path to a given movie folder
+  # Arguments: movieDb = opened DB connection,  movieDir = path to a given movie folder
   
-  lossRate(movieDb, movieDbDir, rois, "Apoptosis")
+  movieDb <- openMovieDb(movieDir)
+  
+  results <- lossRate(movieDb, movieDir, rois, "Apoptosis") %>% 
+    mutate(movie=basename(movieDir)) %>% add_dev_time()
+  
+  dbDisconnect(movieDb)
+  
+  return(results)
 }
 ## mqf_rate_T1 ####
-topoChangeRate <- function(movieDb, movieDbDir, rois, countExpr){
+topoChangeRate <- function(movieDb, movieDir, rois, countExpr){
   #todo don't query and don't use multi-query and infer cell counts directrly from the topochange data.
   cellsInFrame   <- dbGetQuery(movieDb, "select cell_id, frame from cells where cell_id!=10000")
-  topoChangeSummary <- local(get(load(file.path(movieDbDir, "topochanges/topoChangeSummary.RData"))))
+  topoChangeSummary <- local(get(load(file.path(movieDir, "topochanges/topoChangeSummary.RData"))))
   # remove last frame as T1 nb is assigned to first frame of the interval
   topoChangeSummary <- subset(topoChangeSummary, frame<max(frame))
   
@@ -509,7 +569,7 @@ topoChangeRate <- function(movieDb, movieDbDir, rois, countExpr){
   topoEvents <- eval(substitute(with(topoChangeSummary, data.frame(cell_id, frame, topo_sum=countExpr))))
   topoEventsInFrame <- dt.merge(cellsInFrame, topoEvents)
   
-  topoEventsByRoi <- addRois(topoEventsInFrame, movieDbDir)
+  topoEventsByRoi <- addRois(topoEventsInFrame, movieDir)
   
   if(length(rois)==0) rois = unique(topoEventsByRoi$roi)
   
@@ -528,26 +588,34 @@ topoChangeRate <- function(movieDb, movieDbDir, rois, countExpr){
   return(topoSummary)
 }
 
-mqf_rate_T1 <- function(movieDb, movieDbDir, rois=c()){
+mqf_rate_T1 <- function(movieDir, rois=c()){
   
   # Description: get T1 rate per frame, in ROIs
   # Usage: in combination with multi_db_query(), ex: multi_db_query(movieDirs, mqf_rate_T1, selectedRois)
-  # Arguments: movieDb = opened DB connection,  movieDbDir = path to a given movie folder
+  # Arguments: movieDb = opened DB connection,  movieDir = path to a given movie folder
   
-  topoChangeRate(movieDb, movieDbDir, rois, 0.5*(num_t1_gained+num_t1_lost))
+  movieDb <- openMovieDb(movieDir)
+  
+  results <- topoChangeRate(movieDb, movieDir, rois, 0.5*(num_t1_gained+num_t1_lost)) %>% 
+    mutate(movie=basename(movieDir)) %>% add_dev_time()
+  
+  dbDisconnect(movieDb)
+  
+  return(results)
 }
-# mqf_rateT1Balance <- function(movieDb, movieDbDir, rois=c()) topoChangeRate(movieDb, movieDbDir, rois, 0.5*(num_t1_gained-num_t1_lost))
+# mqf_rateT1Balance <- function(movieDb, movieDir, rois=c()) topoChangeRate(movieDb, movieDir, rois, 0.5*(num_t1_gained-num_t1_lost))
 ## mqf_rate_isotropic_contrib ####
-mqf_rate_isotropic_contrib <- function(movieDb, movieDbDir, rois=c()){
+mqf_rate_isotropic_contrib <- function(movieDir, rois=c()){
   
   # Description: compute the isotropic deformation of the tissue and its cellular contributions per frame, in ROIs
   # Usage: in combination with multi_db_query(), ex: multi_db_query(movieDirs, mqf_rate_isotropic_contrib, selectedRois)
-  # Arguments: movieDb = opened DB connection,  movieDbDir = path to a given movie folder
+  # Arguments: movieDb = opened DB connection,  movieDir = path to a given movie folder
   
-  #browser()
+  movieDb <- openMovieDb(movieDir)
+  
   # calculate cell number, area, area change per roi and frame
   queryResult <- dbGetQuery(movieDb, "select frame, cell_id,area from cells where cell_id!=10000") %>%
-  addRois(., movieDbDir)
+  addRois(., movieDir)
   
   if(length(rois)==0) rois = unique(queryResult$roi)
     
@@ -567,7 +635,7 @@ mqf_rate_isotropic_contrib <- function(movieDb, movieDbDir, rois=c()){
   
   # Calculate number of divisions, extrusions
   queryResult <- dbGetQuery(movieDb, "select * from cell_histories where cell_id!=10000") %>%
-    addRois(., movieDbDir)
+    addRois(., movieDir)
   
   if(length(rois)==0) rois = unique(queryResult$roi)
   
@@ -605,7 +673,8 @@ mqf_rate_isotropic_contrib <- function(movieDb, movieDbDir, rois=c()){
            cell_area=ma(cell_area),
            tissue_area=ma(tissue_area),
            sumContrib=division+extrusion+cell_area) %>%
-    melt(., id.vars = c("frame","time_sec","timeIntHour","roi"), value.name = "value.ma", variable.name = "isoContrib")
+    melt(., id.vars = c("frame","time_sec","timeIntHour","roi"), value.name = "value.ma", variable.name = "isoContrib") %>% 
+    mutate(movie=basename(movieDir)) %>% add_dev_time()
   
   #   ggplot(relIsoContribSmooth, aes(frame, rel_div_change.ma, color=roi)) +geom_line()+
   #     geom_line(aes(frame, rel_extr_change.ma)) +
@@ -613,16 +682,20 @@ mqf_rate_isotropic_contrib <- function(movieDb, movieDbDir, rois=c()){
   #     geom_line(aes(frame, rel_total_change.ma)) +
   #     facet_wrap(~roi
   
+  dbDisconnect(movieDb)
+  
   return(relIsoContribSmooth)
 }
 ## mqf_rate_shear ####
-mqf_rate_shear <- function(movieDb, movieDbDir, rois=c()){
+mqf_rate_shear <- function(movieDir, rois=c()){
   
   # Description: compute the pure shear deformation of the tissue and its cellular contributions per frame, in ROIs
   # Usage: in combination with multi_db_query(), ex: multi_db_query(movieDirs, mqf_rate_shear, selectedRois)
-  # Arguments: movieDb = opened DB connection,  movieDbDir = path to a given movie folder
+  # Arguments: movieDb = opened DB connection,  movieDir = path to a given movie folder
   
-  queryResult <- ldply(list.files(movieDbDir, "avgDeformTensorsLong.RData", full.names=TRUE, recursive=T), addRoiByDir)
+  movieDb <- openMovieDb(movieDir)
+  
+  queryResult <- ldply(list.files(movieDir, "avgDeformTensorsLong.RData", full.names=TRUE, recursive=T), addRoiByDir)
   
   if(length(rois)==0) rois = unique(queryResult$roi)
   
@@ -634,18 +707,25 @@ mqf_rate_shear <- function(movieDb, movieDbDir, rois=c()){
                                                           xy.ma=ma(xy)/(ma(timeInt_sec)/3600),
                                                           yx.ma=ma(yx)/(ma(timeInt_sec)/3600),
                                                           yy.ma=ma(yy)/(ma(timeInt_sec)/3600),
-                                                          TimeInt.ma=as.numeric(ma(timeInt_sec))), by=c("roi", "tensor")])
+                                                          TimeInt.ma=as.numeric(ma(timeInt_sec))), by=c("roi", "tensor")]) %>% 
+    mutate(movie=basename(movieDir)) %>% add_dev_time()
+  
+  dbDisconnect(movieDb)
   
   return(ShearRateByRoi)
 }
 ## mqf_dev_time ####
-mqf_dev_time <- function(movieDb, movieDbDir, rois=c()){
+mqf_dev_time <- function(movieDir, rois=c()){
   
   # Description: get developmental time regardless ROIs
   # Usage: in combination with multi_db_query(), ex: multi_db_query(movieDirs, mqf_dev_time)
-  # Arguments: movieDb = opened DB connection,  movieDbDir = path to a given movie folder
-
-  dev_time <- dbGetQuery(movieDb, "select * from frames")
+  # Arguments: movieDb = opened DB connection,  movieDir = path to a given movie folder
+  movieDb <- openMovieDb(movieDir)
+  
+  dev_time <- dbGetQuery(movieDb, "select * from frames") %>% 
+    mutate(movie=basename(movieDir)) %>% add_dev_time()
+  
+  dbDisconnect(movieDb)
   
   return(dev_time)
 }
