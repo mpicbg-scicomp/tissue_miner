@@ -10,9 +10,14 @@ align_movie_start <- function(movieData, moviesDirs){
   movies <- ac(unique(movieData$movie))
   refTime <- calcRefTime(movies)
   
-  timeTables <-multi_db_query(moviesDirs, function(movieDb, movieDbDir){ 
+  timeTables <-multi_db_query(moviesDirs, function(movieDir){
+    movieDb <- openMovieDb(movieDir)
     time <- dbGetQuery(movieDb, "select * from frames")
-    timeInt <- cbind(time[-nrow(time),], timeInt_sec=diff(time$time_sec))  }) 
+    timeInt <- cbind(time[-nrow(time),], timeInt_sec=diff(time$time_sec)) %>% 
+      mutate(movie=basename(movieDir)) %>% add_dev_time()
+    dbDisconnect(movieDb)
+    return(timeInt)
+  }) 
   
   ## apply alignment model
   closestFrameByMovie <- timeTables %>%
