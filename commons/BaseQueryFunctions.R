@@ -933,7 +933,7 @@ if(F){
   
 }
 ## mqf_unitary_nematics_CD() ####
-mqf_unitary_nematics_CD <- function(movieDir, rois=c(), displayFactor=default_cell_display_factor(movieDir)){
+mqf_unitary_nematics_CD <- function(movieDir, rois=c(), cellContour=F, displayFactor=default_cell_display_factor(movieDir)){
   
   # Description: retrieve cell division nematics from the DB
   # Usage: get_nematics_CD(movieDir, displayFactor) where displayFactor is optional
@@ -962,10 +962,12 @@ mqf_unitary_nematics_CD <- function(movieDir, rois=c(), displayFactor=default_ce
     # remove cases in which not both daughers are present
     filter(n()==2) %>%
     mutate(daughter=c("left","right")) %>%
-    select(-cell_id) %>% ungroup() %>% 
+    dplyr::rename(daughter_cell_id=cell_id) %>%
+    # select(-cell_id) %>% 
+    ungroup() %>% 
     # reshape to get divided cells into single row for nematics calculation
     melt(id.vars=c("first_daughter_occ","mother_cell_id", "daughter")) %>% 
-    dcast(mother_cell_id+first_daughter_occ ~ ...) %>% 
+    dcast(mother_cell_id+first_daughter_occ ~ daughter+variable) %>% 
     dplyr::rename(frame=first_daughter_occ, cell_id=mother_cell_id) %>%
     # add Roi definitions on by cell_id
     addRois(movieDir, rois) %>% 
@@ -988,6 +990,15 @@ mqf_unitary_nematics_CD <- function(movieDir, rois=c(), displayFactor=default_ce
     select(-c(left_center_x,left_center_y,right_center_x,right_center_y,CDxx,CDxy)) %>%
     addTimeFunc(movieDb, .) %>% 
     mutate(movie=basename(movieDir)) %>% add_dev_time()
+  
+  if (cellContour) {
+    #todo melt daughter cells for ploting
+    cdNematics %<>%
+      melt(measure.vars = c("left_daughter_cell_id", "right_daughter_cell_id"), value.name="cell_id") %>% print_head() %>%
+      dt.merge(locload(file.path(movieDir, "cellshapes.RData")), by = c("frame","cell_id"), allow.cartesian=TRUE) %>%
+      arrange(frame, roi, cell_id, bond_order)
+
+  }
   
   dbDisconnect(movieDb)
   
