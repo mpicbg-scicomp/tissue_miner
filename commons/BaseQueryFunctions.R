@@ -96,63 +96,6 @@ openMovieDb <- function(movieDir){
 }
 
 ## Single movie query functions ####
-## get_cell_properties() ####
-get_cell_properties <- function(movieDir){
-  
-  # Description: retrieve all cell properties and the ordered list of vertices from the DB
-  # Usage: get_cell_properties(movieDir)
-  # Arguments: movieDir = path to movie directory 
-  # Output: a dataframe
-  
-  movieDb <- openMovieDb(movieDir)
-  
-  cellsWithContour <- dbGetQuery(movieDb, "select * from cells where cell_id!=10000") %>%
-    dt.merge(locload(file.path(movieDir, "cellshapes.RData")), by = c("frame","cell_id")) %>%
-    arrange(frame, cell_id, bond_order)
-  
-  dbDisconnect(movieDb)
-  
-  return(cellsWithContour)
-}
-## get_bond_properties() ####
-get_bond_properties <- function(movieDir){
-  
-  # Description: retrieve bond properties and positions from the DB
-  # Usage: get_bond_properties(movieDir)
-  # Arguments: movieDir = path to movie directory 
-  # Output: a dataframe
-  
-  movieDb <- openMovieDb(movieDir)
-  
-  # Send SQL query to the DB to get directed bond properties into a table called dbond:
-  dbond <- dbGetQuery(movieDb, "select frame, dbond_id, conj_dbond_id, bond_id, vertex_id from directed_bonds") 
-  # Send SQL query to the DB to get vertices into a table called vertices:
-  vertices <- dbGetQuery(movieDb, "select * from vertices") 
-  # Send SQL query to the DB to get bond properties into a table called bond:
-  bonds <- dbGetQuery(movieDb, "select * from bonds") %>% select(-frame)
-  
-  # Aggregrate aggregate the vertex, bond, and directed bond information
-  bond_2vx <- dbond %>%
-    # join dbond with itself to get the 2 vertices of each undirected bond
-    dt.merge(with(dbond, data.frame(dbond_id=conj_dbond_id,vertex_id)),
-             by= c("dbond_id"), suffixes=c(".1", ".2")) %>%
-    # join the resulting table to vertices to add (x,y) coordinates of vertex #1
-    dt.merge(with(vertices, data.frame(vertex_id.1=vertex_id, x_pos.1=x_pos, y_pos.1=y_pos)),
-             by = c("vertex_id.1")) %>%
-    # join the resulting table to vertices to add (x,y) coordinates of vertex #2
-    dt.merge(with(vertices, data.frame(vertex_id.2=vertex_id, x_pos.2=x_pos, y_pos.2=y_pos)),
-             by = c("vertex_id.2")) %>% 
-    # remove unecessary columns
-    select (-c(dbond_id,conj_dbond_id)) %>% 
-    # remove duplicated bond ids resulting from the above join operations
-    distinct(bond_id) %>% 
-    # join the resulting table with bonds to add the bond_length property
-    dt.merge(bonds, by=c("bond_id")) 
-  
-  dbDisconnect(movieDb)
-  
-  return(bond_2vx)
-}
 ## get_bond_stats() ####
 get_bond_stats <- function(movieDir){
 
@@ -212,39 +155,7 @@ get_vertex_properties <- function(movieDir){
   
   return(vertices)
 }
-## get_cell_neighbor_count() ####
-get_cell_neighbor_count <- function(movieDir){
-  
-  # Description: count cell neighbors and retrieve the ordered list of vertices 
-  # Usage: get_cell_neighbor_count(movieDir)
-  # Arguments: movieDir = path to movie directory 
-  # Output: a dataframe
-  
-  movieDb <- openMovieDb(movieDir)
-  
-  # Send a SQL query to get the cell elongation tensor in each frame
-  dbonds <- dbGetQuery(movieDb, "select cell_id, dbond_id, conj_dbond_id, frame from directed_bonds")
-  
-  csWithPoly <- dt.merge(dbonds, 
-                         with(dbonds, data.frame(dbond_id=conj_dbond_id, neighbor_cell_id=cell_id)),
-                         by=c("dbond_id"), all=T, allow.cartesian=TRUE) %>%
-    group_by(cell_id, frame) %>%
-    mutate(polygon_class=length(neighbor_cell_id)) %>%
-    ungroup() %>%
-    # we retrict polygon classes to most common ones in the tissue
-    mutate(polygon_class_trimmed=limitRange(polygon_class, c(4, 8))) %>%
-    # only keep relevent columns
-    select(cell_id, frame, polygon_class_trimmed) %>%
-    unique_rows(c("cell_id","frame")) %>%
-    dt.merge(locload(file.path(movieDir, "cellshapes.RData")), by=c("cell_id","frame")) %>%
-    arrange(frame, cell_id, bond_order) %>% ## .. because merge messed up the ordering
-    # remove marging cell surrounding the tissue
-    filter(cell_id!=10000) %>% print_head()
-  
-  dbDisconnect(movieDb)
-  
-  return(csWithPoly)
-}
+
 
 
 ## mqf_cell_count ####
@@ -257,12 +168,10 @@ mqf_cell_count <- function(movieDir, rois=c()){
   movieDb <- openMovieDb(movieDir)
   
   queryResult <- dbGetQuery(movieDb, "select cell_id, frame from cells where frame & cell_id!=10000") %>%
-    addRois(., movieDir) 
-  
-  if(length(rois)==0) rois = unique(queryResult$roi)
+    addRois(., movieDir, rois)
   
   ## filter for ROIs of interest
-  cellCount <- transform(with(queryResult %>% filter(roi %in% rois), as.data.frame(table(frame, roi=ac(roi)))), frame=as.numeric(levels(frame))) %>%
+  cellCount <- transform(with(queryResult, as.data.frame(table(frame, roi=ac(roi)))), frame=as.numeric(levels(frame))) %>%
     addTimeFunc(movieDb, .) %>% 
     mutate(movie=basename(movieDir)) %>% add_dev_time()
   
@@ -311,7 +220,7 @@ multi_db_query <- function(movieDirectories, queryFun=mqf_cell_count, ...){
 ## used to restore roi for shear contributions or other data stored in Roi folders ####
 addRoiByDir <- function(rdataFile) transform(local(get(load(rdataFile))), roi=basename(dirname((rdataFile))))
 ## Attach ROIs to a data set. Note: rois are defined on a cell level here irrespective of frame ####
-addRois <-function(data, movieDir){
+addRois <-function(data, movieDir, rois=c()){
   
   if (!"cell_id" %in% names(data)) {stop("addRois function requires a 'cell_id' column in the data")}
   ## dummy roi
@@ -320,9 +229,13 @@ addRois <-function(data, movieDir){
   ## merge with data
   roiTrackFile=file.path(movieDir, "roi_bt/lgRoiSmoothed.RData")
   
+  
+  
   if(file.exists(roiTrackFile)){
-    rois <- local(get(load(roiTrackFile))) %>%
+    all_roi_def <- local(get(load(roiTrackFile))) %>%
       rbind(data.frame(cell_id=unique(data$cell_id), roi="raw"))
+    if(length(rois)==0) roi_def = all_roi_def else roi_def <- all_roi_def %>% filter(roi %in% rois)
+    
   }else{
     stop(paste0(roiTrackFile," doesn't exit"))
   }
@@ -342,7 +255,7 @@ addRois <-function(data, movieDir){
   
   
   ## filter for ROIs of interest
-  cellsRoiFilt <- dt.merge(data, rois, by=c("cell_id"), allow.cartesian=TRUE)
+  cellsRoiFilt <- dt.merge(data, roi_def, by=c("cell_id"), allow.cartesian=TRUE)
   
   return(cellsRoiFilt)
 }
@@ -356,8 +269,63 @@ addRois <-function(data, movieDir){
 # Aggregate/summarize
 # Add time from DB
 # returns a dataframe
-## mqf_cell_area ####
-mqf_cell_area <- function(movieDir, rois=c()){
+## mqf_nematics_cell_elong() ####
+mqf_nematics_cell_elong <- function(movieDir, rois=c(), cellContour=F, displayFactor=default_cell_display_factor(movieDir)){
+  
+  # Description: retrieve cell elongation nematics from the DB
+  # Usage: get_nematics_DBelong(movieDir, displayFactor) where displayFactor is optional
+  # Arguments: movieDir = path to movie directory, displayFactor = display factor that is either user-defined or automatically calculated
+  # Output: a dataframe
+  
+  movieDb <- openMovieDb(movieDir)
+  
+  # Send a SQL query to get the cell elongation tensor in each frame
+  queryResult <- dbGetQuery(movieDb,
+                            "select cell_id, frame, center_x, center_y, elong_xx, elong_xy 
+                            from cells where cell_id!=10000") %>% 
+    addRois(., movieDir, rois)  %>%
+    # calculate the phi angle and norm of nematics
+    mutate(phi=0.5*(atan2(elong_xy, elong_xx)), 
+           norm= sqrt(elong_xx^2+elong_xy^2)) %>%
+    # scale nematic norm for display and calculate the x and y nematic coordinates for ploting
+    mutate(x1=center_x-0.5*displayFactor*norm*cos(phi),
+           y1=center_y-0.5*displayFactor*norm*sin(phi),
+           x2=center_x+0.5*displayFactor*norm*cos(phi),
+           y2=center_y+0.5*displayFactor*norm*sin(phi)) %>%
+    # remove unecessary columns
+    select(-c(displayFactor)) %>%
+    addTimeFunc(movieDb, .) %>% 
+    mutate(movie=basename(movieDir)) %>% add_dev_time()
+  
+  if (cellContour) {
+    queryResult %<>% dt.merge(locload(file.path(movieDir, "cellshapes.RData")), by = c("frame","cell_id"), allow.cartesian=TRUE) %>%
+      arrange(frame, roi, cell_id, bond_order) 
+  }
+  
+  dbDisconnect(movieDb)
+  
+  return(queryResult)
+}
+## DEBUG mqf_nematics_cell_elong() ####
+if (F){
+  mqf_nematics_cell_elong(movieDir, rois = "raw") %>%
+    # crop the image by defining squareRoi
+    render_frame(120, squareRoi=rbind(c(1500,2000),c(1000,1500))) +
+    # plot nematics as segments
+    geom_segment(aes(x=x1,y=y1,xend=x2,yend=y2),
+                 size=1.2, alpha=0.7, lineend="round", color="red", na.rm=T) +
+    ggtitle("Cell elongation pattern")
+  
+  multi_db_query(movieDirs, mqf_nematics_cell_elong, c("blade","hinge"), displayFactor=70) %>% print_head() %>%
+    filter(movie=="WT_25deg_111102" & roi=="blade") %>%
+    render_frame(120, squareRoi=rbind(c(1500,2000),c(1000,1500))) +
+    # plot nematics as segments
+    geom_segment(aes(x=x1,y=y1,xend=x2,yend=y2),
+                 size=1.2, alpha=0.7, lineend="round", color="red", na.rm=T) +
+    ggtitle("Cell elongation pattern")
+}
+## mqf_cell_area() ####
+mqf_cell_area <- function(movieDir, rois=c(), cellContour=F){
   
   # Description: get cell area per frame, in ROIs
   # Usage: in combination with multi_db_query(), ex: multi_db_query(movieDirs, mqf_cell_area, selectedRois)
@@ -365,19 +333,127 @@ mqf_cell_area <- function(movieDir, rois=c()){
   
   movieDb <- openMovieDb(movieDir)
   
-  queryResult <- dbGetQuery(movieDb, "select cell_id, frame, area from cells where cell_id!=10000") %>%
-    addRois(., movieDir)
-  
-  if(length(rois)==0) rois = unique(queryResult$roi)
+  queryResult <- dbGetQuery(movieDb, "select cell_id, frame, area, center_x, center_y from cells where cell_id!=10000") %>%
+    addRois(., movieDir, rois) 
   
   area <- queryResult %>%
+    addTimeFunc(movieDb, .) %>% 
+    mutate(movie=basename(movieDir)) %>% add_dev_time() 
+  
+  if (cellContour) {
+    area %<>% dt.merge(locload(file.path(movieDir, "cellshapes.RData")), by = c("frame","cell_id"), allow.cartesian=TRUE) %>%
+      arrange(frame, roi, cell_id, bond_order) 
+  }
+    
+  dbDisconnect(movieDb)
+  
+  return(area)
+}
+## mqf_triangle_elong ####
+mqf_triangle_elong <- function(movieDir, rois=c()){
+  
+  # Description: get all triangle elongtation nematics per frame, in ROIs
+  # Usage: in combination with multi_db_query(), ex: multi_db_query(movieDirs, mqf_triangle_elong, selectedRois)
+  # Arguments: movieDb = opened DB connection,  movieDir = path to a given movie folder
+  
+  movieDb <- openMovieDb(movieDir)
+  
+  queryResult <- ldply(list.files(movieDir, "Ta_t.RData", full.names=TRUE, recursive=T), addRoiByDir)
+  
+  # add frame to triangle data
+  filepath <- file.path(movieDir, "shear_contrib", "triList.RData")
+  allRoiData <- with(local(get(load(filepath))), data.frame(frame, tri_id)) %>% 
+    filter(!duplicated(tri_id)) %>%
+    dt.merge(., queryResult, by="tri_id") %>%
     filter(roi %in% rois) %>%
     addTimeFunc(movieDb, .) %>% 
     mutate(movie=basename(movieDir)) %>% add_dev_time()
   
   dbDisconnect(movieDb)
   
-  return(area)
+  return(allRoiData)
+}
+## mqf_bond_length() ####
+mqf_bond_length <- function(movieDir, rois=c()){
+  
+  # Description: retrieve bond properties and positions from the DB
+  # Usage: get_bmqf_bond_length(movieDir, rois=c())
+  # Arguments: movieDir = path to movie directory, rois = select ROIs (all rois by default)
+  # Output: a dataframe
+  
+  movieDb <- openMovieDb(movieDir)
+  
+  # Send SQL query to the DB to get directed bond properties into a table called dbond:
+  dbond <- dbGetQuery(movieDb, "select frame, cell_id, dbond_id, conj_dbond_id, bond_id, vertex_id from directed_bonds") 
+  # Send SQL query to the DB to get vertices into a table called vertices:
+  vertices <- dbGetQuery(movieDb, "select * from vertices") 
+  # Send SQL query to the DB to get bond properties into a table called bond:
+  bonds <- dbGetQuery(movieDb, "select * from bonds") %>% select(-frame)
+  
+  # Aggregrate aggregate the vertex, bond, and directed bond information
+  bond_2vx <- dbond %>%
+    # join dbond with itself to get the 2 vertices of each undirected bond
+    dt.merge(with(dbond, data.frame(dbond_id=conj_dbond_id,vertex_id)),
+             by= c("dbond_id"), suffixes=c(".1", ".2")) %>%
+    # join the resulting table to vertices to add (x,y) coordinates of vertex #1
+    dt.merge(with(vertices, data.frame(vertex_id.1=vertex_id, x_pos.1=x_pos, y_pos.1=y_pos)),
+             by = c("vertex_id.1")) %>%
+    # join the resulting table to vertices to add (x,y) coordinates of vertex #2
+    dt.merge(with(vertices, data.frame(vertex_id.2=vertex_id, x_pos.2=x_pos, y_pos.2=y_pos)),
+             by = c("vertex_id.2")) %>% 
+    # remove unecessary columns
+    select (-c(dbond_id,conj_dbond_id)) %>% 
+    # remove duplicated bond ids resulting from the above join operations
+    distinct(bond_id) %>% 
+    # join the resulting table with bonds to add the bond_length property
+    dt.merge(bonds, by=c("bond_id")) %>%
+    addRois(., movieDir, rois) %>%
+    addTimeFunc(movieDb, .) %>% 
+    mutate(movie=basename(movieDir)) %>% add_dev_time() 
+    
+  
+  dbDisconnect(movieDb)
+  
+  return(bond_2vx)
+}
+## mqf_cell_neighbor_count() ####
+mqf_cell_neighbor_count <- function(movieDir, rois=c(), cellContour=F){
+  
+  # Description: count cell neighbors and retrieve the ordered list of vertices 
+  # Usage: get_cell_neighbor_count(movieDir)
+  # Arguments: movieDir = path to movie directory 
+  # Output: a dataframe
+  
+  movieDb <- openMovieDb(movieDir)
+  
+  # Send a SQL query to get the cell elongation tensor in each frame
+  dbonds <- dbGetQuery(movieDb, "select cell_id, dbond_id, conj_dbond_id, frame from directed_bonds")
+  
+  csWithPoly <- dt.merge(dbonds, 
+                         with(dbonds, data.frame(dbond_id=conj_dbond_id, neighbor_cell_id=cell_id)),
+                         by=c("dbond_id"), all=T, allow.cartesian=TRUE) %>%
+    group_by(cell_id, frame) %>%
+    mutate(polygon_class=length(neighbor_cell_id)) %>%
+    ungroup() %>%
+    # we retrict polygon classes to most common ones in the tissue
+    mutate(polygon_class_trimmed=limitRange(polygon_class, c(4, 8))) %>%
+    # only keep relevent columns
+    select(cell_id, frame, polygon_class_trimmed) %>%
+    unique_rows(c("cell_id","frame")) %>%
+    # remove marging cell surrounding the tissue
+    filter(cell_id!=10000) %>%
+    addRois(movieDir,rois) %>%
+    addTimeFunc(movieDb, .) %>% 
+    mutate(movie=basename(movieDir)) %>% add_dev_time()
+  
+  if (cellContour) {
+    csWithPoly %<>% dt.merge(locload(file.path(movieDir, "cellshapes.RData")), by=c("cell_id","frame")) %>%
+      arrange(frame, cell_id, bond_order)
+  }
+  
+  dbDisconnect(movieDb)
+  
+  return(csWithPoly)
 }
 ## mqf_avg_cell_area ####
 mqf_avg_cell_area <- function(movieDir, rois=c()){
@@ -389,9 +465,7 @@ mqf_avg_cell_area <- function(movieDir, rois=c()){
   movieDb <- openMovieDb(movieDir)
   
   queryResult <- dbGetQuery(movieDb, "select cell_id, frame, area from cells where cell_id!=10000") %>%
-    addRois(., movieDir)
-  
-  if(length(rois)==0) rois = unique(queryResult$roi)
+    addRois(., movieDir, rois)
   
   area <- queryResult %>%
     filter(roi %in% rois) %>%
@@ -405,7 +479,7 @@ mqf_avg_cell_area <- function(movieDir, rois=c()){
   return(area)
 }
 ## mqf_avg_cell_neighbor_counts ####
-mqf_avg_cell_neighbor_counts <- function(movieDir, rois=c()){
+mqf_avg_cell_neighbor_counts <- function(movieDir, rois=c(), cellContour=F){
   
   # Description: get averaged cell neighbor count per frame, in ROIs
   # Usage: in combination with multi_db_query(), ex: multi_db_query(movieDirs, mqf_avg_cell_neighbor_counts, selectedRois)
@@ -414,17 +488,19 @@ mqf_avg_cell_neighbor_counts <- function(movieDir, rois=c()){
   movieDb <- openMovieDb(movieDir)
   
   queryResult <- locload(file.path(movieDir, "topochanges/topoChangeSummary.RData")) %>%
-    addRois(., movieDir)
-  
-  if(length(rois)==0) rois = unique(queryResult$roi)
-  
+    addRois(., movieDir, rois)
+
   neighborCount <- queryResult %>%
-    filter(roi %in% rois) %>%
     group_by(roi,frame) %>%
     summarise(avg_num_neighbors=mean(num_neighbors_t)) %>%
     addTimeFunc(movieDb, .) %>% 
     mutate(movie=basename(movieDir)) %>% add_dev_time()
-    
+  
+  if (cellContour) {
+    neighborCount %<>% dt.merge(locload(file.path(movieDir, "cellshapes.RData")), by = c("frame","cell_id"), allow.cartesian=TRUE) %>%
+      arrange(frame, roi, cell_id, bond_order) 
+  } 
+  
   dbDisconnect(movieDb)
   
   return(neighborCount)
@@ -439,13 +515,11 @@ mqf_avg_polygon_class <- function(movieDir, rois=c()){
   movieDb <- openMovieDb(movieDir)
   
   queryResult <- locload(file.path(movieDir, "polygon_class/pgClass.RData")) %>%
-    addRois(., movieDir) %>%
+    addRois(., movieDir, rois) %>%
     arrange(frame)
   
-  if(length(rois)==0) rois = unique(queryResult$roi)
-  
-  pgClassCountByFrame <- with(queryResult %>% filter(roi %in% rois) , data.frame(table(frame,roi,polygon_class )))
-  cellCountByFrame <-with(queryResult %>% filter(roi %in% rois), data.frame(table(frame,roi)))
+  pgClassCountByFrame <- with(queryResult, data.frame(table(frame,roi,polygon_class )))
+  cellCountByFrame <-with(queryResult, data.frame(table(frame,roi)))
   
   pgClassSummary <- dt.merge(with(pgClassCountByFrame, data.frame(frame=as.integer(frame),roi,polygon_class, pgFreq=Freq)), with(cellCountByFrame, data.frame(frame=as.integer(frame),roi, nbcell=Freq)), by=c("frame","roi")) %>%
     addTimeFunc(movieDb,.) %>% 
@@ -465,12 +539,9 @@ mqf_avg_cell_elongDB <- function(movieDir, rois=c()){
   movieDb <- openMovieDb(movieDir)
   
   queryResult <- dbGetQuery(movieDb, "select cell_id, frame, elong_xx, elong_xy from cells where cell_id!=10000") %>%
-    addRois(., movieDir)
+    addRois(., movieDir, rois)
 
-  if(length(rois)==0) rois = unique(queryResult$roi)
-  
   avgElong <- queryResult %>%
-    filter(roi %in% rois) %>%
     group_by(roi,frame) %>%
     summarise(elong_xx.avg=mean(elong_xx, na.rm=T), elong_xy.avg=mean(elong_xy, na.rm=T)) %>%
     arrange(roi, frame) %>%
@@ -480,29 +551,6 @@ mqf_avg_cell_elongDB <- function(movieDir, rois=c()){
   dbDisconnect(movieDb)
   
   return(avgElong)
-}
-## mqf_cell_elongDB ####
-mqf_cell_elongDB <- function(movieDir, rois=c()){
-  
-  # Description: get all cell elongtation nematics per frame, in ROIs
-  # Usage: in combination with multi_db_query(), ex: multi_db_query(movieDirs, mqf_cell_elongDB, selectedRois)
-  # Arguments: movieDb = opened DB connection,  movieDir = path to a given movie folder
-  warning("OBSELETE, use mqf_nematics_cell_elong")
-  movieDb <- openMovieDb(movieDir)
-  
-  queryResult <- dbGetQuery(movieDb, "select cell_id, frame, center_x, center_y, elong_xx, elong_xy from cells where cell_id!=10000") %>%
-    addRois(., movieDir)
-  
-  if(length(rois)==0) rois = unique(queryResult$roi)
-  
-  cellElong <- queryResult %>%
-    filter(roi %in% rois) %>%
-    addTimeFunc(movieDb, .) %>% 
-    mutate(movie=basename(movieDir)) %>% add_dev_time()
-  
-  dbDisconnect(movieDb)
-  
-  return(cellElong)
 }
 ## mqf_avg_triangle_elong ####
 mqf_avg_triangle_elong <- function(movieDir, rois=c()){
@@ -527,32 +575,7 @@ mqf_avg_triangle_elong <- function(movieDir, rois=c()){
   
   return(pooledCEstate)
 }
-## mqf_triangle_elong ####
-mqf_triangle_elong <- function(movieDir, rois=c()){
-  
-  # Description: get all triangle elongtation nematics per frame, in ROIs
-  # Usage: in combination with multi_db_query(), ex: multi_db_query(movieDirs, mqf_triangle_elong, selectedRois)
-  # Arguments: movieDb = opened DB connection,  movieDir = path to a given movie folder
-  
-  movieDb <- openMovieDb(movieDir)
-  
-  queryResult <- ldply(list.files(movieDir, "Ta_t.RData", full.names=TRUE, recursive=T), addRoiByDir)
-  
-  if(length(rois)==0) rois = unique(queryResult$roi)
-  
-  # add frame to triangle data
-  filepath <- file.path(movieDir, "shear_contrib", "triList.RData")
-  allRoiData <- with(local(get(load(filepath))), data.frame(frame, tri_id)) %>% 
-    filter(!duplicated(tri_id)) %>%
-    dt.merge(., queryResult, by="tri_id") %>%
-    filter(roi %in% rois) %>%
-    addTimeFunc(movieDb, .) %>% 
-    mutate(movie=basename(movieDir)) %>% add_dev_time()
-  
-  dbDisconnect(movieDb)
-  
-  return(allRoiData)
-}
+
 ## mqf_rate_CD and mqf_rate_T2 ####
 lossRate <- function(movieDb, movieDir, rois, lostType){
   
@@ -562,11 +585,8 @@ lossRate <- function(movieDb, movieDir, rois, lostType){
   lossEvents <- with(subset(cellinfo, disappears_by==lostType), data.frame(cell_id, frame=last_occ, is_loss_next_frame=T))
   lossEventsInFrame <- dt.merge(cellsInFrame, lossEvents, all.x=T)
   
-  lossEventsByRoi <- addRois(lossEventsInFrame, movieDir)
+  lossEventsByRoi <- addRois(lossEventsInFrame, movieDir, rois)
   
-  if(length(rois)==0) rois = unique(lossEventsByRoi$roi)
-  
-  lossEventsByRoi <- filter(lossEventsByRoi, roi %in% rois)
   
   #   lossSummary <- as.df(group_by(lossEventsByRoi, roi, frame) %>% summarise(num_cells=length(cell_id), num_loss=sum(is_loss_next_frame, na.rm=T)))
   lossSummary <- as.df(data.table(lossEventsByRoi)[, list(num_cells=length(cell_id), num_loss=sum(is_loss_next_frame, na.rm=T), avg_cell_area=mean(area)), by=c("roi","frame")])
@@ -622,11 +642,7 @@ topoChangeRate <- function(movieDb, movieDir, rois, countExpr){
   topoEvents <- eval(substitute(with(topoChangeSummary, data.frame(cell_id, frame, topo_sum=countExpr))))
   topoEventsInFrame <- dt.merge(cellsInFrame, topoEvents)
   
-  topoEventsByRoi <- addRois(topoEventsInFrame, movieDir)
-  
-  if(length(rois)==0) rois = unique(topoEventsByRoi$roi)
-  
-  topoEventsByRoi <- filter(topoEventsByRoi, roi %in% rois)
+  topoEventsByRoi <- addRois(topoEventsInFrame, movieDir, rois)
   
   ## todo do we double count events here?
   #   topoSummary <- as.df(group_by(topoEventsByRoi, roi, frame) %>% summarise(num_cells=length(cell_id), num_topo=sum(topo_sum, na.rm=T))) #, cumsum_topo=cumsum(topo_sum)
@@ -668,12 +684,9 @@ mqf_rate_isotropic_contrib <- function(movieDir, rois=c()){
   
   # calculate cell number, area, area change per roi and frame
   queryResult <- dbGetQuery(movieDb, "select frame, cell_id,area from cells where cell_id!=10000") %>%
-  addRois(., movieDir)
-  
-  if(length(rois)==0) rois = unique(queryResult$roi)
+  addRois(., movieDir, rois)
     
   cellsRoiFilt  <- queryResult %>%
-    filter(roi %in% rois) %>%
     group_by(frame, roi) %>%
     summarise(cell_nb=length(cell_id),
               avg_area=mean(area),
@@ -688,12 +701,9 @@ mqf_rate_isotropic_contrib <- function(movieDir, rois=c()){
   
   # Calculate number of divisions, extrusions
   queryResult <- dbGetQuery(movieDb, "select * from cell_histories where cell_id!=10000") %>%
-    addRois(., movieDir)
-  
-  if(length(rois)==0) rois = unique(queryResult$roi)
+    addRois(., movieDir, rois)
   
   divExtrFrameSummary <- queryResult %>%
-    filter(roi %in% rois) %>%
     group_by(roi,last_occ) %>%
     summarise(division_nb=sum(ifelse(disappears_by=="Division", 1, 0)),
               extrusion_nb=sum(ifelse(disappears_by=="Apoptosis", 1, 0)),
@@ -767,6 +777,7 @@ mqf_rate_shear <- function(movieDir, rois=c()){
   
   return(ShearRateByRoi)
 }
+
 ## mqf_dev_time ####
 mqf_dev_time <- function(movieDir, rois=c()){
   
@@ -782,60 +793,8 @@ mqf_dev_time <- function(movieDir, rois=c()){
   
   return(dev_time)
 }
-## mqf_nematics_cell_elong() ####
-mqf_nematics_cell_elong <- function(movieDir, rois=c(), displayFactor=default_cell_display_factor(movieDir)){
-  
-  # Description: retrieve cell elongation nematics from the DB
-  # Usage: get_nematics_DBelong(movieDir, displayFactor) where displayFactor is optional
-  # Arguments: movieDir = path to movie directory, displayFactor = display factor that is either user-defined or automatically calculated
-  # Output: a dataframe
-  
-  movieDb <- openMovieDb(movieDir)
-  
-  # Send a SQL query to get the cell elongation tensor in each frame
-  queryResult <- dbGetQuery(movieDb,
-                            "select cell_id, frame, center_x, center_y, elong_xx, elong_xy 
-                            from cells where cell_id!=10000") %>% addRois(., movieDir) 
-  
-  if(length(rois)==0) rois = unique(queryResult$roi)
-  
-  queryResult %<>%
-    filter(roi %in% rois) %>%
-    # calculate the phi angle and norm of nematics
-    mutate(phi=0.5*(atan2(elong_xy, elong_xx)), 
-           norm= sqrt(elong_xx^2+elong_xy^2)) %>%
-    # scale nematic norm for display and calculate the x and y nematic coordinates for ploting
-    mutate(x1=center_x-0.5*displayFactor*norm*cos(phi),
-           y1=center_y-0.5*displayFactor*norm*sin(phi),
-           x2=center_x+0.5*displayFactor*norm*cos(phi),
-           y2=center_y+0.5*displayFactor*norm*sin(phi)) %>%
-    # remove unecessary columns
-    select(-c(displayFactor)) %>%
-    addTimeFunc(movieDb, .) %>% 
-    mutate(movie=basename(movieDir)) %>% add_dev_time()
-  
-  dbDisconnect(movieDb)
-  
-  return(queryResult)
-}
-## DEBUG mqf_nematics_cell_elong() ####
-if (F){
-  mqf_nematics_cell_elong(movieDir, rois = "raw") %>%
-    # crop the image by defining squareRoi
-    render_frame(120, squareRoi=rbind(c(1500,2000),c(1000,1500))) +
-    # plot nematics as segments
-    geom_segment(aes(x=x1,y=y1,xend=x2,yend=y2),
-                 size=1.2, alpha=0.7, lineend="round", color="red", na.rm=T) +
-    ggtitle("Cell elongation pattern")
-  
-  multi_db_query(movieDirs, mqf_nematics_cell_elong, c("blade","hinge"), displayFactor=70) %>% print_head() %>%
-    filter(movie=="WT_25deg_111102" & roi=="blade") %>%
-    render_frame(120, squareRoi=rbind(c(1500,2000),c(1000,1500))) +
-    # plot nematics as segments
-    geom_segment(aes(x=x1,y=y1,xend=x2,yend=y2),
-                 size=1.2, alpha=0.7, lineend="round", color="red", na.rm=T) +
-    ggtitle("Cell elongation pattern")
-}
+
+
 ## mqf_nematics_cell_elong_coarse_grid()####
 mqf_nematics_cell_elong_coarse_grid <- function(movieDir, rois="raw", gridSize=128, kernSize=1, displayFactor=-1){
   
@@ -1009,13 +968,9 @@ mqf_unitary_nematics_CD <- function(movieDir, rois=c(), displayFactor=default_ce
     dcast(mother_cell_id+first_daughter_occ ~ ...) %>% 
     dplyr::rename(frame=first_daughter_occ, cell_id=mother_cell_id) %>%
     # add Roi definitions on by cell_id
-    addRois(movieDir) %>% 
+    addRois(movieDir, rois) %>% 
     # restore 'mother_cell_id' for clarity
-    dplyr::rename(mother_cell_id=cell_id)
-  
-  if(length(rois)==0) rois = unique(cdNematics$roi)
-  
-  cdNematics %<>% filter(roi %in% rois) %>%
+    dplyr::rename(mother_cell_id=cell_id) %>%
     # calculate division axis nematics based on daughter cell positions
     mutate(CDxx=0.5*((left_center_x-right_center_x)^2 - (left_center_y-right_center_y)^2),
            CDxy=(left_center_x-right_center_x)*(left_center_y-right_center_y),
@@ -1217,13 +1172,11 @@ mqf_unitary_nematics_T1 <- function(movieDir, rois=c(), displayFactor=default_ce
              by=c("frame","neighbor_cell_id"),
              suffixes=c(".1",".2")) %>% 
     # add roi on "cell_id", thus including ~half of T1 events in a ROI at its interface = fair enough
-    addRois(., movieDir)
-  
-  if(length(rois)==0) rois = unique(T1NematicsByRoi$roi)
+    addRois(., movieDir, rois)
+
   
   # calculate T1 nematics and positions at time t
   T1Nematics <- T1NematicsByRoi %>%
-    filter(roi %in% rois) %>%
     mutate(T1xx=0.5*((center_x.2-center_x.1)^2 - (center_y.2-center_y.1)^2),
            T1xy=(center_x.2-center_x.1)*(center_y.2-center_y.1),
            normfact = sqrt(T1xx^2+T1xy^2),
@@ -1419,4 +1372,27 @@ if (F) {
   echo("Test: multi_db_query(movieDirs, mqf_unitary_nematics_T1_avg_roi)")
   system.time({res <- multi_db_query(movieDirs, mqf_unitary_nematics_T1_avg_roi)})
   
+}
+
+
+
+## mqf_cell_elongDB OBSELETE ####
+if (F){
+  mqf_cell_elongDB <- function(movieDir, rois=c(), cellContour=F){
+    
+    # Description: get all cell elongtation nematics per frame, in ROIs
+    # Usage: in combination with multi_db_query(), ex: multi_db_query(movieDirs, mqf_cell_elongDB, selectedRois)
+    # Arguments: movieDb = opened DB connection,  movieDir = path to a given movie folder
+    warning("OBSELETE, use mqf_nematics_cell_elong")
+    movieDb <- openMovieDb(movieDir)
+    
+    cellElong <- dbGetQuery(movieDb, "select cell_id, frame, center_x, center_y, elong_xx, elong_xy from cells where cell_id!=10000") %>%
+      addRois(., movieDir, rois) %>%
+      addTimeFunc(movieDb, .) %>% 
+      mutate(movie=basename(movieDir)) %>% add_dev_time()
+    
+    dbDisconnect(movieDb)
+    
+    return(cellElong)
+  }
 }
