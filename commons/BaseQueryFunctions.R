@@ -261,6 +261,8 @@ multi_db_query <- function(movieDirectories, queryFun=mqf_cell_count, ...){
 addRoiByDir <- function(rdataFile) transform(local(get(load(rdataFile))), roi=basename(dirname((rdataFile))))
 ## Attach ROIs to a data set. Note: rois are defined on a cell level here irrespective of frame ####
 addRois <-function(data, movieDir){
+  
+  if (!"cell_id" %in% names(data)) {stop("addRois function requires a 'cell_id' column in the data")}
   ## dummy roi
   if(basename(movieDir)=="120531_Debug_Tissue_Sample") return(transform(data, roi="ttt"))
   
