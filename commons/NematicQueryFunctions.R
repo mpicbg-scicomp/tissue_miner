@@ -60,8 +60,8 @@ mqf_nematics_cell_elong <- function(movieDir, rois=c(), displayFactor=default_ce
   
   # Send a SQL query to get the cell elongation tensor in each frame
   queryResult <- dbGetQuery(movieDb,
-                                "select cell_id, frame, center_x, center_y, elong_xx, elong_xy 
-                              from cells where cell_id!=10000") %>% addRois(., movieDir) 
+                            "select cell_id, frame, center_x, center_y, elong_xx, elong_xy 
+                            from cells where cell_id!=10000") %>% addRois(., movieDir) 
   
   if(length(rois)==0) rois = unique(queryResult$roi)
   
@@ -132,8 +132,8 @@ mqf_nematics_cell_elong_coarse_grid <- function(movieDir, rois="raw", gridSize=1
     smooth_tissue(cgExy, kernel_size=kernSize, gap_fill = NA, global_min_max = F) %>%
     # calculate the angle and norm of coarse-grained nematics
     mutate(#phi=mod2pi(0.5*(atan2(cgExy_smooth, cgExx_smooth))),
-           phi=(0.5*(atan2(cgExy_smooth, cgExx_smooth))),
-           norm=sqrt(cgExy_smooth^2+cgExx_smooth^2)) %>%
+      phi=(0.5*(atan2(cgExy_smooth, cgExx_smooth))),
+      norm=sqrt(cgExy_smooth^2+cgExx_smooth^2)) %>%
     # automatic scaling to grig size and nematic coordinates
     mutate(scaledFact=gridSize/quantile(norm, na.rm=T, probs=0.99),
            x1=xGrid-0.5*norm*scaledFact*cos(phi),
@@ -238,9 +238,11 @@ if(F){
   
   res %>% ggplot(aes(dev_time, cgExx_smooth, color=movie)) + geom_line() +
     facet_wrap(~roi)
-    
+  
   
 }
+
+
 
 ## mqf_unitary_nematics_CD() ####
 mqf_unitary_nematics_CD <- function(movieDir, rois=c(), displayFactor=default_cell_display_factor(movieDir)){
@@ -251,7 +253,7 @@ mqf_unitary_nematics_CD <- function(movieDir, rois=c(), displayFactor=default_ce
   # Output: a dataframe
   
   movieDb <- openMovieDb(movieDir)
-
+  
   # Get cell division events including mother and daughter cells and frame of cytokinesis
   cdEvents <- dbGetQuery(movieDb, "select cell_id as mother_cell_id, last_occ, left_daughter_cell_id, appears_by, right_daughter_cell_id from cell_histories") %>%
     filter(appears_by=="Division")  %>%
@@ -281,9 +283,9 @@ mqf_unitary_nematics_CD <- function(movieDir, rois=c(), displayFactor=default_ce
     addRois(movieDir) %>% 
     # restore 'mother_cell_id' for clarity
     dplyr::rename(mother_cell_id=cell_id)
-    
+  
   if(length(rois)==0) rois = unique(cdNematics$roi)
-    
+  
   cdNematics %<>% filter(roi %in% rois) %>%
     # calculate division axis nematics based on daughter cell positions
     mutate(CDxx=0.5*((left_center_x-right_center_x)^2 - (left_center_y-right_center_y)^2),
@@ -349,7 +351,7 @@ mqf_unitary_nematics_CD_coarse_grid <- function(movieDir, rois="raw", gridSize=1
     group_by(frame, roi, xGrid, yGrid) %>%
     summarise(cgCDxx=mean(normCDxx),
               cgCDxy=mean(normCDxy))
-
+  
   # do a time averaging over N frames in each grid element
   cgCDnematicsSmooth <- cgCDnematics %>%
     smooth_tissue(cgCDxx, kernel_size=kernSize, gap_fill = 0, global_min_max = T) %>%
@@ -458,71 +460,91 @@ if (F) {
     facet_wrap(~roi)
 }
 
-## get_unitary_nematics_T1() ####
-get_unitary_nematics_T1 <- function(movieDir, displayFactor=default_cell_display_factor(movieDir)){
+
+
+## mqf_unitary_nematics_T1() ####
+mqf_unitary_nematics_T1 <- function(movieDir, rois=c(), displayFactor=default_cell_display_factor(movieDir)){
   
-  # Description: retrieve T1 nematics 
-  # Usage: get_nematics_T1(movieDir, displayFactor) where displayFactor is optional
-  # Arguments: movieDir = path to movie directory, displayFactor = display factor that is either user-defined or automatically calculated
+  # Description: retrieve cell division nematics from the DB
+  # Usage: mqf_unitary_nematics_T1(movieDir, rois=c(), displayFactor=default_cell_display_factor(movieDir)) where rois and displayFactor are optional
+  # Arguments: movieDir = path to movie directory, 
+  #            rois = selected rois (all by default)
+  #            displayFactor = display factor that is either user-defined or automatically calculated
   # Output: a dataframe
   
   movieDb <- openMovieDb(movieDir)
   
-  ## Get cell positions and areas from the DB
-  cells <- dbGetQuery(movieDb, "select cell_id, frame, center_x, center_y,area from cells where cell_id!=10000")
+  cells <- dbGetQuery(movieDb, "select cell_id, frame, center_x, center_y from cells where cell_id!=10000")
   
-  ## Get pre-computed neighbor exchanges
   t1DataFilt <- locload(file.path(movieDir, "topochanges/t1DataFilt.RData"))
   
   ## Extract actual t1 events with corresponding nematics
-  t1nematics <- t1DataFilt %>%
-    with(data.frame(frame,neighbor_cell_id,cell_id,
-                    gain=(!isNeighbor.t & isNeighbor.tp1),
-                    loss=(isNeighbor.t & !isNeighbor.tp1))) %>%
-    filter(gain | loss) %>%
-    mutate(type=ifelse(gain, "gain", "loss")) %>%
-    select(-c(gain, loss)) %>%
-    ## just keep one instance of each t1 event
-    subset(neighbor_cell_id > cell_id) %>%
-    # bring cell centers for nematic calculation
+  T1NematicsByRoi <- t1DataFilt %>% 
+    # Just keep one instance of each event and discard potential cells in contact with themself
+    filter(neighbor_cell_id>cell_id) %>% 
+    # Flag half T1 gain and loss
+    mutate(type=ifelse(!isNeighbor.t & isNeighbor.tp1,"gain",
+                       ifelse(isNeighbor.t & !isNeighbor.tp1,"loss",NA))) %>% 
+    # Remove non-T1 events (stable cell-cell contacts)
+    filter(!is.na(type)) %>%
+    # bring cell centers at time t where cells are defined, for nematic calculation
     dt.merge(cells, by=c("frame","cell_id")) %>%
     dt.merge(cells %>% dplyr::rename(neighbor_cell_id=cell_id),
              by=c("frame","neighbor_cell_id"),
-             suffixes=c(".1",".2")) %>%
-    # calculate T1 nematic angle and norm
+             suffixes=c(".1",".2")) %>% 
+    # add roi on "cell_id", thus including ~half of T1 events in a ROI at its interface = fair enough
+    addRois(., movieDir)
+  
+  if(length(rois)==0) rois = unique(T1NematicsByRoi$roi)
+  
+  # calculate T1 nematics and positions at time t
+  T1Nematics <- T1NematicsByRoi %>%
+    filter(roi %in% rois) %>%
     mutate(T1xx=0.5*((center_x.2-center_x.1)^2 - (center_y.2-center_y.1)^2),
            T1xy=(center_x.2-center_x.1)*(center_y.2-center_y.1),
+           normfact = sqrt(T1xx^2+T1xy^2),
            # defines the T1 nematic parallel to gained bonds
-           normT1xx = ifelse(type=="gain", -(1/sqrt(T1xx^2+T1xy^2))*T1xx, (1/sqrt(T1xx^2+T1xy^2))*T1xx),
-           normT1xy = ifelse(type=="gain", -(1/sqrt(T1xx^2+T1xy^2))*T1xy, (1/sqrt(T1xx^2+T1xy^2))*T1xy),
-           phi = mod2pi(0.5*(atan2(normT1xy, normT1xx)))) %>%
-    # caculate nematic coordinates
+           unitary_T1xx = ifelse(type=="gain", -(1/normfact)*T1xx, (1/normfact)*T1xx),
+           unitary_T1xy = ifelse(type=="gain", -(1/normfact)*T1xy, (1/normfact)*T1xy),
+           phi = mod2pi(0.5*(atan2(unitary_T1xy, unitary_T1xx)))) %>% 
+    # calculate nematic center position and coordinates
     mutate(center_x=0.5*(center_x.1+center_x.2),
            center_y=0.5*(center_y.1+center_y.2),
            x1=center_x-0.5*displayFactor*cos(phi),
            y1=center_y-0.5*displayFactor*sin(phi),
            x2=center_x+0.5*displayFactor*cos(phi),
-           y2=center_y+0.5*displayFactor*sin(phi)) %>% 
-    select(-c(center_x.1,center_x.2,center_y.1,center_y.2,T1xx,T1xy,area.1,area.2)) 
+           y2=center_y+0.5*displayFactor*sin(phi)) %>%
+    # remove unnecessary columns
+    select(-c(T1xx,T1xy,normfact,center_x.1,center_x.2,center_y.1,center_y.2,cell_id,neighbor_cell_id)) %>% 
+    addTimeFunc(movieDb,.) %>%
+    mutate(movie=basename(movieDir)) %>% add_dev_time()
   
   dbDisconnect(movieDb)
   
-  return(t1nematics)
-  
+  return(T1Nematics)
 }
-## DEBUG get_unitary_nematics_T1() ####
-if (F){
-  get_unitary_nematics_T1(movieDir) %>% 
-    render_frame(20, squareRoi=rbind(c(1500,2000),c(1300,1700))) + 
-    # geom_polygon(data=csWithTopoT1 %>% filter(frame==20),aes(x_pos, y_pos, group=cell_id, fill=t1_type), alpha=0.5) +
-    # scale_fill_manual(values = T1cols, drop = FALSE) +
+## DEBUG mqf_unitary_nematics_T1 ####
+if (F) {
+  mqf_unitary_nematics_T1(movieDir) %>% filter(roi=="raw") %>%
+    # crop the image by defining squareRoi
+    render_frame(70, squareRoi=rbind(c(1500,2000),c(1000,1500))) +
+    # plot nematics as segments
     geom_segment(aes(x=x1,y=y1,xend=x2,yend=y2),
-                 size=1, alpha=0.7, lineend="round", color="red", na.rm=T)  +
-    ggtitle("Cell neighbor exchanges")
+                 size=1.2, alpha=0.7, lineend="round", color="orange", na.rm=T) +
+    ggtitle("T1 nematics")
+  
+  res <- multi_db_query(movieDirs, mqf_unitary_nematics_T1) %>% print_head()
+  
+  res %>% filter(movie=="WT_25deg_111102") %>%
+    render_frame(70, squareRoi=rbind(c(1500,2000),c(1000,1500))) +
+    # plot nematics as segments
+    geom_segment(aes(x=x1,y=y1,xend=x2,yend=y2),
+                 size=1.2, alpha=0.7, lineend="round", color="orange", na.rm=T) +
+    ggtitle("T1 nematics")
 }
 
-## get_unitary_nematics_T1_cg() ####
-get_unitary_nematics_T1_cg <- function(movieDir, gridSize=128, kernSize=11, displayFactor=-1){
+## mqf_unitary_nematics_T1_coarse_grid() ####
+mqf_unitary_nematics_T1_coarse_grid <- function(movieDir, rois="raw", gridSize=128, kernSize=11, displayFactor=-1){
   
   # Description: retrieve and coarse-grain T1 nematics 
   # Usage: get_nematics_T1_cg(movieDir, gridSize=128, kernSize=11, displayFactor=-1) where gridSize, kernSize, displayFactor are optional
@@ -534,15 +556,15 @@ get_unitary_nematics_T1_cg <- function(movieDir, gridSize=128, kernSize=11, disp
   if (displayFactor==-1) autoscale=T else autoscale=F
   
   movieDb <- openMovieDb(movieDir)
-  cgT1nematics <- get_unitary_nematics_T1(movieDir) %>%
+  cgT1nematics <- mqf_unitary_nematics_T1(movieDir) %>% 
     # coarse-grain nematics (assume the presence of center_x and center_y in the data)
     coarseGrid(gridSize) %>%
     # remove grid elements that overlap the margin cell
     removeBckndGridOvlp(getBckndGridElements(movieDb, gridSize)) %>%
     # average nematics in each frame and grid element
-    group_by(frame, xGrid, yGrid) %>%
-    summarise(cgT1xx=mean(normT1xx),
-              cgT1xy=mean(normT1xy))
+    group_by(frame, roi, xGrid, yGrid) %>%
+    summarise(cgT1xx=mean(unitary_T1xx),
+              cgT1xy=mean(unitary_T1xy))
   
   # do a time averaging over 11 frames in each grid element
   cgT1nematicsSmooth <- cgT1nematics %>%
@@ -558,79 +580,91 @@ get_unitary_nematics_T1_cg <- function(movieDir, gridSize=128, kernSize=11, disp
            x2=xGrid+0.5*norm*scaledFact*cos(phi),
            y2=yGrid+0.5*norm*scaledFact*sin(phi)) %>%
     # remove unnecessary columns
-    select(-c(cgT1xx,cgT1xy))
-    
+    select(-c(cgT1xx,cgT1xy)) %>%
+    addTimeFunc(movieDb, .) %>% 
+    mutate(movie=basename(movieDir)) %>% add_dev_time()
+  
   dbDisconnect(movieDb)
   
   return(cgT1nematicsSmooth)
 }
-## DEBUG get_unitary_nematics_T1_cg() ####
+## DEBUG mqf_unitary_nematics_T1_coarse_grid() ####
 if (F){
-  get_unitary_nematics_T1_cg(movieDir) %>% 
-    render_frame(120) + 
+  mqf_unitary_nematics_T1_coarse_grid(movieDir) %>% 
+    render_frame(50) + 
     # geom_polygon(data=csWithTopoT1 %>% filter(frame==20),aes(x_pos, y_pos, group=cell_id, fill=t1_type), alpha=0.5) +
     # scale_fill_manual(values = T1cols, drop = FALSE) +
     geom_segment(aes(x=x1,y=y1,xend=x2,yend=y2),
                  size=2, alpha=0.7, lineend="round", color="red", na.rm=T)  +
     ggtitle("Coarse grained cell neighbor exchanges")
+  
+  res <- multi_db_query(movieDirs, mqf_unitary_nematics_T1_coarse_grid)
+  res %>% filter(movie=="WT_25deg_111102") %>%
+    # crop the image by defining squareRoi
+    render_frame(50) +
+    # plot nematics as segments
+    geom_segment(aes(x=x1,y=y1,xend=x2,yend=y2),
+                 size=2, alpha=0.7, lineend="round", color="orange", na.rm=T) +
+    ggtitle("Coarse grained cell neighbor exchanges")
 }
 
-
-## mqf_unitaryNematicsT1() ####
-mqf_unitary_nematics_T1 <- function(movieDb, movieDbDir,rois=c()){
+## mqf_unitary_nematics_T1_avg_roi() ####
+mqf_unitary_nematics_T1_avg_roi <- function(movieDir, rois=c(), kernSize=11, displayFactor=default_roi_display_factor(movieDir)){
   
-  # Descrition:
-  # Usage:
-  # Arguments: 
+  # Description: retrieve and coarse-grain T1 nematics by ROI
+  # Usage: mqf_unitary_nematics_T1_avg_roi(movieDir, rois=c(), kernSize=11, displayFactor=default_roi_display_factor(movieDir)) where rois, kernSize, displayFactor are optional
+  # Arguments: movieDir = path to movie directory,
+  #            rois = select rois (all rois by default),
+  #            kernSize = time-window size in frames for time smoothing (+/- 5 frames by default),
+  #            displayFactor = display factor that is either user-defined or automatically calculated (default)
+  # Output: a dataframe
   
-  ## DEBUG
-  # movieDbDir<-"/media/project_raphael@fileserver/movieSegmentation/WT_25deg_111103"
-  # movieDb <- openMovieDb(movieDir)
+  movieDb <- openMovieDb(movieDir)
+  cgT1nematics <- mqf_unitary_nematics_T1(movieDir) %>% 
+    # average nematics in each frame and grid element
+    group_by(frame, roi) %>%
+    summarise(cgT1xx=mean(unitary_T1xx),
+              cgT1xy=mean(unitary_T1xy),
+              roi_center_x=mean(center_x),
+              roi_center_y=mean(center_y))
   
-  cells <- dbGetQuery(movieDb, "select cell_id, frame, center_x, center_y from cells where cell_id!=10000")
+  # do a time averaging over 11 frames in each grid element
+  cgT1nematicsSmooth <- cgT1nematics %>%
+    smooth_tissue(cgT1xx, kernel_size=kernSize, by="roi", gap_fill = 0, global_min_max = F) %>%
+    smooth_tissue(cgT1xy, kernel_size=kernSize, by="roi", gap_fill = 0, global_min_max = F) %>%
+    # calculate the coarse-grained nematic angle and norm
+    mutate(phi=mod2pi(0.5*(atan2(cgT1xy_smooth, cgT1xx_smooth))),
+           norm=sqrt(cgT1xy_smooth^2+cgT1xx_smooth^2)) %>%
+    # calculate the nematic coordinates
+    mutate(x1=roi_center_x-0.5*norm*displayFactor*cos(phi),
+           y1=roi_center_y-0.5*norm*displayFactor*sin(phi),
+           x2=roi_center_x+0.5*norm*displayFactor*cos(phi),
+           y2=roi_center_y+0.5*norm*displayFactor*sin(phi)) %>%
+    # remove unnecessary columns
+    select(-c(cgT1xx,cgT1xy)) %>%
+    addTimeFunc(movieDb, .) %>% 
+    mutate(movie=basename(movieDir)) %>% add_dev_time()
   
-  t1DataFilt <- local(get(load(file.path(movieDbDir, "topochanges/t1DataFilt.RData")))) 
+  dbDisconnect(movieDb)
   
-  ## DEBUG
-  #   subset(t1DataFilt, (neighbor_cell_id==10001|cell_id==10001)&frame==0) # t1DataFilt contains twice the neighbor relationship
-  #   subset(t1DataFilt, (neighbor_cell_id==cell_id)) # One cell_id == its neighbors => why ?
-  #   with(t1DataFilt, data.frame(table(isNeighbor.t,isNeighbor.tp1)))
-  #   head(with(t1DataFilt %>% filter(neighbor_cell_id>cell_id), data.frame(table(isNeighbor.t,isNeighbor.tp1,frame))),50)
+  return(cgT1nematicsSmooth)
+}
+## DEBUG mqf_unitary_nematics_T1_avg_roi() ####
+if (F){
+  mqf_unitary_nematics_T1_avg_roi(movieDir) %>% 
+    render_frame(50) + 
+    # geom_polygon(data=csWithTopoT1 %>% filter(frame==20),aes(x_pos, y_pos, group=cell_id, fill=t1_type), alpha=0.5) +
+    # scale_fill_manual(values = T1cols, drop = FALSE) +
+    geom_segment(aes(x=x1,y=y1,xend=x2,yend=y2),
+                 size=2, alpha=0.7, lineend="round", color="red", na.rm=T)  +
+    ggtitle("Coarse grained cell neighbor exchanges")
   
-  ## Extract actual t1 events with corresponding nematics
-  T1NematicsByRoi <- t1DataFilt %>% print_head() %>%
-    # Just keep one instance of each event and discard potential cells in contact with themself
-    filter(neighbor_cell_id>cell_id) %>% print_head() %>%
-    # Flag half T1 gain and loss
-    mutate(type=ifelse(!isNeighbor.t & isNeighbor.tp1,"gain",
-                       ifelse(isNeighbor.t & !isNeighbor.tp1,"loss",NA))) %>% print_head() %>%
-    # Remove non-T1 events (stable cell-cell contacts)
-    filter(!is.na(type)) %>% print_head() %>%
-    # bring cell centers at time t where cells are defined, for nematic calculation
-    dt.merge(cells, by=c("frame","cell_id")) %>%
-    dt.merge(cells %>% dplyr::rename(neighbor_cell_id=cell_id),
-             by=c("frame","neighbor_cell_id"),
-             suffixes=c(".1",".2")) %>% print_head() %>%
-    # add roi on "cell_id", thus including ~half of T1 events in a ROI at its interface = fair enough
-    addRois(., movieDbDir) %>% print_head() 
-  
-  if(length(rois)==0) rois = unique(T1NematicsByRoi$roi)
-  
-  # calculate T1 nematics and positions at time t
-  T1Nematics <- T1NematicsByRoi %>%
-    filter(roi %in% rois) %>%
-    mutate(T1xx=0.5*((center_x.2-center_x.1)^2 - (center_y.2-center_y.1)^2),
-           T1xy=(center_x.2-center_x.1)*(center_y.2-center_y.1),
-           normfact = sqrt(T1xx^2+T1xy^2),
-           # defines the T1 nematic parallel to gained bonds
-           normalized_T1xx = ifelse(type=="gain", -(1/normfact)*T1xx, (1/normfact)*T1xx),
-           normalized_T1xy = ifelse(type=="gain", -(1/normfact)*T1xy, (1/normfact)*T1xy),
-           phi = mod2pi(0.5*(atan2(normalized_T1xy, normalized_T1xx))),
-           nematic_center_x=0.5*(center_x.1+center_x.2),
-           nematic_center_y=0.5*(center_y.1+center_y.2)) %>% 
-    select(-c(T1xx,T1xy,normfact,center_x.1,center_x.2,center_y.1,center_y.2,cell_id,neighbor_cell_id)) %>% 
-    addTimeFunc(movieDb,.) %>% print_head()
-  
-  return(T1Nematics)
-  
+  res <- multi_db_query(movieDirs, mqf_unitary_nematics_T1_avg_roi, rois=c("blade","raw"))
+  res %>% filter(movie=="WT_25deg_111102") %>%
+    # crop the image by defining squareRoi
+    render_frame(50) +
+    # plot nematics as segments
+    geom_segment(aes(x=x1,y=y1,xend=x2,yend=y2),
+                 size=2, alpha=0.7, lineend="round", color="red", na.rm=T) +
+    ggtitle("Coarse grained cell neighbor exchanges")
 }
