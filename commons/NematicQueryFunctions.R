@@ -2,6 +2,8 @@
 if (F){
   # Define path to all time-lapses
   movieDbBaseDir <- "/media/project_raphael@fileserver/movieSegmentation"
+  movieDbBaseDir <- "/media/junk/Raphael_RawData/ownCloud/DB"
+  
   # Define path a particular time-lapse called "WT_25deg_111102"
   movieDir <- file.path(movieDbBaseDir, c("WT_25deg_111102"))
   db <- openMovieDb(movieDir)
@@ -667,4 +669,35 @@ if (F){
     geom_segment(aes(x=x1,y=y1,xend=x2,yend=y2),
                  size=2, alpha=0.7, lineend="round", color="red", na.rm=T) +
     ggtitle("Coarse grained cell neighbor exchanges")
+}
+
+## SPEED TEST ####
+if (F) {
+  echo("Test: multi_db_query(movieDirs, mqf_nematics_cell_elong)")
+  system.time({res <- multi_db_query(movieDirs, mqf_nematics_cell_elong)})
+  
+  echo("Test: multi_db_query(movieDirs, mqf_nematics_cell_elong_coarse_grid)")
+  system.time({res <- multi_db_query(movieDirs, mqf_nematics_cell_elong_coarse_grid)})
+  
+  echo("Test: multi_db_query(movieDirs, mqf_nematics_cell_elong_avg_roi)")
+  system.time({res <- multi_db_query(movieDirs, mqf_nematics_cell_elong_avg_roi)})
+  
+  echo("Test: multi_db_query(movieDirs, mqf_unitary_nematics_CD)")
+  system.time({res <- multi_db_query(movieDirs, mqf_unitary_nematics_CD)})
+  
+  echo("Test: multi_db_query(movieDirs, mqf_unitary_nematics_CD_coarse_grid)")
+  system.time({res <- multi_db_query(movieDirs, mqf_unitary_nematics_CD_coarse_grid)})
+  
+  echo("Test: multi_db_query(movieDirs, mqf_unitary_nematics_CD_avg_roi)")
+  system.time({res <- multi_db_query(movieDirs, mqf_unitary_nematics_CD_avg_roi)})
+  
+  echo("Test: multi_db_query(movieDirs, mqf_unitary_nematics_T1)")
+  system.time({res <- multi_db_query(movieDirs, mqf_unitary_nematics_T1)})
+  
+  echo("Test: multi_db_query(movieDirs, mqf_unitary_nematics_T1_coarse_grid)")
+  system.time({res <- multi_db_query(movieDirs, mqf_unitary_nematics_T1_coarse_grid)})
+  
+  echo("Test: multi_db_query(movieDirs, mqf_unitary_nematics_T1_avg_roi)")
+  system.time({res <- multi_db_query(movieDirs, mqf_unitary_nematics_T1_avg_roi)})
+  
 }
