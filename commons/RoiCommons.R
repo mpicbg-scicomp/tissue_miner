@@ -88,6 +88,9 @@ smooth_tissue <- function(overlayData, smooth_val, kernel_size=5, by=c("xGrid", 
 #DEF_GRID_SIZE=128
 
 coarseGrid <- function(positionDF, gridWitdh=movie_grid_size, gridReduction=0){
+  
+  if (! "center_x" %in% names(positionDF) | ! "center_y" %in% names(positionDF)) stop("coarseGrid function requires 'center_x' and 'center_y' columns in the data")
+  
     cgData = mutate(positionDF,
         ## create bins
         xGrid=round_any(center_x, gridWitdh, floor)+0.5*gridWitdh + 1, ## +1 to fix rendering at left image margin
