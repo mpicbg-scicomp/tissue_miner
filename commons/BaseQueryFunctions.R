@@ -350,7 +350,7 @@ mqf_cell_area <- function(movieDir, rois=c(), cellContour=F){
   return(area)
 }
 ## mqf_triangle_elong ####
-mqf_triangle_elong <- function(movieDir, rois=c()){
+mqf_triangle_properties <- function(movieDir, rois=c(), triContour=F){
   
   # Description: get all triangle elongtation nematics per frame, in ROIs
   # Usage: in combination with multi_db_query(), ex: multi_db_query(movieDirs, mqf_triangle_elong, selectedRois)
@@ -362,16 +362,31 @@ mqf_triangle_elong <- function(movieDir, rois=c()){
   
   # add frame to triangle data
   filepath <- file.path(movieDir, "shear_contrib", "triList.RData")
-  allRoiData <- with(local(get(load(filepath))), data.frame(frame, tri_id)) %>% 
-    filter(!duplicated(tri_id)) %>%
-    dt.merge(., queryResult, by="tri_id") %>%
-    filter(roi %in% rois) %>%
+  triangleProperties <- with(local(get(load(filepath))), data.frame(frame, tri_id)) %>% 
+    distinct(tri_id) %>%
+    dt.merge(., queryResult, by="tri_id") 
+  
+  if (length(rois)==0) rois=unique(allRoiData$roi)
+  
+  triangleProperties %<>% filter(roi %in% rois) %>%
     addTimeFunc(movieDb, .) %>% 
     mutate(movie=basename(movieDir)) %>% add_dev_time()
   
+  if (triContour) {
+    triangles <- locload(file.path(movieDir, "shear_contrib","triangles.RData")) %>%
+      melt(id.vars=c("frame", "tri_id"), value.name="cell_id") %>% select(-variable) %>% 
+      dt.merge(dbGetQuery(movieDb, "select frame, cell_id, center_x as x_pos, center_y as y_pos from cells")) %>%
+      select(-frame)
+    
+    triangleProperties %<>% dt.merge(triangles, by="tri_id", allow.cartesian=TRUE) %>% print_head()
+    
+      
+    
+  }
+  
   dbDisconnect(movieDb)
   
-  return(allRoiData)
+  return(triangleProperties)
 }
 ## mqf_bond_length() ####
 mqf_bond_length <- function(movieDir, rois=c()){
@@ -382,7 +397,7 @@ mqf_bond_length <- function(movieDir, rois=c()){
   # Output: a dataframe
   
   movieDb <- openMovieDb(movieDir)
-  
+
   # Send SQL query to the DB to get directed bond properties into a table called dbond:
   dbond <- dbGetQuery(movieDb, "select frame, cell_id, dbond_id, conj_dbond_id, bond_id, vertex_id from directed_bonds") 
   # Send SQL query to the DB to get vertices into a table called vertices:
@@ -410,7 +425,6 @@ mqf_bond_length <- function(movieDir, rois=c()){
     addRois(., movieDir, rois) %>%
     addTimeFunc(movieDb, .) %>% 
     mutate(movie=basename(movieDir)) %>% add_dev_time() 
-    
   
   dbDisconnect(movieDb)
   
@@ -455,6 +469,9 @@ mqf_cell_neighbor_count <- function(movieDir, rois=c(), cellContour=F){
   
   return(csWithPoly)
 }
+
+
+
 ## mqf_avg_cell_area ####
 mqf_avg_cell_area <- function(movieDir, rois=c()){
   
@@ -575,7 +592,6 @@ mqf_avg_triangle_elong <- function(movieDir, rois=c()){
   
   return(pooledCEstate)
 }
-
 ## mqf_rate_CD and mqf_rate_T2 ####
 lossRate <- function(movieDb, movieDir, rois, lostType){
   
@@ -994,7 +1010,7 @@ mqf_unitary_nematics_CD <- function(movieDir, rois=c(), cellContour=F, displayFa
   if (cellContour) {
     #todo melt daughter cells for ploting
     cdNematics %<>%
-      melt(measure.vars = c("left_daughter_cell_id", "right_daughter_cell_id"), value.name="cell_id") %>% print_head() %>%
+      melt(measure.vars = c("left_daughter_cell_id", "right_daughter_cell_id"), value.name="cell_id") %>% 
       dt.merge(locload(file.path(movieDir, "cellshapes.RData")), by = c("frame","cell_id"), allow.cartesian=TRUE) %>%
       arrange(frame, roi, cell_id, bond_order)
 
@@ -1153,7 +1169,7 @@ if (F) {
     facet_wrap(~roi)
 }
 ## mqf_unitary_nematics_T1() ####
-mqf_unitary_nematics_T1 <- function(movieDir, rois=c(), displayFactor=default_cell_display_factor(movieDir)){
+mqf_unitary_nematics_T1 <- function(movieDir, rois=c(), cellContour = F, displayFactor=default_cell_display_factor(movieDir)){
   
   # Description: retrieve cell division nematics from the DB
   # Usage: mqf_unitary_nematics_T1(movieDir, rois=c(), displayFactor=default_cell_display_factor(movieDir)) where rois and displayFactor are optional
@@ -1169,7 +1185,7 @@ mqf_unitary_nematics_T1 <- function(movieDir, rois=c(), displayFactor=default_ce
   t1DataFilt <- locload(file.path(movieDir, "topochanges/t1DataFilt.RData"))
   
   ## Extract actual t1 events with corresponding nematics
-  T1NematicsByRoi <- t1DataFilt %>% 
+  T1Nematics <- t1DataFilt %>% 
     # Just keep one instance of each event and discard potential cells in contact with themself
     filter(neighbor_cell_id>cell_id) %>% 
     # Flag half T1 gain and loss
@@ -1183,11 +1199,8 @@ mqf_unitary_nematics_T1 <- function(movieDir, rois=c(), displayFactor=default_ce
              by=c("frame","neighbor_cell_id"),
              suffixes=c(".1",".2")) %>% 
     # add roi on "cell_id", thus including ~half of T1 events in a ROI at its interface = fair enough
-    addRois(., movieDir, rois)
-
-  
+    addRois(., movieDir, rois) %>%
   # calculate T1 nematics and positions at time t
-  T1Nematics <- T1NematicsByRoi %>%
     mutate(T1xx=0.5*((center_x.2-center_x.1)^2 - (center_y.2-center_y.1)^2),
            T1xy=(center_x.2-center_x.1)*(center_y.2-center_y.1),
            normfact = sqrt(T1xx^2+T1xy^2),
@@ -1203,9 +1216,22 @@ mqf_unitary_nematics_T1 <- function(movieDir, rois=c(), displayFactor=default_ce
            x2=center_x+0.5*displayFactor*cos(phi),
            y2=center_y+0.5*displayFactor*sin(phi)) %>%
     # remove unnecessary columns
-    select(-c(T1xx,T1xy,normfact,center_x.1,center_x.2,center_y.1,center_y.2,cell_id,neighbor_cell_id)) %>% 
+    select(-c(T1xx,T1xy,normfact,center_x.1,center_x.2,center_y.1,center_y.2,dbond_id,left_dbond_id,isNeighbor.t,isNeighbor.tp1)) %>% 
     addTimeFunc(movieDb,.) %>%
     mutate(movie=basename(movieDir)) %>% add_dev_time()
+  
+  if (cellContour) {
+    topoChangeSummary  <- locload(file.path(movieDir, "topochanges/topoChangeSummary.RData")) %>%
+      filter(num_t1_gained>0 |  num_t1_lost>0) %>%
+      mutate(t1_type=ifelse(num_t1_gained>0, ifelse(num_t1_lost>0, "gain_and_loss", "gain"), "loss")) %>% 
+      select(-c(num_t1_gained, num_t1_lost, num_neighbors_t)) %>%
+      dt.merge(locload(file.path(movieDir, "cellshapes.RData")), by = c("frame","cell_id"), allow.cartesian=TRUE)
+    
+    T1Nematics %<>%
+      melt(measure.vars = c("cell_id","neighbor_cell_id"), value.name="cell_id") %>% 
+      dt.merge(topoChangeSummary, by = c("frame","cell_id"), allow.cartesian=TRUE) %>%
+      arrange(frame, roi, cell_id, bond_order) %>% print_head()
+  }
   
   dbDisconnect(movieDb)
   
