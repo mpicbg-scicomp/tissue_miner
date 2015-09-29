@@ -158,8 +158,8 @@ get_vertex_properties <- function(movieDir){
 
 
 
-## mqf_cell_count ####
-mqf_cell_count <- function(movieDir, rois=c()){
+## mqf_cg_roi_cell_count ####
+mqf_cg_roi_cell_count <- function(movieDir, rois=c()){
   
   # Description: count number of cells per frame, in ROIs
   # Usage: in combination with multi_db_query(), ex: multi_db_query(movieDirs, mqf_cell_count, selectedRois)
@@ -260,17 +260,18 @@ addRois <-function(data, movieDir, rois=c()){
   return(cellsRoiFilt)
 }
 
-
 ## mqf_functions synopsis (multiple queries functions) ####
 ## Synopsis:
-# mqf_* definition: args(DBconnection=movieDb, pathToMovie=movieDir)
+# mqf_* definition: args(pathToMovie=movieDir, ...)
 # Get data from DB / files
 # Add Rois and subset by Rois
 # Aggregate/summarize
 # Add time from DB
 # returns a dataframe
-## mqf_nematics_cell_elong() ####
-mqf_nematics_cell_elong <- function(movieDir, rois=c(), cellContour=F, displayFactor=default_cell_display_factor(movieDir)){
+
+## FINE-GRAINED mqf functions ####
+## mqf_fg_nematics_cell_elong() ####
+mqf_fg_nematics_cell_elong <- function(movieDir, rois=c(), cellContour=F, displayFactor=default_cell_display_factor(movieDir)){
   
   # Description: retrieve cell elongation nematics from the DB
   # Usage: get_nematics_DBelong(movieDir, displayFactor) where displayFactor is optional
@@ -306,26 +307,147 @@ mqf_nematics_cell_elong <- function(movieDir, rois=c(), cellContour=F, displayFa
   
   return(queryResult)
 }
-## DEBUG mqf_nematics_cell_elong() ####
-if (F){
-  mqf_nematics_cell_elong(movieDir, rois = "raw") %>%
-    # crop the image by defining squareRoi
-    render_frame(120, squareRoi=rbind(c(1500,2000),c(1000,1500))) +
-    # plot nematics as segments
-    geom_segment(aes(x=x1,y=y1,xend=x2,yend=y2),
-                 size=1.2, alpha=0.7, lineend="round", color="red", na.rm=T) +
-    ggtitle("Cell elongation pattern")
+## mqf_fg_unitary_nematics_CD() ####
+mqf_fg_unitary_nematics_CD <- function(movieDir, rois=c(), cellContour=F, displayFactor=default_cell_display_factor(movieDir)){
   
-  multi_db_query(movieDirs, mqf_nematics_cell_elong, c("blade","hinge"), displayFactor=70) %>% print_head() %>%
-    filter(movie=="WT_25deg_111102" & roi=="blade") %>%
-    render_frame(120, squareRoi=rbind(c(1500,2000),c(1000,1500))) +
-    # plot nematics as segments
-    geom_segment(aes(x=x1,y=y1,xend=x2,yend=y2),
-                 size=1.2, alpha=0.7, lineend="round", color="red", na.rm=T) +
-    ggtitle("Cell elongation pattern")
+  # Description: retrieve cell division nematics from the DB
+  # Usage: get_nematics_CD(movieDir, displayFactor) where displayFactor is optional
+  # Arguments: movieDir = path to movie directory, displayFactor = display factor that is either user-defined or automatically calculated
+  # Output: a dataframe
+  
+  movieDb <- openMovieDb(movieDir)
+  
+  # Get cell division events including mother and daughter cells and frame of cytokinesis
+  cdEvents <- dbGetQuery(movieDb, "select cell_id as mother_cell_id, last_occ, left_daughter_cell_id, appears_by, right_daughter_cell_id from cell_histories") %>%
+    filter(appears_by=="Division")  %>%
+    select(-appears_by) %>%
+    # create one column "cell_id" out of the 2 daughter cells
+    melt(id.vars=c("mother_cell_id", "last_occ"), value.name="cell_id") %>%
+    # add frame of cytokinesis
+    mutate(first_daughter_occ=last_occ+1) %>%
+    select(-last_occ,-variable) 
+  
+  # Get cell positions
+  cells <- dbGetQuery(movieDb, "select cell_id, frame, center_x, center_y, area from cells where cell_id!=10000")
+  
+  # Calculate cell division nematics with their respective positions
+  cdNematics <- cdEvents %>%
+    dt.merge(cells %>% select(frame, cell_id, matches("center")) %>% dplyr::rename(first_daughter_occ=frame)) %>%
+    group_by(mother_cell_id) %>%
+    # remove cases in which not both daughers are present
+    filter(n()==2) %>%
+    mutate(daughter=c("left","right")) %>%
+    dplyr::rename(daughter_cell_id=cell_id) %>%
+    # select(-cell_id) %>% 
+    ungroup() %>% 
+    # reshape to get divided cells into single row for nematics calculation
+    melt(id.vars=c("first_daughter_occ","mother_cell_id", "daughter")) %>% 
+    dcast(mother_cell_id+first_daughter_occ ~ daughter+variable) %>% 
+    dplyr::rename(frame=first_daughter_occ, cell_id=mother_cell_id) %>%
+    # add Roi definitions on by cell_id
+    addRois(movieDir, rois) %>% 
+    # restore 'mother_cell_id' for clarity
+    dplyr::rename(mother_cell_id=cell_id) %>%
+    # calculate division axis nematics based on daughter cell positions
+    mutate(CDxx=0.5*((left_center_x-right_center_x)^2 - (left_center_y-right_center_y)^2),
+           CDxy=(left_center_x-right_center_x)*(left_center_y-right_center_y),
+           normCDxx=(1/sqrt(CDxx^2+CDxy^2))*CDxx,
+           normCDxy=(1/sqrt(CDxx^2+CDxy^2))*CDxy,
+           phi=mod2pi(0.5*(atan2(normCDxy, normCDxx)))) %>%
+    # calculate nematic center position and coordinates
+    mutate(center_x=0.5*(left_center_x+right_center_x),
+           center_y=0.5*(left_center_y+right_center_y),
+           x1=center_x-0.5*displayFactor*cos(phi),
+           y1=center_y-0.5*displayFactor*sin(phi),
+           x2=center_x+0.5*displayFactor*cos(phi),
+           y2=center_y+0.5*displayFactor*sin(phi)) %>%
+    # remove unnecessary columns
+    select(-c(left_center_x,left_center_y,right_center_x,right_center_y,CDxx,CDxy)) %>%
+    addTimeFunc(movieDb, .) %>% 
+    mutate(movie=basename(movieDir)) %>% add_dev_time()
+  
+  if (cellContour) {
+    cdNematics %<>%
+      melt(measure.vars = c("left_daughter_cell_id", "right_daughter_cell_id"), value.name="cell_id") %>% 
+      dt.merge(locload(file.path(movieDir, "cellshapes.RData")), by = c("frame","cell_id"), allow.cartesian=TRUE) %>%
+      arrange(frame, roi, cell_id, bond_order)
+  }
+  
+  dbDisconnect(movieDb)
+  
+  return(cdNematics)
 }
-## mqf_cell_area() ####
-mqf_cell_area <- function(movieDir, rois=c(), cellContour=F){
+## mqf_fg_unitary_nematics_T1() ####
+mqf_fg_unitary_nematics_T1 <- function(movieDir, rois=c(), cellContour = F, displayFactor=default_cell_display_factor(movieDir)){
+  
+  # Description: retrieve cell division nematics from the DB
+  # Usage: mqf_unitary_nematics_T1(movieDir, rois=c(), displayFactor=default_cell_display_factor(movieDir)) where rois and displayFactor are optional
+  # Arguments: movieDir = path to movie directory, 
+  #            rois = selected rois (all by default)
+  #            displayFactor = display factor that is either user-defined or automatically calculated
+  # Output: a dataframe
+  
+  movieDb <- openMovieDb(movieDir)
+  
+  cells <- dbGetQuery(movieDb, "select cell_id, frame, center_x, center_y from cells where cell_id!=10000")
+  
+  t1DataFilt <- locload(file.path(movieDir, "topochanges/t1DataFilt.RData"))
+  
+  ## Extract actual t1 events with corresponding nematics
+  T1Nematics <- t1DataFilt %>% 
+    # Just keep one instance of each event and discard potential cells in contact with themself
+    filter(neighbor_cell_id>cell_id) %>% 
+    # Flag half T1 gain and loss
+    mutate(type=ifelse(!isNeighbor.t & isNeighbor.tp1,"gain",
+                       ifelse(isNeighbor.t & !isNeighbor.tp1,"loss",NA))) %>% 
+    # Remove non-T1 events (stable cell-cell contacts)
+    filter(!is.na(type)) %>%
+    # bring cell centers at time t where cells are defined, for nematic calculation
+    dt.merge(cells, by=c("frame","cell_id")) %>%
+    dt.merge(cells %>% dplyr::rename(neighbor_cell_id=cell_id),
+             by=c("frame","neighbor_cell_id"),
+             suffixes=c(".1",".2")) %>% 
+    # add roi on "cell_id", thus including ~half of T1 events in a ROI at its interface = fair enough
+    addRois(., movieDir, rois) %>%
+    # calculate T1 nematics and positions at time t
+    mutate(T1xx=0.5*((center_x.2-center_x.1)^2 - (center_y.2-center_y.1)^2),
+           T1xy=(center_x.2-center_x.1)*(center_y.2-center_y.1),
+           normfact = sqrt(T1xx^2+T1xy^2),
+           # defines the T1 nematic parallel to gained bonds
+           unitary_T1xx = ifelse(type=="gain", -(1/normfact)*T1xx, (1/normfact)*T1xx),
+           unitary_T1xy = ifelse(type=="gain", -(1/normfact)*T1xy, (1/normfact)*T1xy),
+           phi = mod2pi(0.5*(atan2(unitary_T1xy, unitary_T1xx)))) %>% 
+    # calculate nematic center position and coordinates
+    mutate(center_x=0.5*(center_x.1+center_x.2),
+           center_y=0.5*(center_y.1+center_y.2),
+           x1=center_x-0.5*displayFactor*cos(phi),
+           y1=center_y-0.5*displayFactor*sin(phi),
+           x2=center_x+0.5*displayFactor*cos(phi),
+           y2=center_y+0.5*displayFactor*sin(phi)) %>%
+    # remove unnecessary columns
+    select(-c(T1xx,T1xy,normfact,center_x.1,center_x.2,center_y.1,center_y.2,dbond_id,left_dbond_id,isNeighbor.t,isNeighbor.tp1)) %>% 
+    addTimeFunc(movieDb,.) %>%
+    mutate(movie=basename(movieDir)) %>% add_dev_time()
+  
+  if (cellContour) {
+    topoChangeSummary  <- locload(file.path(movieDir, "topochanges/topoChangeSummary.RData")) %>%
+      filter(num_t1_gained>0 |  num_t1_lost>0) %>%
+      mutate(t1_type=ifelse(num_t1_gained>0, ifelse(num_t1_lost>0, "gain_and_loss", "gain"), "loss")) %>% 
+      select(-c(num_t1_gained, num_t1_lost, num_neighbors_t)) %>%
+      dt.merge(locload(file.path(movieDir, "cellshapes.RData")), by = c("frame","cell_id"), allow.cartesian=TRUE)
+    
+    T1Nematics %<>%
+      melt(measure.vars = c("cell_id","neighbor_cell_id"), value.name="cell_id") %>% 
+      dt.merge(topoChangeSummary, by = c("frame","cell_id"), allow.cartesian=TRUE) %>%
+      arrange(frame, roi, cell_id, bond_order) %>% print_head()
+  }
+  
+  dbDisconnect(movieDb)
+  
+  return(T1Nematics)
+}
+## mqf_fg_cell_area() ####
+mqf_fg_cell_area <- function(movieDir, rois=c(), cellContour=F){
   
   # Description: get cell area per frame, in ROIs
   # Usage: in combination with multi_db_query(), ex: multi_db_query(movieDirs, mqf_cell_area, selectedRois)
@@ -349,8 +471,8 @@ mqf_cell_area <- function(movieDir, rois=c(), cellContour=F){
   
   return(area)
 }
-## mqf_triangle_elong ####
-mqf_triangle_properties <- function(movieDir, rois=c(), triContour=F){
+## mqf_fg_triangle_properties ####
+mqf_fg_triangle_properties <- function(movieDir, rois=c(), triContour=F){
   
   # Description: get all triangle elongtation nematics per frame, in ROIs
   # Usage: in combination with multi_db_query(), ex: multi_db_query(movieDirs, mqf_triangle_elong, selectedRois)
@@ -379,17 +501,15 @@ mqf_triangle_properties <- function(movieDir, rois=c(), triContour=F){
       select(-frame)
     
     triangleProperties %<>% dt.merge(triangles, by="tri_id", allow.cartesian=TRUE) %>% print_head()
-    
-      
-    
+
   }
   
   dbDisconnect(movieDb)
   
   return(triangleProperties)
 }
-## mqf_bond_length() ####
-mqf_bond_length <- function(movieDir, rois=c()){
+## mqf_fg_bond_length() ####
+mqf_fg_bond_length <- function(movieDir, rois=c()){
   
   # Description: retrieve bond properties and positions from the DB
   # Usage: get_bmqf_bond_length(movieDir, rois=c())
@@ -430,8 +550,8 @@ mqf_bond_length <- function(movieDir, rois=c()){
   
   return(bond_2vx)
 }
-## mqf_cell_neighbor_count() ####
-mqf_cell_neighbor_count <- function(movieDir, rois=c(), cellContour=F){
+## mqf_fg_cell_neighbor_count() ####
+mqf_fg_cell_neighbor_count <- function(movieDir, rois=c(), cellContour=F){
   
   # Description: count cell neighbors and retrieve the ordered list of vertices 
   # Usage: get_cell_neighbor_count(movieDir)
@@ -469,11 +589,25 @@ mqf_cell_neighbor_count <- function(movieDir, rois=c(), cellContour=F){
   
   return(csWithPoly)
 }
+## mqf_fg_dev_time ####
+mqf_fg_dev_time <- function(movieDir, rois=c()){
+  
+  # Description: get developmental time regardless ROIs
+  # Usage: in combination with multi_db_query(), ex: multi_db_query(movieDirs, mqf_dev_time)
+  # Arguments: movieDb = opened DB connection,  movieDir = path to a given movie folder
+  movieDb <- openMovieDb(movieDir)
+  
+  dev_time <- dbGetQuery(movieDb, "select * from frames") %>% 
+    mutate(movie=basename(movieDir)) %>% add_dev_time()
+  
+  dbDisconnect(movieDb)
+  
+  return(dev_time)
+}
 
-
-
-## mqf_avg_cell_area ####
-mqf_avg_cell_area <- function(movieDir, rois=c()){
+## COARSE-GRAINED mqf functions by ROI ####
+## mqf_cg_roi_cell_area ####
+mqf_cg_roi_cell_area <- function(movieDir, rois=c()){
   
   # Description: calculate average cell area per frame, in ROIs
   # Usage: in combination with multi_db_query(), ex: multi_db_query(movieDirs, mqf_avg_cell_area, selectedRois)
@@ -495,8 +629,8 @@ mqf_avg_cell_area <- function(movieDir, rois=c()){
   
   return(area)
 }
-## mqf_avg_cell_neighbor_counts ####
-mqf_avg_cell_neighbor_counts <- function(movieDir, rois=c(), cellContour=F){
+## mqf_cg_roi_cell_neighbor_counts ####
+mqf_cg_roi_cell_neighbor_counts <- function(movieDir, rois=c(), cellContour=F){
   
   # Description: get averaged cell neighbor count per frame, in ROIs
   # Usage: in combination with multi_db_query(), ex: multi_db_query(movieDirs, mqf_avg_cell_neighbor_counts, selectedRois)
@@ -522,8 +656,8 @@ mqf_avg_cell_neighbor_counts <- function(movieDir, rois=c(), cellContour=F){
   
   return(neighborCount)
 }
-## mqf_avg_polygon_class ####
-mqf_avg_polygon_class <- function(movieDir, rois=c()){
+## mqf_cg_roi_polygon_class ####
+mqf_cg_roi_polygon_class <- function(movieDir, rois=c()){
   
   # Description: count number of cells in each polygon class, per frame, in ROIs
   # Usage: in combination with multi_db_query(), ex: multi_db_query(movieDirs, mqf_avg_polygon_class, selectedRois)
@@ -546,31 +680,8 @@ mqf_avg_polygon_class <- function(movieDir, rois=c()){
   
   return(pgClassSummary)
 }
-## mqf_avg_cell_elongDB ####
-mqf_avg_cell_elongDB <- function(movieDir, rois=c()){
-  
-  # Description: get averaged cell elongtation nematics per frame, in ROIs
-  # Usage: in combination with multi_db_query(), ex: multi_db_query(movieDirs, mqf_avg_cell_elongDB, selectedRois)
-  # Arguments: movieDb = opened DB connection,  movieDir = path to a given movie folder
-  
-  movieDb <- openMovieDb(movieDir)
-  
-  queryResult <- dbGetQuery(movieDb, "select cell_id, frame, elong_xx, elong_xy from cells where cell_id!=10000") %>%
-    addRois(., movieDir, rois)
-
-  avgElong <- queryResult %>%
-    group_by(roi,frame) %>%
-    summarise(elong_xx.avg=mean(elong_xx, na.rm=T), elong_xy.avg=mean(elong_xy, na.rm=T)) %>%
-    arrange(roi, frame) %>%
-    addTimeFunc(movieDb, .) %>% 
-    mutate(movie=basename(movieDir)) %>% add_dev_time()
-  
-  dbDisconnect(movieDb)
-  
-  return(avgElong)
-}
-## mqf_avg_triangle_elong ####
-mqf_avg_triangle_elong <- function(movieDir, rois=c()){
+## mqf_cg_roi_triangle_elong ####
+mqf_cg_roi_triangle_elong <- function(movieDir, rois=c()){
   
   # Description: get averaged triangle elongtation nematics per frame, in ROIs
   # Usage: in combination with multi_db_query(), ex: multi_db_query(movieDirs, mqf_avg_triangle_elong, selectedRois)
@@ -592,7 +703,7 @@ mqf_avg_triangle_elong <- function(movieDir, rois=c()){
   
   return(pooledCEstate)
 }
-## mqf_rate_CD and mqf_rate_T2 ####
+## mqf_cg_roi_rate_CD and mqf_cg_roi_rate_T2 ####
 lossRate <- function(movieDb, movieDir, rois, lostType){
   
   cellsInFrame   <- dbGetQuery(movieDb, "select cell_id, frame, area from cells where cell_id!=10000")
@@ -616,7 +727,7 @@ lossRate <- function(movieDb, movieDir, rois, lostType){
   return(lossSummary)
 }
 
-mqf_rate_CD <- function(movieDir, rois=c()){
+mqf_cg_roi_rate_CD <- function(movieDir, rois=c()){
   
   # Description: get cell division rate per frame, in ROIs
   # Usage: in combination with multi_db_query(), ex: multi_db_query(movieDirs, mqf_rate_CD, selectedRois)
@@ -631,7 +742,7 @@ mqf_rate_CD <- function(movieDir, rois=c()){
   return(results)
   
   }
-mqf_rate_T2 <- function(movieDir, rois=c()){
+mqf_cg_roi_rate_T2 <- function(movieDir, rois=c()){
   
   # Description: get cell extrusion rate per frame, in ROIs
   # Usage: in combination with multi_db_query(), ex: multi_db_query(movieDirs, mqf_rate_T2, selectedRois)
@@ -646,7 +757,7 @@ mqf_rate_T2 <- function(movieDir, rois=c()){
   
   return(results)
 }
-## mqf_rate_T1 ####
+## mqf_cg_roi_rate_T1 ####
 topoChangeRate <- function(movieDb, movieDir, rois, countExpr){
   #todo don't query and don't use multi-query and infer cell counts directrly from the topochange data.
   cellsInFrame   <- dbGetQuery(movieDb, "select cell_id, frame from cells where cell_id!=10000")
@@ -673,7 +784,7 @@ topoChangeRate <- function(movieDb, movieDir, rois, countExpr){
   return(topoSummary)
 }
 
-mqf_rate_T1 <- function(movieDir, rois=c()){
+mqf_cg_roi_rate_T1 <- function(movieDir, rois=c()){
   
   # Description: get T1 rate per frame, in ROIs
   # Usage: in combination with multi_db_query(), ex: multi_db_query(movieDirs, mqf_rate_T1, selectedRois)
@@ -689,8 +800,8 @@ mqf_rate_T1 <- function(movieDir, rois=c()){
   return(results)
 }
 # mqf_rateT1Balance <- function(movieDb, movieDir, rois=c()) topoChangeRate(movieDb, movieDir, rois, 0.5*(num_t1_gained-num_t1_lost))
-## mqf_rate_isotropic_contrib ####
-mqf_rate_isotropic_contrib <- function(movieDir, rois=c()){
+## mqf_cg_roi_rate_isotropic_contrib ####
+mqf_cg_roi_rate_isotropic_contrib <- function(movieDir, rois=c()){
   
   # Description: compute the isotropic deformation of the tissue and its cellular contributions per frame, in ROIs
   # Usage: in combination with multi_db_query(), ex: multi_db_query(movieDirs, mqf_rate_isotropic_contrib, selectedRois)
@@ -765,8 +876,8 @@ mqf_rate_isotropic_contrib <- function(movieDir, rois=c()){
   
   return(relIsoContribSmooth)
 }
-## mqf_rate_shear ####
-mqf_rate_shear <- function(movieDir, rois=c()){
+## mqf_cg_roi_rate_shear ####
+mqf_cg_roi_rate_shear <- function(movieDir, rois=c()){
   
   # Description: compute the pure shear deformation of the tissue and its cellular contributions per frame, in ROIs
   # Usage: in combination with multi_db_query(), ex: multi_db_query(movieDirs, mqf_rate_shear, selectedRois)
@@ -793,26 +904,138 @@ mqf_rate_shear <- function(movieDir, rois=c()){
   
   return(ShearRateByRoi)
 }
-
-## mqf_dev_time ####
-mqf_dev_time <- function(movieDir, rois=c()){
+## mqf_cg_roi_nematics_cell_elong()####
+mqf_cg_roi_nematics_cell_elong <- function(movieDir, rois=c(), kernSize=1, displayFactor=default_roi_display_factor(movieDir) ){
   
-  # Description: get developmental time regardless ROIs
-  # Usage: in combination with multi_db_query(), ex: multi_db_query(movieDirs, mqf_dev_time)
-  # Arguments: movieDb = opened DB connection,  movieDir = path to a given movie folder
+  # Description: retrieve cell elongation nematics from the DB and coarse-grain by ROI
+  # Usage: mqf_nematics_cell_elong_avg_roi(movieDir, rois=c(), kernSize=1, displayFactor=default_roi_display_factor(movieDir)) where gridSize, kernSize, displayFactor are optional
+  # Arguments: movieDir = path to movie directory, rois = list of ROIs (all ROIs by default),
+  #            kernSize = time-window size in frames for time smoothing (no time smoothing by default),
+  #            displayFactor = display factor that is either user-defined or automatically calculated (default)
+  # Output: a dataframe
+  
   movieDb <- openMovieDb(movieDir)
   
-  dev_time <- dbGetQuery(movieDb, "select * from frames") %>% 
+  cgNematics <- mqf_nematics_cell_elong(movieDir, rois=rois) %>%
+    # average nematics in each frame and roi
+    group_by(frame, roi) %>%
+    summarise(cgExx=mean(elong_xx, na.rm=T),
+              cgExy=mean(elong_xy, na.rm=T),
+              roi_center_x=mean(center_x),
+              roi_center_y=mean(center_y)) 
+  
+  # do a time averaging over 5 frames in each roi (grouping is kept)
+  cgNematicsSmooth <-cgNematics %>%
+    smooth_tissue(cgExx, kernel_size=kernSize, by="roi", gap_fill = NA, global_min_max = F) %>%
+    smooth_tissue(cgExy, kernel_size=kernSize, by="roi", gap_fill = NA, global_min_max = F) %>%
+    # calculate the angle and norm of coarse-grained nematics
+    mutate(phi=0.5*(atan2(cgExy_smooth, cgExx_smooth)),
+           norm=sqrt(cgExy_smooth^2+cgExx_smooth^2)) %>%
+    # automatic scaling to grig size and nematic coordinates
+    mutate(x1=roi_center_x-0.5*norm*displayFactor*cos(phi),
+           y1=roi_center_y-0.5*norm*displayFactor*sin(phi),
+           x2=roi_center_x+0.5*norm*displayFactor*cos(phi),
+           y2=roi_center_y+0.5*norm*displayFactor*sin(phi)) %>%
+    # Remove unnecessary columns
+    select(-c(cgExx,cgExy)) %>%
+    # add time and movie name
+    addTimeFunc(movieDb, .) %>% 
     mutate(movie=basename(movieDir)) %>% add_dev_time()
   
   dbDisconnect(movieDb)
   
-  return(dev_time)
+  return(cgNematicsSmooth)
+}
+## mqf_cg_roi_unitary_nematics_CD() ####
+## TODO: also nomalize by cell number in ROI and NOT by dividing cell number in ROI
+mqf_cg_roi_unitary_nematics_CD <- function(movieDir, rois=c(), kernSize=11, displayFactor=default_roi_display_factor(movieDir)){
+  
+  # Description: retrieve and coarse-grain cell division nematics from the DB
+  # Usage: mqf_unitary_nematics_CD_avg_roi(movieDir, kernSize=11, displayFactor=-1) where kernSize, displayFactor are optional
+  # Arguments: movieDir = path to movie directory, gridSize = square-grid sides in pixels (128 by default),
+  #            rois = selected ROIs (all by default)
+  #            kernSize = time-window size in frames for time smoothing (+/- 5 frames by default),
+  #            displayFactor = display factor that is either user-defined or automatically calculated (default)
+  # Output: a dataframe
+  
+  movieDb <- openMovieDb(movieDir)
+  
+  cgCDnematics <- mqf_unitary_nematics_CD(movieDir) %>%
+    # average nematics in each frame and grid element
+    group_by(frame, roi) %>%
+    summarise(cgCDxx=mean(normCDxx),
+              cgCDxy=mean(normCDxy),
+              roi_center_x=mean(center_x),
+              roi_center_y=mean(center_y))
+  
+  # do a time averaging over N frames in each roi
+  cgCDnematicsSmooth <- cgCDnematics %>%
+    smooth_tissue(cgCDxx, kernel_size=kernSize, by="roi", gap_fill = 0, global_min_max = T) %>%
+    smooth_tissue(cgCDxy, kernel_size=kernSize, by="roi", gap_fill = 0, global_min_max = T) %>%
+    # calculate the angle and norm of coarse-grained nematics
+    mutate(phi=mod2pi(0.5*(atan2(cgCDxy_smooth, cgCDxx_smooth))),
+           norm=sqrt(cgCDxy_smooth^2+cgCDxx_smooth^2)) %>%
+    # automatic scaling to grig size and nematic coordinates
+    mutate(x1=roi_center_x-0.5*norm*displayFactor*cos(phi),
+           y1=roi_center_y-0.5*norm*displayFactor*sin(phi),
+           x2=roi_center_x+0.5*norm*displayFactor*cos(phi),
+           y2=roi_center_y+0.5*norm*displayFactor*sin(phi)) %>%
+    # remove unnnecessary columns
+    select(-c(cgCDxx,cgCDxy)) %>%
+    # add time and movie name
+    addTimeFunc(movieDb, .) %>% 
+    mutate(movie=basename(movieDir)) %>% add_dev_time()
+  
+  dbDisconnect(movieDb)
+  
+  return(cgCDnematicsSmooth)
+  
+}
+## mqf_cd_roi_unitary_nematics_T1() ####
+mqf_cd_roi_unitary_nematics_T1 <- function(movieDir, rois=c(), kernSize=11, displayFactor=default_roi_display_factor(movieDir)){
+  
+  # Description: retrieve and coarse-grain T1 nematics by ROI
+  # Usage: mqf_unitary_nematics_T1_avg_roi(movieDir, rois=c(), kernSize=11, displayFactor=default_roi_display_factor(movieDir)) where rois, kernSize, displayFactor are optional
+  # Arguments: movieDir = path to movie directory,
+  #            rois = select rois (all rois by default),
+  #            kernSize = time-window size in frames for time smoothing (+/- 5 frames by default),
+  #            displayFactor = display factor that is either user-defined or automatically calculated (default)
+  # Output: a dataframe
+  
+  movieDb <- openMovieDb(movieDir)
+  cgT1nematics <- mqf_unitary_nematics_T1(movieDir) %>% 
+    # average nematics in each frame and grid element
+    group_by(frame, roi) %>%
+    summarise(cgT1xx=mean(unitary_T1xx),
+              cgT1xy=mean(unitary_T1xy),
+              roi_center_x=mean(center_x),
+              roi_center_y=mean(center_y))
+  
+  # do a time averaging over 11 frames in each grid element
+  cgT1nematicsSmooth <- cgT1nematics %>%
+    smooth_tissue(cgT1xx, kernel_size=kernSize, by="roi", gap_fill = 0, global_min_max = F) %>%
+    smooth_tissue(cgT1xy, kernel_size=kernSize, by="roi", gap_fill = 0, global_min_max = F) %>%
+    # calculate the coarse-grained nematic angle and norm
+    mutate(phi=mod2pi(0.5*(atan2(cgT1xy_smooth, cgT1xx_smooth))),
+           norm=sqrt(cgT1xy_smooth^2+cgT1xx_smooth^2)) %>%
+    # calculate the nematic coordinates
+    mutate(x1=roi_center_x-0.5*norm*displayFactor*cos(phi),
+           y1=roi_center_y-0.5*norm*displayFactor*sin(phi),
+           x2=roi_center_x+0.5*norm*displayFactor*cos(phi),
+           y2=roi_center_y+0.5*norm*displayFactor*sin(phi)) %>%
+    # remove unnecessary columns
+    select(-c(cgT1xx,cgT1xy)) %>%
+    addTimeFunc(movieDb, .) %>% 
+    mutate(movie=basename(movieDir)) %>% add_dev_time()
+  
+  dbDisconnect(movieDb)
+  
+  return(cgT1nematicsSmooth)
 }
 
-
-## mqf_nematics_cell_elong_coarse_grid()####
-mqf_nematics_cell_elong_coarse_grid <- function(movieDir, rois="raw", gridSize=128, kernSize=1, displayFactor=-1){
+## COARSE-GRAINED mqf functions by GRID element ####
+## mqf_cg_grid_nematics_cell_elong()####
+mqf_cg_grid_nematics_cell_elong <- function(movieDir, rois="raw", gridSize=128, kernSize=1, displayFactor=-1){
   
   # Description: retrieve and coarse-grain cell elongation nematics from the DB
   # Usage: get_nematics_DBelong_cg(movieDir, gridSize=128, kernSize=1, displayFactor=-1) where gridSize, kernSize, displayFactor are optional
@@ -858,189 +1081,8 @@ mqf_nematics_cell_elong_coarse_grid <- function(movieDir, rois="raw", gridSize=1
   
   return(cgNematicsSmooth)
 }
-## DEBUG mqf_nematics_cell_elong_coarse_grid() ####
-if (F){
-  mqf_nematics_cell_elong_coarse_grid(movieDir) %>% 
-    render_frame(70) +
-    geom_segment(aes(x=x1, y=y1,xend=x2, yend=y2),
-                 size=2, lineend="round", color="red", na.rm=T)
-  
-  res <- multi_db_query(movieDirs, mqf_nematics_cell_elong_coarse_grid, c("raw", "blade"))  %>% print_head()
-  res %>%
-    filter(movie=="WT_25deg_111102" & roi=="blade") %>%
-    render_frame(70) +
-    geom_segment(aes(x=x1, y=y1,xend=x2, yend=y2),
-                 size=2, lineend="round", color="red", na.rm=T)
-  
-  res %>%
-    filter(movie=="WT_25deg_111102" & roi=="raw") %>%
-    render_frame(70) +
-    geom_segment(aes(x=x1, y=y1,xend=x2, yend=y2),
-                 size=2, lineend="round", color="red", na.rm=T)
-}
-
-## mqf_nematics_cell_elong_roi_avg()
-## DEBUG mqf_nematics_cell_elong_roi_avg()
-## mqf_nematics_cell_elong_avg_roi()####
-mqf_nematics_cell_elong_avg_roi <- function(movieDir, rois=c(), kernSize=1, displayFactor=default_roi_display_factor(movieDir) ){
-  
-  # Description: retrieve cell elongation nematics from the DB and coarse-grain by ROI
-  # Usage: mqf_nematics_cell_elong_avg_roi(movieDir, rois=c(), kernSize=1, displayFactor=default_roi_display_factor(movieDir)) where gridSize, kernSize, displayFactor are optional
-  # Arguments: movieDir = path to movie directory, rois = list of ROIs (all ROIs by default),
-  #            kernSize = time-window size in frames for time smoothing (no time smoothing by default),
-  #            displayFactor = display factor that is either user-defined or automatically calculated (default)
-  # Output: a dataframe
-  
-  movieDb <- openMovieDb(movieDir)
-  
-  cgNematics <- mqf_nematics_cell_elong(movieDir, rois=rois) %>%
-    # average nematics in each frame and roi
-    group_by(frame, roi) %>%
-    summarise(cgExx=mean(elong_xx, na.rm=T),
-              cgExy=mean(elong_xy, na.rm=T),
-              roi_center_x=mean(center_x),
-              roi_center_y=mean(center_y)) 
-  
-  # do a time averaging over 5 frames in each roi (grouping is kept)
-  cgNematicsSmooth <-cgNematics %>%
-    smooth_tissue(cgExx, kernel_size=kernSize, by="roi", gap_fill = NA, global_min_max = F) %>%
-    smooth_tissue(cgExy, kernel_size=kernSize, by="roi", gap_fill = NA, global_min_max = F) %>%
-    # calculate the angle and norm of coarse-grained nematics
-    mutate(phi=0.5*(atan2(cgExy_smooth, cgExx_smooth)),
-           norm=sqrt(cgExy_smooth^2+cgExx_smooth^2)) %>%
-    # automatic scaling to grig size and nematic coordinates
-    mutate(x1=roi_center_x-0.5*norm*displayFactor*cos(phi),
-           y1=roi_center_y-0.5*norm*displayFactor*sin(phi),
-           x2=roi_center_x+0.5*norm*displayFactor*cos(phi),
-           y2=roi_center_y+0.5*norm*displayFactor*sin(phi)) %>%
-    # Remove unnecessary columns
-    select(-c(cgExx,cgExy)) %>%
-    # add time and movie name
-    addTimeFunc(movieDb, .) %>% 
-    mutate(movie=basename(movieDir)) %>% add_dev_time()
-  
-  dbDisconnect(movieDb)
-  
-  return(cgNematicsSmooth)
-}
-## DEBUG mqf_nematics_cell_elong_avg_roi() ####
-if(F){
-  mqf_nematics_cell_elong_avg_roi(movieDir) %>% 
-    render_frame(70) +
-    geom_segment(aes(x=x1, y=y1,xend=x2, yend=y2),
-                 size=2, lineend="round", color="red", na.rm=T)
-  
-  mqf_nematics_cell_elong_avg_roi(movieDir) %>% 
-    render_frame(70) +
-    geom_segment(aes(x=x1, y=y1,xend=x2, yend=y2, color=roi),
-                 size=2, lineend="round", na.rm=T)
-  
-  
-  res <- multi_db_query(movieDirs, mqf_nematics_cell_elong_avg_roi, c("raw", "blade"))  %>% print_head()
-  res %>%
-    filter(movie=="WT_25deg_111102") %>%
-    render_frame(70) +
-    geom_segment(aes(x=x1, y=y1,xend=x2, yend=y2, color=roi),
-                 size=2, lineend="round", na.rm=T)
-  
-  res %>% ggplot(aes(dev_time, cgExx_smooth, color=movie)) + geom_line() +
-    facet_wrap(~roi)
-  
-  
-}
-## mqf_unitary_nematics_CD() ####
-mqf_unitary_nematics_CD <- function(movieDir, rois=c(), cellContour=F, displayFactor=default_cell_display_factor(movieDir)){
-  
-  # Description: retrieve cell division nematics from the DB
-  # Usage: get_nematics_CD(movieDir, displayFactor) where displayFactor is optional
-  # Arguments: movieDir = path to movie directory, displayFactor = display factor that is either user-defined or automatically calculated
-  # Output: a dataframe
-  
-  movieDb <- openMovieDb(movieDir)
-  
-  # Get cell division events including mother and daughter cells and frame of cytokinesis
-  cdEvents <- dbGetQuery(movieDb, "select cell_id as mother_cell_id, last_occ, left_daughter_cell_id, appears_by, right_daughter_cell_id from cell_histories") %>%
-    filter(appears_by=="Division")  %>%
-    select(-appears_by) %>%
-    # create one column "cell_id" out of the 2 daughter cells
-    melt(id.vars=c("mother_cell_id", "last_occ"), value.name="cell_id") %>%
-    # add frame of cytokinesis
-    mutate(first_daughter_occ=last_occ+1) %>%
-    select(-last_occ,-variable) 
-  
-  # Get cell positions
-  cells <- dbGetQuery(movieDb, "select cell_id, frame, center_x, center_y, area from cells where cell_id!=10000")
-  
-  # Calculate cell division nematics with their respective positions
-  cdNematics <- cdEvents %>%
-    dt.merge(cells %>% select(frame, cell_id, matches("center")) %>% dplyr::rename(first_daughter_occ=frame)) %>%
-    group_by(mother_cell_id) %>%
-    # remove cases in which not both daughers are present
-    filter(n()==2) %>%
-    mutate(daughter=c("left","right")) %>%
-    dplyr::rename(daughter_cell_id=cell_id) %>%
-    # select(-cell_id) %>% 
-    ungroup() %>% 
-    # reshape to get divided cells into single row for nematics calculation
-    melt(id.vars=c("first_daughter_occ","mother_cell_id", "daughter")) %>% 
-    dcast(mother_cell_id+first_daughter_occ ~ daughter+variable) %>% 
-    dplyr::rename(frame=first_daughter_occ, cell_id=mother_cell_id) %>%
-    # add Roi definitions on by cell_id
-    addRois(movieDir, rois) %>% 
-    # restore 'mother_cell_id' for clarity
-    dplyr::rename(mother_cell_id=cell_id) %>%
-    # calculate division axis nematics based on daughter cell positions
-    mutate(CDxx=0.5*((left_center_x-right_center_x)^2 - (left_center_y-right_center_y)^2),
-           CDxy=(left_center_x-right_center_x)*(left_center_y-right_center_y),
-           normCDxx=(1/sqrt(CDxx^2+CDxy^2))*CDxx,
-           normCDxy=(1/sqrt(CDxx^2+CDxy^2))*CDxy,
-           phi=mod2pi(0.5*(atan2(normCDxy, normCDxx)))) %>%
-    # calculate nematic center position and coordinates
-    mutate(center_x=0.5*(left_center_x+right_center_x),
-           center_y=0.5*(left_center_y+right_center_y),
-           x1=center_x-0.5*displayFactor*cos(phi),
-           y1=center_y-0.5*displayFactor*sin(phi),
-           x2=center_x+0.5*displayFactor*cos(phi),
-           y2=center_y+0.5*displayFactor*sin(phi)) %>%
-    # remove unnecessary columns
-    select(-c(left_center_x,left_center_y,right_center_x,right_center_y,CDxx,CDxy)) %>%
-    addTimeFunc(movieDb, .) %>% 
-    mutate(movie=basename(movieDir)) %>% add_dev_time()
-  
-  if (cellContour) {
-    #todo melt daughter cells for ploting
-    cdNematics %<>%
-      melt(measure.vars = c("left_daughter_cell_id", "right_daughter_cell_id"), value.name="cell_id") %>% 
-      dt.merge(locload(file.path(movieDir, "cellshapes.RData")), by = c("frame","cell_id"), allow.cartesian=TRUE) %>%
-      arrange(frame, roi, cell_id, bond_order)
-
-  }
-  
-  dbDisconnect(movieDb)
-  
-  return(cdNematics)
-}
-## DEBUG mqf_unitary_nematics_CD() ####
-if (F){
-  mqf_unitary_nematics_CD(movieDir) %>% filter(roi=="raw") %>%
-    # crop the image by defining squareRoi
-    render_frame(70, squareRoi=rbind(c(1500,2000),c(1000,1500))) +
-    # plot nematics as segments
-    geom_segment(aes(x=x1,y=y1,xend=x2,yend=y2),
-                 size=1.2, alpha=0.7, lineend="round", color="orange", na.rm=T) +
-    ggtitle("Cell division nematics")
-  
-  res <- multi_db_query(movieDirs, mqf_unitary_nematics_CD) %>% print_head()
-  
-  res %>% filter(movie=="WT_25deg_111102") %>%
-    render_frame(70, squareRoi=rbind(c(1500,2000),c(1000,1500))) +
-    # plot nematics as segments
-    geom_segment(aes(x=x1,y=y1,xend=x2,yend=y2),
-                 size=1.2, alpha=0.7, lineend="round", color="orange", na.rm=T) +
-    ggtitle("Cell division nematics")
-}
-## mqf_unitary_nematics_CD_coarse_grid() ####
-mqf_unitary_nematics_CD_coarse_grid <- function(movieDir, rois="raw", gridSize=128, kernSize=11, displayFactor=-1){
+## mqf_cg_grid_unitary_nematics_CD() ####
+mqf_cg_grid_unitary_nematics_CD <- function(movieDir, rois="raw", gridSize=128, kernSize=11, displayFactor=-1){
   
   # Description: retrieve and coarse-grain cell division nematics from the DB
   # Usage: mqf_unitary_nematics_CD_coarse_grid(movieDir, gridSize=128, kernSize=11, displayFactor=-1) where gridSize, kernSize, displayFactor are optional
@@ -1086,178 +1128,8 @@ mqf_unitary_nematics_CD_coarse_grid <- function(movieDir, rois="raw", gridSize=1
   return(cgCDnematicsSmooth)
   
 }
-## DEBUG mqf_unitary_nematics_CD_coarse_grid() ####
-if (F){
-  mqf_unitary_nematics_CD_coarse_grid(movieDir) %>%
-    # crop the image by defining squareRoi
-    render_frame(50) +
-    # plot nematics as segments
-    geom_segment(aes(x=x1,y=y1,xend=x2,yend=y2),
-                 size=2, alpha=0.7, lineend="round", color="orange", na.rm=T) +
-    ggtitle("Coarse-grained cell division nematics")
-  
-  res <- multi_db_query(movieDirs, mqf_unitary_nematics_CD_coarse_grid) %>% print_head()
-  res %>% filter(movie=="WT_25deg_111102") %>%
-    # crop the image by defining squareRoi
-    render_frame(50) +
-    # plot nematics as segments
-    geom_segment(aes(x=x1,y=y1,xend=x2,yend=y2),
-                 size=2, alpha=0.7, lineend="round", color="orange", na.rm=T) +
-    ggtitle("Coarse-grained cell division nematics")
-}
-## mqf_unitary_nematics_CD_avg_roi() ####
-## TODO: also nomalize by cell number in ROI and NOT by dividing cell number in ROI
-mqf_unitary_nematics_CD_avg_roi <- function(movieDir, rois=c(), kernSize=11, displayFactor=default_roi_display_factor(movieDir)){
-  
-  # Description: retrieve and coarse-grain cell division nematics from the DB
-  # Usage: mqf_unitary_nematics_CD_avg_roi(movieDir, kernSize=11, displayFactor=-1) where kernSize, displayFactor are optional
-  # Arguments: movieDir = path to movie directory, gridSize = square-grid sides in pixels (128 by default),
-  #            rois = selected ROIs (all by default)
-  #            kernSize = time-window size in frames for time smoothing (+/- 5 frames by default),
-  #            displayFactor = display factor that is either user-defined or automatically calculated (default)
-  # Output: a dataframe
-  
-  movieDb <- openMovieDb(movieDir)
-  
-  cgCDnematics <- mqf_unitary_nematics_CD(movieDir) %>%
-    # average nematics in each frame and grid element
-    group_by(frame, roi) %>%
-    summarise(cgCDxx=mean(normCDxx),
-              cgCDxy=mean(normCDxy),
-              roi_center_x=mean(center_x),
-              roi_center_y=mean(center_y))
-  
-  # do a time averaging over N frames in each roi
-  cgCDnematicsSmooth <- cgCDnematics %>%
-    smooth_tissue(cgCDxx, kernel_size=kernSize, by="roi", gap_fill = 0, global_min_max = T) %>%
-    smooth_tissue(cgCDxy, kernel_size=kernSize, by="roi", gap_fill = 0, global_min_max = T) %>%
-    # calculate the angle and norm of coarse-grained nematics
-    mutate(phi=mod2pi(0.5*(atan2(cgCDxy_smooth, cgCDxx_smooth))),
-           norm=sqrt(cgCDxy_smooth^2+cgCDxx_smooth^2)) %>%
-    # automatic scaling to grig size and nematic coordinates
-    mutate(x1=roi_center_x-0.5*norm*displayFactor*cos(phi),
-           y1=roi_center_y-0.5*norm*displayFactor*sin(phi),
-           x2=roi_center_x+0.5*norm*displayFactor*cos(phi),
-           y2=roi_center_y+0.5*norm*displayFactor*sin(phi)) %>%
-    # remove unnnecessary columns
-    select(-c(cgCDxx,cgCDxy)) %>%
-    # add time and movie name
-    addTimeFunc(movieDb, .) %>% 
-    mutate(movie=basename(movieDir)) %>% add_dev_time()
-  
-  dbDisconnect(movieDb)
-  
-  return(cgCDnematicsSmooth)
-  
-}
-## DEBUG mqf_unitary_nematics_CD_avg_roi() ####
-if (F) {
-  mqf_unitary_nematics_CD_avg_roi(movieDir, kernSize=5) %>% 
-    render_frame(20) +
-    geom_segment(aes(x=x1, y=y1,xend=x2, yend=y2, color=roi),
-                 size=2, lineend="round", na.rm=T)
-  
-  
-  res <- multi_db_query(movieDirs, mqf_unitary_nematics_CD_avg_roi, rois=c("raw", "blade"), kernSize=5)  %>% print_head()
-  res %>%
-    filter(movie=="WT_25deg_111102") %>%
-    render_frame(20) +
-    geom_segment(aes(x=x1, y=y1,xend=x2, yend=y2, color=roi),
-                 size=2, lineend="round", na.rm=T)
-  
-  res %>% ggplot(aes(dev_time, cgCDxx_smooth, color=movie)) + geom_line() +
-    facet_wrap(~roi)
-}
-## mqf_unitary_nematics_T1() ####
-mqf_unitary_nematics_T1 <- function(movieDir, rois=c(), cellContour = F, displayFactor=default_cell_display_factor(movieDir)){
-  
-  # Description: retrieve cell division nematics from the DB
-  # Usage: mqf_unitary_nematics_T1(movieDir, rois=c(), displayFactor=default_cell_display_factor(movieDir)) where rois and displayFactor are optional
-  # Arguments: movieDir = path to movie directory, 
-  #            rois = selected rois (all by default)
-  #            displayFactor = display factor that is either user-defined or automatically calculated
-  # Output: a dataframe
-  
-  movieDb <- openMovieDb(movieDir)
-  
-  cells <- dbGetQuery(movieDb, "select cell_id, frame, center_x, center_y from cells where cell_id!=10000")
-  
-  t1DataFilt <- locload(file.path(movieDir, "topochanges/t1DataFilt.RData"))
-  
-  ## Extract actual t1 events with corresponding nematics
-  T1Nematics <- t1DataFilt %>% 
-    # Just keep one instance of each event and discard potential cells in contact with themself
-    filter(neighbor_cell_id>cell_id) %>% 
-    # Flag half T1 gain and loss
-    mutate(type=ifelse(!isNeighbor.t & isNeighbor.tp1,"gain",
-                       ifelse(isNeighbor.t & !isNeighbor.tp1,"loss",NA))) %>% 
-    # Remove non-T1 events (stable cell-cell contacts)
-    filter(!is.na(type)) %>%
-    # bring cell centers at time t where cells are defined, for nematic calculation
-    dt.merge(cells, by=c("frame","cell_id")) %>%
-    dt.merge(cells %>% dplyr::rename(neighbor_cell_id=cell_id),
-             by=c("frame","neighbor_cell_id"),
-             suffixes=c(".1",".2")) %>% 
-    # add roi on "cell_id", thus including ~half of T1 events in a ROI at its interface = fair enough
-    addRois(., movieDir, rois) %>%
-  # calculate T1 nematics and positions at time t
-    mutate(T1xx=0.5*((center_x.2-center_x.1)^2 - (center_y.2-center_y.1)^2),
-           T1xy=(center_x.2-center_x.1)*(center_y.2-center_y.1),
-           normfact = sqrt(T1xx^2+T1xy^2),
-           # defines the T1 nematic parallel to gained bonds
-           unitary_T1xx = ifelse(type=="gain", -(1/normfact)*T1xx, (1/normfact)*T1xx),
-           unitary_T1xy = ifelse(type=="gain", -(1/normfact)*T1xy, (1/normfact)*T1xy),
-           phi = mod2pi(0.5*(atan2(unitary_T1xy, unitary_T1xx)))) %>% 
-    # calculate nematic center position and coordinates
-    mutate(center_x=0.5*(center_x.1+center_x.2),
-           center_y=0.5*(center_y.1+center_y.2),
-           x1=center_x-0.5*displayFactor*cos(phi),
-           y1=center_y-0.5*displayFactor*sin(phi),
-           x2=center_x+0.5*displayFactor*cos(phi),
-           y2=center_y+0.5*displayFactor*sin(phi)) %>%
-    # remove unnecessary columns
-    select(-c(T1xx,T1xy,normfact,center_x.1,center_x.2,center_y.1,center_y.2,dbond_id,left_dbond_id,isNeighbor.t,isNeighbor.tp1)) %>% 
-    addTimeFunc(movieDb,.) %>%
-    mutate(movie=basename(movieDir)) %>% add_dev_time()
-  
-  if (cellContour) {
-    topoChangeSummary  <- locload(file.path(movieDir, "topochanges/topoChangeSummary.RData")) %>%
-      filter(num_t1_gained>0 |  num_t1_lost>0) %>%
-      mutate(t1_type=ifelse(num_t1_gained>0, ifelse(num_t1_lost>0, "gain_and_loss", "gain"), "loss")) %>% 
-      select(-c(num_t1_gained, num_t1_lost, num_neighbors_t)) %>%
-      dt.merge(locload(file.path(movieDir, "cellshapes.RData")), by = c("frame","cell_id"), allow.cartesian=TRUE)
-    
-    T1Nematics %<>%
-      melt(measure.vars = c("cell_id","neighbor_cell_id"), value.name="cell_id") %>% 
-      dt.merge(topoChangeSummary, by = c("frame","cell_id"), allow.cartesian=TRUE) %>%
-      arrange(frame, roi, cell_id, bond_order) %>% print_head()
-  }
-  
-  dbDisconnect(movieDb)
-  
-  return(T1Nematics)
-}
-## DEBUG mqf_unitary_nematics_T1 ####
-if (F) {
-  mqf_unitary_nematics_T1(movieDir) %>% filter(roi=="raw") %>%
-    # crop the image by defining squareRoi
-    render_frame(70, squareRoi=rbind(c(1500,2000),c(1000,1500))) +
-    # plot nematics as segments
-    geom_segment(aes(x=x1,y=y1,xend=x2,yend=y2),
-                 size=1.2, alpha=0.7, lineend="round", color="orange", na.rm=T) +
-    ggtitle("T1 nematics")
-  
-  res <- multi_db_query(movieDirs, mqf_unitary_nematics_T1) %>% print_head()
-  
-  res %>% filter(movie=="WT_25deg_111102") %>%
-    render_frame(70, squareRoi=rbind(c(1500,2000),c(1000,1500))) +
-    # plot nematics as segments
-    geom_segment(aes(x=x1,y=y1,xend=x2,yend=y2),
-                 size=1.2, alpha=0.7, lineend="round", color="orange", na.rm=T) +
-    ggtitle("T1 nematics")
-}
-## mqf_unitary_nematics_T1_coarse_grid() ####
-mqf_unitary_nematics_T1_coarse_grid <- function(movieDir, rois="raw", gridSize=128, kernSize=11, displayFactor=-1){
+## mqf_cg_grid_unitary_nematics_T1() ####
+mqf_cg_grid_unitary_nematics_T1 <- function(movieDir, rois="raw", gridSize=128, kernSize=11, displayFactor=-1){
   
   # Description: retrieve and coarse-grain T1 nematics 
   # Usage: get_nematics_T1_cg(movieDir, gridSize=128, kernSize=11, displayFactor=-1) where gridSize, kernSize, displayFactor are optional
@@ -1301,6 +1173,150 @@ mqf_unitary_nematics_T1_coarse_grid <- function(movieDir, rois="raw", gridSize=1
   
   return(cgT1nematicsSmooth)
 }
+
+
+
+## DEBUG mqf_unitary_nematics_T1 ####
+if (F) {
+  mqf_unitary_nematics_T1(movieDir) %>% filter(roi=="raw") %>%
+    # crop the image by defining squareRoi
+    render_frame(70, squareRoi=rbind(c(1500,2000),c(1000,1500))) +
+    # plot nematics as segments
+    geom_segment(aes(x=x1,y=y1,xend=x2,yend=y2),
+                 size=1.2, alpha=0.7, lineend="round", color="orange", na.rm=T) +
+    ggtitle("T1 nematics")
+  
+  res <- multi_db_query(movieDirs, mqf_unitary_nematics_T1) %>% print_head()
+  
+  res %>% filter(movie=="WT_25deg_111102") %>%
+    render_frame(70, squareRoi=rbind(c(1500,2000),c(1000,1500))) +
+    # plot nematics as segments
+    geom_segment(aes(x=x1,y=y1,xend=x2,yend=y2),
+                 size=1.2, alpha=0.7, lineend="round", color="orange", na.rm=T) +
+    ggtitle("T1 nematics")
+}
+## DEBUG mqf_unitary_nematics_CD() ####
+if (F){
+  mqf_unitary_nematics_CD(movieDir) %>% filter(roi=="raw") %>%
+    # crop the image by defining squareRoi
+    render_frame(70, squareRoi=rbind(c(1500,2000),c(1000,1500))) +
+    # plot nematics as segments
+    geom_segment(aes(x=x1,y=y1,xend=x2,yend=y2),
+                 size=1.2, alpha=0.7, lineend="round", color="orange", na.rm=T) +
+    ggtitle("Cell division nematics")
+  
+  res <- multi_db_query(movieDirs, mqf_unitary_nematics_CD) %>% print_head()
+  
+  res %>% filter(movie=="WT_25deg_111102") %>%
+    render_frame(70, squareRoi=rbind(c(1500,2000),c(1000,1500))) +
+    # plot nematics as segments
+    geom_segment(aes(x=x1,y=y1,xend=x2,yend=y2),
+                 size=1.2, alpha=0.7, lineend="round", color="orange", na.rm=T) +
+    ggtitle("Cell division nematics")
+}
+## DEBUG mqf_nematics_cell_elong() ####
+if (F){
+  mqf_nematics_cell_elong(movieDir, rois = "raw") %>%
+    # crop the image by defining squareRoi
+    render_frame(120, squareRoi=rbind(c(1500,2000),c(1000,1500))) +
+    # plot nematics as segments
+    geom_segment(aes(x=x1,y=y1,xend=x2,yend=y2),
+                 size=1.2, alpha=0.7, lineend="round", color="red", na.rm=T) +
+    ggtitle("Cell elongation pattern")
+  
+  multi_db_query(movieDirs, mqf_nematics_cell_elong, c("blade","hinge"), displayFactor=70) %>% print_head() %>%
+    filter(movie=="WT_25deg_111102" & roi=="blade") %>%
+    render_frame(120, squareRoi=rbind(c(1500,2000),c(1000,1500))) +
+    # plot nematics as segments
+    geom_segment(aes(x=x1,y=y1,xend=x2,yend=y2),
+                 size=1.2, alpha=0.7, lineend="round", color="red", na.rm=T) +
+    ggtitle("Cell elongation pattern")
+}
+## DEBUG mqf_nematics_cell_elong_coarse_grid() ####
+if (F){
+  mqf_nematics_cell_elong_coarse_grid(movieDir) %>% 
+    render_frame(70) +
+    geom_segment(aes(x=x1, y=y1,xend=x2, yend=y2),
+                 size=2, lineend="round", color="red", na.rm=T)
+  
+  res <- multi_db_query(movieDirs, mqf_nematics_cell_elong_coarse_grid, c("raw", "blade"))  %>% print_head()
+  res %>%
+    filter(movie=="WT_25deg_111102" & roi=="blade") %>%
+    render_frame(70) +
+    geom_segment(aes(x=x1, y=y1,xend=x2, yend=y2),
+                 size=2, lineend="round", color="red", na.rm=T)
+  
+  res %>%
+    filter(movie=="WT_25deg_111102" & roi=="raw") %>%
+    render_frame(70) +
+    geom_segment(aes(x=x1, y=y1,xend=x2, yend=y2),
+                 size=2, lineend="round", color="red", na.rm=T)
+}
+
+## mqf_nematics_cell_elong_roi_avg()
+## DEBUG mqf_nematics_cell_elong_roi_avg()
+## DEBUG mqf_nematics_cell_elong_avg_roi() ####
+if(F){
+  mqf_nematics_cell_elong_avg_roi(movieDir) %>% 
+    render_frame(70) +
+    geom_segment(aes(x=x1, y=y1,xend=x2, yend=y2),
+                 size=2, lineend="round", color="red", na.rm=T)
+  
+  mqf_nematics_cell_elong_avg_roi(movieDir) %>% 
+    render_frame(70) +
+    geom_segment(aes(x=x1, y=y1,xend=x2, yend=y2, color=roi),
+                 size=2, lineend="round", na.rm=T)
+  
+  
+  res <- multi_db_query(movieDirs, mqf_nematics_cell_elong_avg_roi, c("raw", "blade"))  %>% print_head()
+  res %>%
+    filter(movie=="WT_25deg_111102") %>%
+    render_frame(70) +
+    geom_segment(aes(x=x1, y=y1,xend=x2, yend=y2, color=roi),
+                 size=2, lineend="round", na.rm=T)
+  
+  res %>% ggplot(aes(dev_time, cgExx_smooth, color=movie)) + geom_line() +
+    facet_wrap(~roi)
+  
+  
+}
+## DEBUG mqf_unitary_nematics_CD_coarse_grid() ####
+if (F){
+  mqf_unitary_nematics_CD_coarse_grid(movieDir) %>%
+    # crop the image by defining squareRoi
+    render_frame(50) +
+    # plot nematics as segments
+    geom_segment(aes(x=x1,y=y1,xend=x2,yend=y2),
+                 size=2, alpha=0.7, lineend="round", color="orange", na.rm=T) +
+    ggtitle("Coarse-grained cell division nematics")
+  
+  res <- multi_db_query(movieDirs, mqf_unitary_nematics_CD_coarse_grid) %>% print_head()
+  res %>% filter(movie=="WT_25deg_111102") %>%
+    # crop the image by defining squareRoi
+    render_frame(50) +
+    # plot nematics as segments
+    geom_segment(aes(x=x1,y=y1,xend=x2,yend=y2),
+                 size=2, alpha=0.7, lineend="round", color="orange", na.rm=T) +
+    ggtitle("Coarse-grained cell division nematics")
+}
+## DEBUG mqf_unitary_nematics_CD_avg_roi() ####
+if (F) {
+  mqf_unitary_nematics_CD_avg_roi(movieDir, kernSize=5) %>% 
+    render_frame(20) +
+    geom_segment(aes(x=x1, y=y1,xend=x2, yend=y2, color=roi),
+                 size=2, lineend="round", na.rm=T)
+  
+  
+  res <- multi_db_query(movieDirs, mqf_unitary_nematics_CD_avg_roi, rois=c("raw", "blade"), kernSize=5)  %>% print_head()
+  res %>%
+    filter(movie=="WT_25deg_111102") %>%
+    render_frame(20) +
+    geom_segment(aes(x=x1, y=y1,xend=x2, yend=y2, color=roi),
+                 size=2, lineend="round", na.rm=T)
+  
+  res %>% ggplot(aes(dev_time, cgCDxx_smooth, color=movie)) + geom_line() +
+    facet_wrap(~roi)
+}
 ## DEBUG mqf_unitary_nematics_T1_coarse_grid() ####
 if (F){
   mqf_unitary_nematics_T1_coarse_grid(movieDir) %>% 
@@ -1319,47 +1335,6 @@ if (F){
     geom_segment(aes(x=x1,y=y1,xend=x2,yend=y2),
                  size=2, alpha=0.7, lineend="round", color="orange", na.rm=T) +
     ggtitle("Coarse grained cell neighbor exchanges")
-}
-## mqf_unitary_nematics_T1_avg_roi() ####
-mqf_unitary_nematics_T1_avg_roi <- function(movieDir, rois=c(), kernSize=11, displayFactor=default_roi_display_factor(movieDir)){
-  
-  # Description: retrieve and coarse-grain T1 nematics by ROI
-  # Usage: mqf_unitary_nematics_T1_avg_roi(movieDir, rois=c(), kernSize=11, displayFactor=default_roi_display_factor(movieDir)) where rois, kernSize, displayFactor are optional
-  # Arguments: movieDir = path to movie directory,
-  #            rois = select rois (all rois by default),
-  #            kernSize = time-window size in frames for time smoothing (+/- 5 frames by default),
-  #            displayFactor = display factor that is either user-defined or automatically calculated (default)
-  # Output: a dataframe
-  
-  movieDb <- openMovieDb(movieDir)
-  cgT1nematics <- mqf_unitary_nematics_T1(movieDir) %>% 
-    # average nematics in each frame and grid element
-    group_by(frame, roi) %>%
-    summarise(cgT1xx=mean(unitary_T1xx),
-              cgT1xy=mean(unitary_T1xy),
-              roi_center_x=mean(center_x),
-              roi_center_y=mean(center_y))
-  
-  # do a time averaging over 11 frames in each grid element
-  cgT1nematicsSmooth <- cgT1nematics %>%
-    smooth_tissue(cgT1xx, kernel_size=kernSize, by="roi", gap_fill = 0, global_min_max = F) %>%
-    smooth_tissue(cgT1xy, kernel_size=kernSize, by="roi", gap_fill = 0, global_min_max = F) %>%
-    # calculate the coarse-grained nematic angle and norm
-    mutate(phi=mod2pi(0.5*(atan2(cgT1xy_smooth, cgT1xx_smooth))),
-           norm=sqrt(cgT1xy_smooth^2+cgT1xx_smooth^2)) %>%
-    # calculate the nematic coordinates
-    mutate(x1=roi_center_x-0.5*norm*displayFactor*cos(phi),
-           y1=roi_center_y-0.5*norm*displayFactor*sin(phi),
-           x2=roi_center_x+0.5*norm*displayFactor*cos(phi),
-           y2=roi_center_y+0.5*norm*displayFactor*sin(phi)) %>%
-    # remove unnecessary columns
-    select(-c(cgT1xx,cgT1xy)) %>%
-    addTimeFunc(movieDb, .) %>% 
-    mutate(movie=basename(movieDir)) %>% add_dev_time()
-  
-  dbDisconnect(movieDb)
-  
-  return(cgT1nematicsSmooth)
 }
 ## DEBUG mqf_unitary_nematics_T1_avg_roi() ####
 if (F){
@@ -1409,27 +1384,4 @@ if (F) {
   echo("Test: multi_db_query(movieDirs, mqf_unitary_nematics_T1_avg_roi)")
   system.time({res <- multi_db_query(movieDirs, mqf_unitary_nematics_T1_avg_roi)})
   
-}
-
-
-
-## mqf_cell_elongDB OBSELETE ####
-if (F){
-  mqf_cell_elongDB <- function(movieDir, rois=c(), cellContour=F){
-    
-    # Description: get all cell elongtation nematics per frame, in ROIs
-    # Usage: in combination with multi_db_query(), ex: multi_db_query(movieDirs, mqf_cell_elongDB, selectedRois)
-    # Arguments: movieDb = opened DB connection,  movieDir = path to a given movie folder
-    warning("OBSELETE, use mqf_nematics_cell_elong")
-    movieDb <- openMovieDb(movieDir)
-    
-    cellElong <- dbGetQuery(movieDb, "select cell_id, frame, center_x, center_y, elong_xx, elong_xy from cells where cell_id!=10000") %>%
-      addRois(., movieDir, rois) %>%
-      addTimeFunc(movieDb, .) %>% 
-      mutate(movie=basename(movieDir)) %>% add_dev_time()
-    
-    dbDisconnect(movieDb)
-    
-    return(cellElong)
-  }
 }
