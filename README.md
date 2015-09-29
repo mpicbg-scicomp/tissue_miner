@@ -15,7 +15,7 @@ How to get started?
 We provide a preconfigured [docker image](https://registry.hub.docker.com/u/brandl/tissue_miner/) to run TissueMiner without any setup. Just do
 
      ## download some example data
-     curl https://files.mpi-cbg.de/index.php/s/oEhtzFujKHUa35Z/download  | tar -zxvf -
+     curl https://cloud.mpi-cbg.de/index.php/s/EspCWSQn3k6NKLA/download  | tar -zxvf -
      
      ## download the image and start the analysis
      docker pull brandl/tissue_miner
