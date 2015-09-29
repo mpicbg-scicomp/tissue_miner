@@ -916,7 +916,7 @@ mqf_cg_roi_nematics_cell_elong <- function(movieDir, rois=c(), kernSize=1, displ
   
   movieDb <- openMovieDb(movieDir)
   
-  cgNematics <- mqf_nematics_cell_elong(movieDir, rois=rois) %>%
+  cgNematics <- mqf_fg_nematics_cell_elong(movieDir, rois=rois) %>%
     # average nematics in each frame and roi
     group_by(frame, roi) %>%
     summarise(cgExx=mean(elong_xx, na.rm=T),
@@ -960,7 +960,7 @@ mqf_cg_roi_unitary_nematics_CD <- function(movieDir, rois=c(), kernSize=11, disp
   
   movieDb <- openMovieDb(movieDir)
   
-  cgCDnematics <- mqf_unitary_nematics_CD(movieDir) %>%
+  cgCDnematics <- mqf_fg_unitary_nematics_CD(movieDir) %>%
     # average nematics in each frame and grid element
     group_by(frame, roi) %>%
     summarise(cgCDxx=mean(normCDxx),
@@ -991,8 +991,8 @@ mqf_cg_roi_unitary_nematics_CD <- function(movieDir, rois=c(), kernSize=11, disp
   return(cgCDnematicsSmooth)
   
 }
-## mqf_cd_roi_unitary_nematics_T1() ####
-mqf_cd_roi_unitary_nematics_T1 <- function(movieDir, rois=c(), kernSize=11, displayFactor=default_roi_display_factor(movieDir)){
+## mqf_cg_roi_unitary_nematics_T1() ####
+mqf_cg_roi_unitary_nematics_T1 <- function(movieDir, rois=c(), kernSize=11, displayFactor=default_roi_display_factor(movieDir)){
   
   # Description: retrieve and coarse-grain T1 nematics by ROI
   # Usage: mqf_unitary_nematics_T1_avg_roi(movieDir, rois=c(), kernSize=11, displayFactor=default_roi_display_factor(movieDir)) where rois, kernSize, displayFactor are optional
@@ -1003,7 +1003,7 @@ mqf_cd_roi_unitary_nematics_T1 <- function(movieDir, rois=c(), kernSize=11, disp
   # Output: a dataframe
   
   movieDb <- openMovieDb(movieDir)
-  cgT1nematics <- mqf_unitary_nematics_T1(movieDir) %>% 
+  cgT1nematics <- mqf_fg_unitary_nematics_T1(movieDir) %>% 
     # average nematics in each frame and grid element
     group_by(frame, roi) %>%
     summarise(cgT1xx=mean(unitary_T1xx),
@@ -1048,7 +1048,7 @@ mqf_cg_grid_nematics_cell_elong <- function(movieDir, rois="raw", gridSize=128, 
   
   if (displayFactor==-1) autoscale=T else autoscale=F
   
-  cgNematics <- mqf_nematics_cell_elong(movieDir, rois) %>%
+  cgNematics <- mqf_fg_nematics_cell_elong(movieDir, rois) %>%
     coarseGrid(gridSize) %>% 
     # remove grid elements that overlap the margin cell
     removeBckndGridOvlp(getBckndGridElements(movieDb, gridSize)) %>% 
@@ -1095,7 +1095,7 @@ mqf_cg_grid_unitary_nematics_CD <- function(movieDir, rois="raw", gridSize=128, 
   
   if (displayFactor==-1) autoscale=T else autoscale=F
   
-  cgCDnematics <- mqf_unitary_nematics_CD(movieDir) %>%
+  cgCDnematics <- mqf_fg_unitary_nematics_CD(movieDir) %>%
     coarseGrid(gridSize) %>%
     # remove grid elements that overlap the margin cell
     removeBckndGridOvlp(getBckndGridElements(movieDb, gridSize)) %>%
@@ -1141,7 +1141,7 @@ mqf_cg_grid_unitary_nematics_T1 <- function(movieDir, rois="raw", gridSize=128, 
   if (displayFactor==-1) autoscale=T else autoscale=F
   
   movieDb <- openMovieDb(movieDir)
-  cgT1nematics <- mqf_unitary_nematics_T1(movieDir) %>% 
+  cgT1nematics <- mqf_fg_unitary_nematics_T1(movieDir) %>% 
     # coarse-grain nematics (assume the presence of center_x and center_y in the data)
     coarseGrid(gridSize) %>%
     # remove grid elements that overlap the margin cell
