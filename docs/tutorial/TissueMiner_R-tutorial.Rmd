@@ -1,7 +1,7 @@
 ---
 title: 'TissueMiner: a R-tutorial to visualize cell dynamics in 2D tissues'
 author: "Raphael Etournay"
-date: "15 September 2015"
+date: "30 September 2015"
 output:
   html_document:
     fig_caption: yes
@@ -59,7 +59,7 @@ print("Welcome to TissueMiner")
     + Extra tables **(./shear_contrib/\<ROI_name\>/avgDeformTensorsWide.RData)** to store the calculated pure shear deformation of triangles and tissue for each region of interest
         
 
-## Download TissueMiner routines locally
+## Install TissueMiner routines and Rstudio
 
 ### Local TissueMiner installation
 #### Method 1
@@ -80,11 +80,11 @@ source .bash_profile
 ```{bash method 2, warning=FALSE, message=FALSE, echo=T, eval=F}
 #### Open a terminal and execute the lines below ####
 
-## Set a path to install TissueMiner in you home folder (please use an absolute path)
+## Set a path to install TissueMiner in your home folder (please use an absolute path)
 echo "export TM_HOME=~/tissue_miner" >> .bash_profile
 source .bash_profile
 
-## If Git ins't installed yet, please install it
+## If Git isn't installed yet, please install it
 # On Ubuntu
 sudo apt-get install git
 
@@ -111,7 +111,7 @@ http://superuser.com/questions/568464/how-to-install-libav-avconv-on-osx
 
 ```
 
-## Set up the Rstudio environement
+## Load TissueMiner routines in Rstudio
 * **Please modify the paths (first chunk below) according to your data location**
 * **Always execute the code below before running the analysis**
 ```{r Setup IN/OUT, warning=FALSE, message=FALSE, echo=T,results='hide'}
@@ -296,91 +296,52 @@ allCellProperties <- dbGetQuery(db, "select * from cells where cell_id!=10000")
 
 * Here, we briefly introduce the main verbs and the syntax of the grammar of data manipulation supplied by the dplyr package. In practice, just **a single operator and about 5 verbs only are sufficient to effectively manipulate data**. We also encourage the user to download the Rstudio cheat sheet [here](http://www.rstudio.com/resources/cheatsheets/) in which the grammar is summarized.
 
-* Simply stated, this grammar allows the user to **chain a series of operations** by using the pipe operator **%>%**. In each step of the chain, every intermediate result is taken as an input for the next operation. Each type of operation on dataframes is identified by a verb. In the present tutorial, we mainly use the following few verbs:
+* Simply stated, this grammar allows the user to **chain a series of operations** by using the pipe operator **%>%**. In each step of the chain, every intermediate result is taken as an input for the next operation. Each type of operation on dataframes is identified by a verb. 
 
-    + **dbGetQuery**: send a SQL query to a database and retuns a table
-    + **mutate**: perform calculations on columns, by adding or modifying existing ones
-    + **summarize**: compute summary statistics
-    + **group_by** (and **ungroup**): helpful to mutate or summarize data on user-defined data subsets
-    + **filter**: parse data on row content
-    + **select**: parse data on column names
-    + **arrange**: order values of desired columns
-    + **inner_join**: merge two data frames by intersecting user-defined columns
-    + **melt** or **gather**: gather columns into rows
-    + **dcast** or **spread**: spread rows into columns
+* This grammar also allows the user to chain other built-in R-functions or custom ones.
+
+In the present tutorial, we mainly use the following few verbs:
+
+Functions | Description | Package
+--------------|-------------|-------------
+**dbGetQuery** | query a SQLite database and retuns a dataframe | RSQLite
+**mutate** | perform calculations on columns by adding or modifying existing ones | dplyr
+**summarize** | compute summary statistics | dplyr
+**group_by** (and **ungroup**) | subsest data into chunks prior to a mutate or a summarize operation | dplyr
+**filter** | parse data on row content | dplyr
+**select** | parse data on column names | dplyr
+**arrange** | order values of desired columns | dplyr
+**inner_join** | merge two data frames by intersecting user-defined columns | dplyr
+**melt** or **gather** | gather columns into rows |reshape2 or dplyr respectively
+**dcast** or **spread** | spread rows into columns | reshape2 or dplyr respectively
 
 ***
 * This grammar can be easily extended by the user and can be used in combination with important TissueMiner functions for visualizing and quantifying cell dynamics in 2D-living tissues:
 
-    + **print_head**: display the first lines of the current table and the total number of rows in the table, without affecting the data content
-    + **dt.merge**: custom TissueMiner function for fast merging of two dataframes with the possiblity to suffix colunms having identical names
-    
-    + **openMovieDb**: open a connection to a selected database
-    + **multi_db_query**: query multiple databases and aggregate data into a dataframe
-    + **coarseGrid**: assign grid elements to quantities provided positions (center_x and center_y) are present
-    + **smooth_tissue**: average quantities in time using a moving window (convolution) applied by grid elements
-    + **render_frame**: plot quantities from a dataframe onto one movie image
-    + **render_movie**: plot quantities from a dataframe onto every movie image and make a movie
-    + **align_movie_start**: align movies at earliest common developmental time
-    + **chunk_time_into_intervals**: undersample time for local time averaging
-    + **synchronize_frames**: find closest frame to user-defined time intervals 
-    
-### Description of specific type of analysis: multi-query functions (mqf_*)
-
-#### Fine-grained analyses
-
-* mqf_fg_* functions generate fine-grained data that
-    + are mapped to all ROIs by default
-    + include bond, cell or triangle contours for plotting
-    + perform an automatic scaling of nematics for an optimal display on the original image
-
-mqf_fg_* functions | Description | Source data
+Functions | Description | Project
 --------------|-------------|-------------
-***mqf_fg_nematics_cell_elong*** | get cell elongation nematics from the DB | DB,cellshapes.RData
-***mqf_fg_unitary_nematics_CD*** | calculate cell division unitary nematics | DB, cellshapes.RData
-***mqf_fg_unitary_nematics_T1*** | calculate cell neighbor change unitary nematics | DB, t1DataFilt.RData, topoChangeSummary.RData, cellshapes.RData
-***mqf_fg_cell_area*** | get cell area from the DB | DB, cellshapes.RData
-***mqf_fg_triangle_properties*** | get calculated triangle state properties | DB, Ta_t.RData, triList.RData,triangles.RData
-***mqf_fg_bond_length*** | get bond length and positions from the DB | DB
-***mqf_fg_cell_neighbor_count*** | calculate cell neighbor number from the DB | DB, cellshapes.RData
-***mqf_fg_dev_time*** | get developmental time from the configuration file | DB
+**print_head** | display the first lines of the current table and the total number of rows in the table without affecting the data content | TissueMiner
+**dt.merge** | fast merging of two dataframes with the possiblity to suffix colunms having identical names | TissueMiner
+**openMovieDb** | open a connection to a database of a selected movie | TissueMiner
+**multi_db_query** | query multiple databases and aggregate data into a dataframe | TissueMiner
+**coarseGrid** | assign grid elements to spatial quantities provided their positions (center_x and center_y) are present | TissueMiner
+**smooth_tissue** | average quantities in time using a moving window (convolution) applied by grid elements | TissueMiner
+**align_movie_start** | align movies at earliest common developmental time | TissueMiner
+**chunk_time_into_intervals** | undersample time for local time averaging | TissueMiner
+**synchronize_frames** | find closest frame to user-defined time intervals | TissueMiner
+**mqf_* functions** | set of multi-query functions to quantify cell dynamics | TissueMiner
 
 
-#### Coarse-grained analyses: per frame and by ROIs
-
-* The **mqf_cg_roi_* functions**:
-    + perform spatial (by ROI) and temporal (kernSize option) averaging of quantities
-    + perform an automatic scaling of nematics for an optimal display on the original image
-
-mqf_cg_roi_* functions | Description | Source data
---------------|-------------|-------------
-***mqf_cg_roi_cell_count*** | count cell number | DB
-***mqf_cg_roi_cell_area*** | coarse-grain cell area | DB
-***mqf_cg_roi_cell_neighbor_counts*** | average cell neighbor count | DB
-***mqf_cg_roi_polygon_class*** | average and trim cell polygon class | DB
-***mqf_cg_roi_triangle_elong*** | coarse-grain cell elongation using triangles as a proxy | DB
-***mqf_cg_roi_rate_CD*** | average cell division rate | DB
-***mqf_cg_roi_rate_T2*** | average extrusion rate | DB
-***mqf_cg_roi_rate_T1*** | average neighbor change rate | DB
-***mqf_cg_roi_rate_isotropic_contrib*** | coarse-grain **isotropic** tissue deformation and its cellular contributions | DB
-***mqf_cg_roi_rate_shear*** | coarse-grain **anisotropic** tissue deformation and its cellular contributions | DB
-***mqf_cg_roi_nematics_cell_elong*** |  coarse-grain cell elongation nematics by ROI | see mqf_fg_nematics_cell_elong()
-***mqf_cg_roi_unitary_nematics_CD*** | coarse-grain division unitary nematics | DB
-***mqf_cd_roi_unitary_nematics_T1*** | coarse-grain neighbor change unitary nematics | DB
-
-#### Coarse-grained analyses: per frame and by square-grid elements
-
-* The **mqf_cg_grid_* functions**:
-    + perform spatial (by grid element) and temporal (kernSize option) averaging of quantities
-    + perform an automatic scaling of nematics for an optimal display on the original image
-
-***mqf_cg_grid_nematics_cell_elong*** | coarse-grain cell elongation nematics | DB
-***mqf_cg_grid_unitary_nematics_CD*** | coarse-grain division unitary nematics | DB
-***mqf_cg_grid_unitary_nematics_T1*** | coarse-grain neighbor change unitary nematics | DB
 
 
 ### Learning the grammar on an example
 **Aim:** calculate the average cell area in square microns as function of time in hours from start of time-lapse recording. 
+
+**Howto:**
+
+* use the **dbGetQuery()** function to input a dataframe to start the chain of operations
+* use the **%>%** operator to chain operations
+* manipulate the input dataframe using the *dplyr* grammar 
 
 ```{r Example of dplyr, warning=FALSE, message=FALSE, echo=TRUE, cache=TRUE}
 # We query the DB to get cell area and pipe the resulting table the next function
@@ -405,8 +366,8 @@ avgCellArea <- dbGetQuery(db, "select cell_id, frame, area from cells") %>%
   arrange(time_h)
 ```
 
-### Example 2
-For convenience, we built a custom **print_head()** function to display the first lines of the current table, without affecting the data content. The **print_head()** function can therefore be placed whereever needed in the chain of operations:
+### Extending the grammar
+For convenience, we built a custom **print_head()** function to display the first lines of the current dataframe, without affecting the data content. The **print_head()** function can therefore be placed whereever needed in the chain of operations:
 
 ```{r Example of print_head, warning=FALSE, message=FALSE, echo=TRUE, cache=TRUE}
 # Here, is again example 1, but we display the first and last steps using print_head()
@@ -422,7 +383,7 @@ avgCellArea <- dbGetQuery(db, "select cell_id, frame, area from cells") %>% prin
   arrange(time_h) %>% print_head()
 ```
 
-## Vectorized conditional statement (ifelse)
+### Vectorized conditional statement (ifelse)
 The R language provides a vectorized **ifelse()** function that we can then use in combination with the dplyr grammar. The vectorized **ifelse()** function takes 3 arguments corresponding to the condition (if), the consequent (then), and the alternative (else).
 
 ```{r Example of ifelse, warning=FALSE, message=FALSE, echo=TRUE, cache=TRUE}
@@ -434,9 +395,9 @@ cell <- dbGetQuery(db, "select cell_id, frame, area, elong_xx, elong_xy from cel
 ```
 
 
-## Modify table layout into wide or long formats
+### Modify table layout into wide or long formats
 
-### Wide to long format: the melt() or gather() function.
+#### Wide to long format: the melt() or gather() function.
 The  melt() (or gather()) function creates two columns: 
 
 * one 'variable' column listing variable names 
@@ -467,7 +428,7 @@ longFormat <- gather(cell, variable, value, -c(cell_id,frame)) %>% print_head()
 
 ```
 
-### Lond to wide format: the dcast() or spread() function
+#### Lond to wide format: the dcast() or spread() function
 The  dcast() (or spread()) function creates as many columns as variable names contained in the 'variable' column and lists the corresponding values. Both **dcast()** and **spread()** are equivalent, spread() being the newest implementation from the tidyr package.
 
 ```{r Example of dcast or spread, warning=FALSE, message=FALSE, echo=TRUE, cache=TRUE}
@@ -484,30 +445,42 @@ example <- cell %>% print_head() %>%
 ```
 
 
-## Data visualization with ggplot2 
+## Visualize complex data sets using a grammar of graphics 
 
-Here, we briefly introduce the main verbs and the syntax of the grammar of data **visualization** supplied by the ggplot2 package. In practice, just a single operator and a few visual marks are sufficient to effectively plot data. We also encourage the user to download the corresponding Rstudio cheat sheet [here](http://www.rstudio.com/resources/cheatsheets/) regarding data visualization with ggplot2.
+* Here, we briefly introduce the main verbs and the syntax of the grammar of data **visualization** supplied by the ggplot2 package. In practice, just a single operator and a few visual marks are sufficient to effectively plot data. We also encourage the user to download the corresponding Rstudio cheat sheet [here](http://www.rstudio.com/resources/cheatsheets/) regarding data visualization with ggplot2.
 
-Simply stated, this grammar allows the user to **chain multiple graphical layers to contruct a graph** by using the plus operator **+**, thereby improving the clarity of the code for complex graphs.
-
-
-* Some geometrical layers (common types of graphs):
-    + **geom_point**: to plot the data as points
-    + **geom_line**: to join the points by lines
-    + **geom_segment**: to plot a segment such as the representation of a nematic tensor, or a cell bond
-    + **geom_polygon**: to plot a polygon such as the representation of a cell
+* Simply stated, this grammar allows the user to **chain multiple graphical layers to contruct a graph** by using the plus operator **+**, thereby improving the clarity of the code for complex graphs.
 
 
-* Some complementary scaling layers:
-    + **scale\_x\_continuous** or **scale\_y\_continuous**: to control the x and y axes rendering
-    + **scale_color_gradientn**: to use a gradient of colors when rendering the data
+Some geometrical layers (common types of graphs):
+
+Function | Description | Package or project
+---------|-------------|-------------------
+**ggplot** | map data to graph elements (axes, colors, etc...)| ggplot2
+**geom_point** | plot  data as points | ggplot2
+**geom_line** | join the points by lines | ggplot2
+**geom_segment** | plot a segment such as the representation of a nematic tensor or a cell bond | ggplot2
+**geom_polygon** | plot a polygon such as the representation of a cell | ggplot2
+**render_frame** | plot data onto one movie image | TissueMiner
+**render_movie** | plot data onto every movie image and make a movie |TissueMiner
+
+Some complementary scaling layers:
+
+Function | Description | Package or project
+---------|-------------|-------------------
+**scale\_x\_continuous** or **scale\_y\_continuous** | to control the x and y axes rendering | ggplot2
+**scale_color_gradientn** | to use a gradient of colors when rendering the data | ggplot2
 
 
-* Saving a graph:
-    + Formats: raster (jpg, png, tiff, ...) or vector graphics (svg, eps, pdf, ...)
-    + **ggsave2()** function: TissueMiner provides the ggsave2() wrapper to the default ggsave() function in order to add more functionality, and we'll use ggsave2() in the rest of this tutorial.
+Saving a graph in the desired format (raster or vector graphics)
 
-### Example with ggplot:
+Function | Description | Package or project
+---------|-------------|-------------------
+**ggsave2** | ggsave2() is a wrapper to the default ggsave() function in order to add more functionality and we use ggsave2() in the rest of this tutorial | TissueMiner (using ggplot2)
+
+
+**Example:**
+
 **Aim:** plot the average cell area in square microns as function of time in hours from start of time-lapse recording:
 
 * use the **ggplot()** function
@@ -536,9 +509,7 @@ ggsave2(width=14, unit="in", outputFormat="svg")
 ```
 
 
-# Rendering cells, bonds and vertices
-
-## Rendering cells and vertices
+# Apply the R-grammar to visualize cells
 
 * Cells can be rendered as polygons using the vertices ordered anti-clockewisely around each cell. Vertices ordering is performed in the automated TissueMiner workflow.
 * The ordered list of vertices around each cell is stored in the *cellshapes.RData* table along with the database file.
@@ -550,7 +521,7 @@ cellshapes <- locload(file.path(movieDir, "cellshapes.RData")) %>% print_head()
 
 ```
 
-### Example 1: plot cells as polygons in the Cartesian system
+## Example 1: plot cells as polygons in the Cartesian system
 
 ```{r Rendering cells and vertices: example1, warning=FALSE, message=FALSE, fig.width=11, cache=TRUE}
 ggplot(cellshapes %>% filter(frame==70)) +
@@ -562,7 +533,7 @@ ggplot(cellshapes %>% filter(frame==70)) +
   ggtitle("Pupal wing cells represented as polygons in Cartesian system")
 ```
 
-### Example 2: plot cells as polygons in the image coordinate system
+## Example 2: plot cells as polygons in the image coordinate system
 
 ```{r Rendering cells and vertices: example2, warning=FALSE, message=FALSE, fig.width=11, cache=TRUE}
 ggplot(cellshapes %>% filter(frame==70)) +
@@ -573,7 +544,7 @@ ggplot(cellshapes %>% filter(frame==70)) +
   ggtitle("Pupal wing cells represented as polygons in image coordinate system")
 ```
 
-### Example 3: plot cells and vertices
+## Example 3: plot cells and vertices
 
 ```{r Rendering cells and vertices: example3, warning=FALSE, message=FALSE, fig.width=11, cache=TRUE}
 ggplot(cellshapes %>% filter(frame==70)) +
@@ -585,7 +556,7 @@ ggplot(cellshapes %>% filter(frame==70)) +
   ggtitle("Pupal wing cells and vertices")
 ```
 
-### Example 4: overlay cells and vertices on the image
+## Example 4: overlay cells and vertices on the image
 
 We can now overlay cells and vertices on the wing image. To do so, we built a dedicated **render_frame()** function that loads the specified frame of the time-lapse. This function takes the cell contour table and a desired frame as input variables. The **render_frame()** function returns the first layers of the graph that consists of a raster image of the wing and additional specifications such as the Y-axis flipping - **scale_y_continuous(trans = "reverse")** - and the iso-scaling of the X and Y axes - **coord_equal()**. 
 
@@ -603,7 +574,180 @@ cellshapes %>%
 ```
 
 
-### Further reading: the render_frame() function
+## Further reading: the render_frame() function
 
 Please, read the current definition of the **render_frame()** function at the [following location](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/commons/MovieFunctions.R)
 
+
+
+
+# Working with regions of interest (ROIs)
+
+* By default TissueMiner creates two regions of interest:
+    + **raw**: this ROI corresponds to all tracked cells contained in the DB
+    + **whole_tissue**: this ROI corresponds to the largest population of cells that is visible throughout the movie. It's a subset of **raw** obtained by the lineage-browser algorithm that is part of the automated workflow of TissueMiner
+
+* Other regions of interest can be manually defined by the user in Fiji ([see Manual](link)). Of note, these additional ROIs are only taken into account if they were defined **before** running the automated workflow.  
+
+The automated workflow includes routines to browse the cell lineage and to follow ROIs in time once defined on a given image of the timelapse. Please note that cells in contact with the margin are discarded because the segmentation and tracking quality isn't optimum near the margin.
+
+**Example: Visualize cells in selected ROIs**
+```{r ROI definition: data, warning=FALSE, message=FALSE, fig.width=11, cache=TRUE}
+
+# Load tracked ROIs: 
+lgRoiSmoothed <- locload(file.path(movieDir, "roi_bt/lgRoiSmoothed.RData")) %>% print_head() %>%
+  filter(roi %in% c("hinge", "blade", "HBinterface")) 
+
+# Load cell shapes for plotting on the wing
+cellshapes <- locload(file.path(movieDir, "cellshapes.RData"))
+
+# Merge ROI with cell polygonal definition
+cellshapesWithRoi <- dt.merge(cellshapes, lgRoiSmoothed, by="cell_id", allow.cartesian=T) %>%
+  arrange(frame, cell_id, bond_order) ## .. because merge messed up the ordering
+
+# Plot  ROI on the wing
+render_frame(cellshapesWithRoi, 200) + 
+  geom_polygon(aes(x_pos, y_pos, fill=roi, group=cell_id), alpha=0.5) +
+  scale_fill_manual(values=c("blade"="darkgreen",
+                             "hinge"="yellow",
+                             "HBinterface"="red"))
+```
+ 
+***
+
+
+
+# Make videos 
+**Videos are helpful to visualize the time evolution of patterns**
+
+Here, we show use a parallelized loop over all frames of the time-lapse. The well-known avconv (formerly ffmpeg) program to create videos must be installed on your computer, please, visit [http://ffmpegmac.net/](http://ffmpegmac.net/) for Mac users or simply "sudo apt-get install libav-tools" on Ubuntu-Linux. 
+
+* To simplify the procedure of creating videos, we built a dedicated function **render_movie()** that takes a list of ggplot layers as an input argument.
+* Please, read the current definition of the **render_movie()** function [here](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/commons/MovieFunctions.R).
+```{r ROI definition: movie, warning=FALSE, message=FALSE, fig.width=11, cache=TRUE, eval=FALSE}
+# Make a video of the ROIs on the wing
+render_movie(cellshapesWithRoi, "bt_bhfix_peeled.mp4", list(
+          geom_polygon(aes(x_pos, y_pos, fill=roi, group=cell_id),  alpha=0.5),
+          scale_fill_manual(values=c("blade"="darkgreen",
+                             "hinge"="yellow",
+                             "HBinterface"="red"))))
+```
+
+
+
+
+# A TissueMiner library to visualize cell dynamics
+
+TissueMiner provide a set of tools to quantify and visualize cell dynamics at different spatial scales.
+These tools are all prefixed with 'mqf' as they perform multiple queries to the pre-processed data obtained with the TissueMiner automated workflow. Their common features are:
+
+* aggreagte data from one selected movie into a dataframe for immediate visualization
+* include ROI definitions
+* include developmental time
+
+Mendatory argument: a path to a selected movie directory
+
+Optional arguments: to control selected ROIs and other paramters that are specific to some subsets of mqf functions
+
+## Fine-grained analyses
+
+* mqf_fg_* functions generate fine-grained data (cellular scale) that
+    + are mapped to all ROIs by default
+    + include bond, cell or triangle contours for plotting
+    + perform an automatic scaling of nematics for an optimal display on the original image
+
+mqf_fg_* functions | Description | Source data
+--------------|-------------|-------------
+***mqf_fg_nematics_cell_elong*** | get cell elongation nematics from the DB | DB,cellshapes.RData
+***mqf_fg_unitary_nematics_CD*** | calculate cell division unitary nematics | DB, cellshapes.RData
+***mqf_fg_unitary_nematics_T1*** | calculate cell neighbor change unitary nematics | DB, t1DataFilt.RData, topoChangeSummary.RData, cellshapes.RData
+***mqf_fg_cell_area*** | get cell area from the DB | DB, cellshapes.RData
+***mqf_fg_triangle_properties*** | get calculated triangle state properties | DB, Ta_t.RData, triList.RData,triangles.RData
+***mqf_fg_bond_length*** | get bond length and positions from the DB | DB
+***mqf_fg_cell_neighbor_count*** | calculate cell neighbor number from the DB | DB, cellshapes.RData
+***mqf_fg_dev_time*** | get developmental time from the configuration file | DB
+
+
+## Coarse-grained analyses: per frame and by ROIs
+
+* The **mqf_cg_roi_* functions**:
+    + perform spatial (by ROI) and temporal (kernSize option) averaging of quantities
+    + perform an automatic scaling of nematics for an optimal display on the original image
+
+mqf_cg_roi_* functions | Description | Source data
+--------------|-------------|-------------
+***mqf_cg_roi_cell_count*** | count cell number | DB
+***mqf_cg_roi_cell_area*** | coarse-grain cell area | DB
+***mqf_cg_roi_cell_neighbor_counts*** | average cell neighbor count | DB
+***mqf_cg_roi_polygon_class*** | average and trim cell polygon class | DB
+***mqf_cg_roi_triangle_elong*** | coarse-grain cell elongation using triangles as a proxy | DB
+***mqf_cg_roi_rate_CD*** | average cell division rate | DB
+***mqf_cg_roi_rate_T2*** | average extrusion rate | DB
+***mqf_cg_roi_rate_T1*** | average neighbor change rate | DB
+***mqf_cg_roi_rate_isotropic_contrib*** | coarse-grain **isotropic** tissue deformation and its cellular contributions | DB
+***mqf_cg_roi_rate_shear*** | coarse-grain **anisotropic** tissue deformation and its cellular contributions | DB
+***mqf_cg_roi_nematics_cell_elong*** |  coarse-grain cell elongation nematics by ROI | see mqf_fg_nematics_cell_elong()
+***mqf_cg_roi_unitary_nematics_CD*** | coarse-grain division unitary nematics | DB
+***mqf_cd_roi_unitary_nematics_T1*** | coarse-grain neighbor change unitary nematics | DB
+
+## Coarse-grained analyses: per frame and by square-grid elements
+
+* The **mqf_cg_grid_* functions**:
+    + perform spatial (by grid element) and temporal (kernSize option) averaging of quantities
+    + perform an automatic scaling of nematics for an optimal display on the original image
+
+mqf_cg_grid_* functions | Description | Source data
+--------------|-------------|-------------
+***mqf_cg_grid_nematics_cell_elong*** | coarse-grain cell elongation nematics | DB
+***mqf_cg_grid_unitary_nematics_CD*** | coarse-grain division unitary nematics | DB
+***mqf_cg_grid_unitary_nematics_T1*** | coarse-grain neighbor change unitary nematics | DB
+
+
+# Render bonds length pattern
+To render cell bonds one must get bonds and their respective positions. Here, is an example in which different related tables must be joined together to pool the relevant data to be plotted:
+
+* 3 connected tables from the relational database to be considered: **bonds**, **directed_bonds** and **vertices**
+* By joinning those 3 tables one can generate a new table containg the bonds with their respective vertices and length
+* A bond is represented by drawing a segment between its two vertices
+* Bond length is mapped onto a color gradient scale for a color-coded visualization
+
+
+For the sake of clarity, we built a dedicated **mqf_fg_bond_length()** function to get bond properties along with bond positions for plotting. Please, read its definition [here](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/commons/BaseQueryFunctions.R).
+
+***
+
+```{r Rendering bonds: get bonds and vertices, warning=FALSE, message=FALSE, cache=TRUE}
+# we use the movieDir variable defined above
+bond_with_vx <- mqf_fg_bond_length(movieDir, "blade") %>% print_head()
+```
+
+***
+
+```{r Rendering bonds: plot data, warning=FALSE, message=FALSE, fig.width=11, cache=TRUE}
+bond_with_vx %>%
+  render_frame(70) + 
+  # bonds are represented by segments using geom_segment
+  geom_segment(aes(x=x_pos.1, y=y_pos.1,
+                   xend=x_pos.2, yend=y_pos.2,
+                   color=bond_length), # Here bond_length values are mapped to the color
+               size=0.3, lineend="round") +
+  # we overwrite the default color map by a custom rainbow palette
+  scale_color_gradientn(name="bond_length",
+                        colours=c("black", "blue", "green", "yellow", "red"),
+                        limits=c(0,quantile(bond_with_vx$bond_length, probs = 99.9/100)),
+                        na.value = "red") +
+  ggtitle("Color-coded pattern of bond length")
+
+```
+
+```{r Rendering bonds: video1, warning=FALSE, message=FALSE, eval=FALSE}
+# Here use the render_movie function
+render_movie(dbond_2vx, "BondLengthPattern.mp4", list(
+  geom_segment(aes(x=x_pos.1, y=y_pos.1,xend=x_pos.2, yend=y_pos.2,color=bond_length), 
+               size=0.3, lineend="round") ,
+  scale_color_gradientn(name="bond_length",
+                        colours=c("black", "blue", "green", "yellow", "red"),
+                        limits=c(0,quantile(dbond_2vx$bond_length, probs = 99.9/100)),
+                        na.value = "red") # outliers are red
+))
+```
