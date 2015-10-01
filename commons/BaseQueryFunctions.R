@@ -1095,7 +1095,7 @@ mqf_cg_grid_unitary_nematics_CD <- function(movieDir, rois="raw", gridSize=128, 
   
   if (displayFactor==-1) autoscale=T else autoscale=F
   
-  cgCDnematics <- mqf_fg_unitary_nematics_CD(movieDir) %>%
+  cgCDnematics <- mqf_fg_unitary_nematics_CD(movieDir, rois=rois) %>%
     coarseGrid(gridSize) %>%
     # remove grid elements that overlap the margin cell
     removeBckndGridOvlp(getBckndGridElements(movieDb, gridSize)) %>%
@@ -1141,7 +1141,7 @@ mqf_cg_grid_unitary_nematics_T1 <- function(movieDir, rois="raw", gridSize=128, 
   if (displayFactor==-1) autoscale=T else autoscale=F
   
   movieDb <- openMovieDb(movieDir)
-  cgT1nematics <- mqf_fg_unitary_nematics_T1(movieDir) %>% 
+  cgT1nematics <- mqf_fg_unitary_nematics_T1(movieDir, rois = rois) %>% 
     # coarse-grain nematics (assume the presence of center_x and center_y in the data)
     coarseGrid(gridSize) %>%
     # remove grid elements that overlap the margin cell
