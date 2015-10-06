@@ -273,11 +273,11 @@ for(i=0; i<chuncks.length-1; i++){
 }
 
 
-rep=0;
+isRoiSet=0;
 
 if (File.exists(folderPath+"RoiSet.zip")) {
-	rep=getBoolean("RoiSet.zip already exists, update it ?");
-	if (rep) {
+	isRoiSet=getBoolean("RoiSet.zip already exists, update it ?");
+	if (isRoiSet) {
 		update_ROI(inputFile, toString(folderPath)+"RoiSet.zip",pxsize);
 		extract_ROIcoord(inputFile, toString(folderPath)+"RoiSet.zip");
 	}
