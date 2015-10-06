@@ -3,6 +3,7 @@
 readTrafoFile <- function(fileName){
     dat <- read.delim(fileName,sep=" ", stringsAsFactors=F)
     dat$IsVerticalFlip <- as.logical(dat$IsVerticalFlip)
+    # dat$IsHonrizontalFlip <- as.logical(dat$IsHonrizontalFlip)
     dat
 }
 
@@ -24,8 +25,10 @@ applyTrafo <- function(dat, x, y) {
   ## Define new position vector with respect to upper left corner (0,0) of the new coord system
   xTrafo = Rnew_x + dat$rotationCenterNew_x
   yTrafo = Rnew_y + dat$rotationCenterNew_y
-  ## Flip Y coordintates if anterior compartment isn't up
+  ## Flip Y coordintates if needed
   if (dat$IsVerticalFlip) (yTrafo=abs(yTrafo-dat$newImHeight))
+  ## Flip X coordinates if needed
+  #if (dat$IsHonrizontalFlip) (xTrafo=abs(xTrafo-dat$newImWidth))
 
   data.frame(xTrafo, yTrafo)
 }
@@ -51,12 +54,18 @@ trafoNematic <- function (dat, Txx, Txy){
   newTxx=Tnorm*cos(2*newPhi)
   newTxy=Tnorm*sin(2*newPhi)
 
-#     Flip nematic vertically if anterior compartment isn't up
+#     Flip nematic vertically 
   if (dat$IsVerticalFlip) {
     newPhi=phi-dat$Angle_rad
     newTxx=Tnorm*cos(2*newPhi)
     newTxy=Tnorm*sin(2*newPhi)
   }
+  # Flip nematic horizontally if needed
+#   if (dat$IsHorizontalFlip) {
+#     newPhi=phi-dat$Angle_rad
+#     newTxx=Tnorm*cos(2*newPhi)
+#     newTxy=Tnorm*sin(2*newPhi)
+#   }
 
   ## in case of perfectly regular polygons the elongation will be 0 and should stay 0 even after doing the rotation
   results <- data.frame(newTxx, newTxy)
