@@ -18,7 +18,7 @@ open(dir + fileName);
 imID=getImageID();
 
 //transfoType=newArray("Draw an axis","Ellipse Major Axis");
-transfoType=newArray("Draw an axis to be aligned onto the horizontal pointing to the right", "Draw an axis to be aligned onto the vertical pointing up");
+transfoType=newArray("Draw a new X-axis", "Draw a new Y-axis");
 
 Dialog.create("Transformation options");
 Dialog.addCheckbox("Rotate ?", true);
@@ -190,7 +190,7 @@ function rotate_drawAxis(dir, file, pxsize,rotMethod){
 		// get axis angle 
 		roiManager("Measure");
 		rotation=getResult("Angle", 0);
-		if (rotMethod=="Draw an axis to be aligned onto the horizontal pointing to the right") {
+		if (rotMethod=="Draw a new X-axis") {
 			print("angle with respect to horizontal:", rotation);
 		}
 		else {
