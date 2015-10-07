@@ -49,8 +49,7 @@ db <- openMovieDb(movieDir)
 mcdir(file.path(movieDir, "nematics_movies"))
 
 ## get the grid size from the global configuration
-gridSize   = movie_grid_size
-
+gridSize = movie_grid_size
 
 ########################################################################################################################
 ### prepare center positions for triangles (which are needed for coarse-gridding)
@@ -149,8 +148,8 @@ totalPureShear <- dQtotCG %>%
     summarize(
         Q_xx_avg = areaWeightedMean(tri_area.i1, nu_xx),
         Q_xy_avg = areaWeightedMean(tri_area.i1, nu_xy)
-    ) %>% as.df() %>%
-    removeBckndGridOvlp(bckndGridElements)
+    ) %>% as.df() #%>%
+    # removeBckndGridOvlp(bckndGridElements)
 
 
 #ggplot(totalPureShear, aes(Q_xx_avg)) + geom_histogram()
@@ -199,7 +198,7 @@ dQtotCgAvg2 <- with(dQtotCgAvg, data.frame(
   crc_xx = QxyThetaU - ThetaU*(Q_xy.i1 + Q_xy.ti2), # partially cancels out with corotational term
   crc_xy = -1*(QxxThetaU - ThetaU*(Q_xx.i1 + Q_xx.ti2)),
   frame, xGrid, yGrid
-)) %>%  removeBckndGridOvlp(bckndGridElements)
+)) #%>%  removeBckndGridOvlp(bckndGridElements)
 
 shearByCrc <- with(dQtotCgAvg2, data.frame(frame, xGrid, yGrid, Q_xx_avg=crc_xx+cagc_xx, Q_xy_avg=crc_xy+cagc_xy))
 
@@ -301,7 +300,6 @@ makeNemMovie <- function(QavgNoBcknd, movieFileName, scalingFactor=gridSize, lin
 }
 
 print("Make movies...")
-
 makeNemMovie(Qcg_t, paste0(db_name,"_cell_elongation.mp4"))
 
 shearScale=gridSize*100 #shearScale=gridSize*40*3
@@ -364,12 +362,12 @@ ggsave2(outputFormat = "pdf")
 
 ########################################################################################################################
 ## Compute avg and variance of nematic angles over grid elements for each frame: Caution the variance depends on the gridSize
-makeNemMovie(Qcg_t, paste0(db_name,"_cell_elongation"), doVariance=T)
-makeNemMovie(totalPureShear, paste0(db_name,"_pure_shear"), doVariance=T)
-makeNemMovie(shearByCE, paste0(db_name,"_shear_ce"), doVariance=T)
-makeNemMovie(shearByCrc, paste0(db_name,"_shear_crc"), doVariance=T)
-makeNemMovie(Qcg_t1, paste0(db_name,"_shear_t1"), doVariance=T)
-makeNemMovie(Qcg_cd, paste0(db_name,"_shear_cd"), doVariance=T)
+# makeNemMovie(Qcg_t, paste0(db_name,"_cell_elongation"), doVariance=T)
+# makeNemMovie(totalPureShear, paste0(db_name,"_pure_shear"), doVariance=T)
+# makeNemMovie(shearByCE, paste0(db_name,"_shear_ce"), doVariance=T)
+# makeNemMovie(shearByCrc, paste0(db_name,"_shear_crc"), doVariance=T)
+# makeNemMovie(Qcg_t1, paste0(db_name,"_shear_t1"), doVariance=T)
+# makeNemMovie(Qcg_cd, paste0(db_name,"_shear_cd"), doVariance=T)
 
 
 
