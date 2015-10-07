@@ -6,20 +6,9 @@ if [ $# -ne 3 ]; then echo "Usage: `basename $0` <inFilePath> <transfoPath> <out
 ## ROTATE, FLIP and FLOP IMAGES BY READING PARAMETERS FROM transformation.txt
 ## REQUIRES imagemagick to be installed
 
-export PATH=$PATH:/projects/project-raphael
 
 trafoImage(){
-	if [ $3 -eq 0 ]
-	then
-		echo "Rotate $1 --> $4"		
-		convert $1 -background "black" -rotate "$2" -type truecolor -colorspace RGB -define png:compression-level=9 $4
-	else
-		echo "Rotate and flip $1 --> $4"
-		convert $1 -background "black" -rotate "$2" -flip -type truecolor -colorspace RGB -define png:compression-level=9 $4
-	fi
-}
 
-trafoImageX(){
 	if [ $3 -eq 0 ] && [ $4 -eq 0 ]
 		then
 		echo "Rotate $1 --> $5"		
@@ -40,6 +29,7 @@ trafoImageX(){
 		echo "Rotate and flip-flop $1 --> $5"
 		convert $1 -background "black" -rotate "$2" -flip -flop -type truecolor -colorspace RGB -define png:compression-level=9 $5
 	fi
+
 }
 
 
@@ -62,12 +52,8 @@ else
 	pi=$(echo "scale=10; 4*a(1)" | bc -l)
 	angledeg=$(echo "scale=3; $anglerad*180/$pi" | bc -l)
 	IsVerticalFlip=$(cat $transfoPath | awk 'NR>1{print $6}')
-	# trafoImage $inFilePath $angledeg $IsVerticalFlip $outFilePath
 	IsHorizontalFlip=$(cat $transfoPath | awk 'NR>1{print $7}')
-echo "IsHorizontalFlip: $IsHorizontalFlip"
-	trafoImageX $inFilePath $angledeg $IsVerticalFlip $IsHorizontalFlip $outFilePath
-	
-	
+	trafoImage $inFilePath $angledeg $IsVerticalFlip $IsHorizontalFlip $outFilePath
 fi
 
 exit 0
