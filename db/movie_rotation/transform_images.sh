@@ -19,28 +19,26 @@ trafoImage(){
 	fi
 }
 
-trafoImage2(){
-
-	if [ $3 -eq 0 && $4 -eq 0 ]
+trafoImageX(){
+	if [ $3 -eq 0 ] && [ $4 -eq 0 ]
 		then
 		echo "Rotate $1 --> $5"		
 		convert $1 -background "black" -rotate "$2" -type truecolor -colorspace RGB -define png:compression-level=9 $5
 
-	elif [ $3 -eq 1 && $4 -eq 0 ]
+	elif [ $3 -eq 1 ] && [ $4 -eq 0 ]
 		then
 		echo "Rotate and flip $1 --> $5"
 		convert $1 -background "black" -rotate "$2" -flip -type truecolor -colorspace RGB -define png:compression-level=9 $5
 
-	elif [ $3 -eq 0 && $4 -eq 1 ]
+	elif [ $3 -eq 0 ] && [ $4 -eq 1 ]
 		then
 		echo "Rotate and flop $1 --> $5"
 		convert $1 -background "black" -rotate "$2" -flop -type truecolor -colorspace RGB -define png:compression-level=9 $5
 
-	elif [ $3 -eq 1 && $4 -eq 1 ]
+	elif [ $3 -eq 1 ] && [ $4 -eq 1 ]
 		then
 		echo "Rotate and flip-flop $1 --> $5"
 		convert $1 -background "black" -rotate "$2" -flip -flop -type truecolor -colorspace RGB -define png:compression-level=9 $5
-
 	fi
 }
 
@@ -64,9 +62,12 @@ else
 	pi=$(echo "scale=10; 4*a(1)" | bc -l)
 	angledeg=$(echo "scale=3; $anglerad*180/$pi" | bc -l)
 	IsVerticalFlip=$(cat $transfoPath | awk 'NR>1{print $6}')
-	# IsHorizontalFlip=$(cat $transfoPath | awk 'NR>1{print $7}')
-	# trafoImage $inFilePath $angledeg $IsVerticalFlip $IsHorizontalFlip $outFilePath
-	trafoImage $inFilePath $angledeg $IsVerticalFlip $outFilePath
+	# trafoImage $inFilePath $angledeg $IsVerticalFlip $outFilePath
+	IsHorizontalFlip=$(cat $transfoPath | awk 'NR>1{print $7}')
+echo "IsHorizontalFlip: $IsHorizontalFlip"
+	trafoImageX $inFilePath $angledeg $IsVerticalFlip $IsHorizontalFlip $outFilePath
+	
+	
 fi
 
 exit 0
