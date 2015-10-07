@@ -4,7 +4,7 @@
 
 ## todo document me
 
-defaultROI<-"blade"
+defaultROI<-"whole_tissue"
 
 
 ################################################
@@ -12,7 +12,7 @@ defaultROI<-"blade"
 ################################################
 
 ## todo set to NULL to use 1/10 of the height and width to define grid elements
-movie_grid_size<-50
+movie_grid_size<-64
 remove_margin_rois<-F
 
 ## todo continue implementation
