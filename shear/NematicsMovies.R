@@ -77,16 +77,16 @@ avgCgStateProps <- function(ta){
 
     ## add triangle centers --> replaced by adding intermediate specific triangle positions
 #    TaWithPos <- dt.merge(triCenters, ta, by="tri_id")
-
+#browser()
     ## apply coarse gridding and nematics summary
-
     tatCG <- coarseGrid(ta, gridSize)
 
     ## extract symetric traceless part of Ta tensor and average it over all triangles in the grid element
-    QavgCG <- calcQAverage(tatCG, c("frame", "xGrid", "yGrid", "roi"))
-    QavgNoBcknd <- removeBckndGridOvlp(QavgCG, bckndGridElements)
-
-    return(subset(QavgNoBcknd, select=-c(tri_area, roi)))
+    QavgCG <- calcQAverage(tatCG, c("frame", "xGrid", "yGrid"))
+    #QavgNoBcknd <- removeBckndGridOvlp(QavgCG, bckndGridElements)
+    QavgNoBcknd <- QavgCG
+    
+    return(subset(QavgNoBcknd, select=-c(tri_area)))
 }
 
 echo("Query DB ",basename(movieDir), " for frames..." )
@@ -145,7 +145,7 @@ dQtotCG <- dQtot %>%
 
 totalPureShear <- dQtotCG %>%
 #    select(tri_id, nu_xx, nu_xy, tri_area.i1) %>%
-    group_by(frame, xGrid, yGrid, roi) %>%
+    group_by(frame, xGrid, yGrid) %>%
     summarize(
         Q_xx_avg = areaWeightedMean(tri_area.i1, nu_xx),
         Q_xy_avg = areaWeightedMean(tri_area.i1, nu_xy)
@@ -183,7 +183,7 @@ dQtotCgAvg <- as.df(data.table(dQtotCG)[, list(
   
   ThetaU = areaWeightedMean(tri_area.i1, theta_a.tu)
   
-), by=c("frame", "xGrid", "yGrid", "roi")])
+), by=c("frame", "xGrid", "yGrid")])
 
 ##todo merge with previous call
 dQtotCgAvg2 <- with(dQtotCgAvg, data.frame(
@@ -198,7 +198,7 @@ dQtotCgAvg2 <- with(dQtotCgAvg, data.frame(
   
   crc_xx = QxyThetaU - ThetaU*(Q_xy.i1 + Q_xy.ti2), # partially cancels out with corotational term
   crc_xy = -1*(QxxThetaU - ThetaU*(Q_xx.i1 + Q_xx.ti2)),
-  frame, xGrid, yGrid, roi
+  frame, xGrid, yGrid
 )) %>%  removeBckndGridOvlp(bckndGridElements)
 
 shearByCrc <- with(dQtotCgAvg2, data.frame(frame, xGrid, yGrid, Q_xx_avg=crc_xx+cagc_xx, Q_xy_avg=crc_xy+cagc_xy))
