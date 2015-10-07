@@ -279,7 +279,7 @@ mqf_fg_nematics_cell_elong <- function(movieDir, rois=c(), cellContour=F, displa
   # Output: a dataframe
   
   movieDb <- openMovieDb(movieDir)
-
+  
   # Send a SQL query to get the cell elongation tensor in each frame
   queryResult <- dbGetQuery(movieDb,
                             "select cell_id, frame, center_x, center_y, elong_xx, elong_xy 
