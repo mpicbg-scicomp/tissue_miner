@@ -314,11 +314,11 @@ mqf_fg_unitary_nematics_CD <- function(movieDir, rois=c(), cellContour=F, displa
   # Output: a dataframe
   
   movieDb <- openMovieDb(movieDir)
-  
+
   # Get cell division events including mother and daughter cells and frame of cytokinesis
-  cdEvents <- dbGetQuery(movieDb, "select cell_id as mother_cell_id, last_occ, left_daughter_cell_id, appears_by, right_daughter_cell_id from cell_histories") %>%
-    filter(appears_by=="Division")  %>%
-    select(-appears_by) %>%
+  cdEvents <- dbGetQuery(movieDb, "select cell_id as mother_cell_id, last_occ, left_daughter_cell_id, disappears_by, right_daughter_cell_id from cell_histories") %>%
+    filter(disappears_by=="Division")  %>%
+    select(-disappears_by) %>%
     # create one column "cell_id" out of the 2 daughter cells
     melt(id.vars=c("mother_cell_id", "last_occ"), value.name="cell_id") %>%
     # add frame of cytokinesis
@@ -890,12 +890,20 @@ mqf_cg_roi_rate_shear <- function(movieDir, rois=c()){
   pooledShear <- filter(queryResult, roi %in% rois) %>%
     addTimeFunc(movieDb, .) %>%
     arrange(frame)
-  
+  browser()
   ShearRateByRoi <- as.df(data.table(pooledShear)[, ":=" (xx.ma=ma(xx)/(ma(timeInt_sec)/3600),
                                                           xy.ma=ma(xy)/(ma(timeInt_sec)/3600),
                                                           yx.ma=ma(yx)/(ma(timeInt_sec)/3600),
                                                           yy.ma=ma(yy)/(ma(timeInt_sec)/3600),
-                                                          TimeInt.ma=as.numeric(ma(timeInt_sec))), by=c("roi", "tensor")]) %>% 
+                                                          TimeInt.ma=as.numeric(ma(timeInt_sec))), by=c("roi", "tensor")]) %>%
+    # calculate the phi angle and norm of nematics
+    mutate(phi=0.5*(atan2(xy.ma, xx.ma)), 
+           norm= sqrt(xx.ma^2+xy.ma^2)) %>%
+    # scale nematic norm for display and calculate the x and y nematic coordinates for ploting
+    mutate(x1=center_x-0.5*displayFactor*norm*cos(phi),
+           y1=center_y-0.5*displayFactor*norm*sin(phi),
+           x2=center_x+0.5*displayFactor*norm*cos(phi),
+           y2=center_y+0.5*displayFactor*norm*sin(phi)) %>%
     mutate(movie=basename(movieDir)) %>% add_dev_time()
   
   dbDisconnect(movieDb)
