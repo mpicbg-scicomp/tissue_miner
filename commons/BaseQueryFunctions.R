@@ -286,7 +286,7 @@ mqf_fg_nematics_cell_elong <- function(movieDir, rois=c(), cellContour=F, displa
                             from cells where cell_id!=10000") %>% 
     addRois(., movieDir, rois)  %>%
     # calculate the phi angle and norm of nematics
-    mutate(phi=0.5*(atan2(elong_xy, elong_xx)), 
+    mutate(phi=mod2pi(0.5*(atan2(elong_xy, elong_xx))), 
            norm= sqrt(elong_xx^2+elong_xy^2)) %>%
     # scale nematic norm for display and calculate the x and y nematic coordinates for ploting
     mutate(x1=center_x-0.5*displayFactor*norm*cos(phi),
