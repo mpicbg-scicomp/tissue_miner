@@ -890,7 +890,7 @@ mqf_cg_roi_rate_shear <- function(movieDir, rois=c()){
   pooledShear <- filter(queryResult, roi %in% rois) %>%
     addTimeFunc(movieDb, .) %>%
     arrange(frame)
-  browser()
+  # browser()
   ShearRateByRoi <- as.df(data.table(pooledShear)[, ":=" (xx.ma=ma(xx)/(ma(timeInt_sec)/3600),
                                                           xy.ma=ma(xy)/(ma(timeInt_sec)/3600),
                                                           yx.ma=ma(yx)/(ma(timeInt_sec)/3600),
@@ -899,11 +899,11 @@ mqf_cg_roi_rate_shear <- function(movieDir, rois=c()){
     # calculate the phi angle and norm of nematics
     mutate(phi=0.5*(atan2(xy.ma, xx.ma)), 
            norm= sqrt(xx.ma^2+xy.ma^2)) %>%
-    # scale nematic norm for display and calculate the x and y nematic coordinates for ploting
-    mutate(x1=center_x-0.5*displayFactor*norm*cos(phi),
-           y1=center_y-0.5*displayFactor*norm*sin(phi),
-           x2=center_x+0.5*displayFactor*norm*cos(phi),
-           y2=center_y+0.5*displayFactor*norm*sin(phi)) %>%
+#     # scale nematic norm for display and calculate the x and y nematic coordinates for ploting
+#     mutate(x1=center_x-0.5*displayFactor*norm*cos(phi),
+#            y1=center_y-0.5*displayFactor*norm*sin(phi),
+#            x2=center_x+0.5*displayFactor*norm*cos(phi),
+#            y2=center_y+0.5*displayFactor*norm*sin(phi)) %>%
     mutate(movie=basename(movieDir)) %>% add_dev_time()
   
   dbDisconnect(movieDb)
