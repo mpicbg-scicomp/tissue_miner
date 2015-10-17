@@ -552,8 +552,11 @@ mqf_fg_bond_length <- function(movieDir, rois=c()){
 mqf_fg_cell_neighbor_count <- function(movieDir, rois=c(), cellContour=F){
   
   # Description: count cell neighbors and retrieve the ordered list of vertices 
-  # Usage: get_cell_neighbor_count(movieDir)
-  # Arguments: movieDir = path to movie directory 
+  # Usage: mqf_fg_cell_neighbor_count(movieDir, ...)
+  # Arguments: 
+      # movieDir = path to movie directory 
+      # rois = all ROIs by default
+      # cellContour=F
   # Output: a dataframe
   
   movieDb <- openMovieDb(movieDir)
@@ -561,16 +564,14 @@ mqf_fg_cell_neighbor_count <- function(movieDir, rois=c(), cellContour=F){
   # Send a SQL query to get the cell elongation tensor in each frame
   dbonds <- dbGetQuery(movieDb, "select cell_id, dbond_id, conj_dbond_id, frame from directed_bonds")
   
-  csWithPoly <- dt.merge(dbonds, 
+  neighborNumber <- dt.merge(dbonds, 
                          with(dbonds, data.frame(dbond_id=conj_dbond_id, neighbor_cell_id=cell_id)),
                          by=c("dbond_id"), all=T, allow.cartesian=TRUE) %>%
     group_by(cell_id, frame) %>%
-    mutate(polygon_class=length(neighbor_cell_id)) %>%
+    mutate(neighbor_number=length(neighbor_cell_id)) %>%
     ungroup() %>%
-    # we retrict polygon classes to most common ones in the tissue
-    mutate(polygon_class_trimmed=limitRange(polygon_class, c(4, 8))) %>%
     # only keep relevent columns
-    select(cell_id, frame, polygon_class_trimmed) %>%
+    select(cell_id, frame, neighbor_number) %>%
     unique_rows(c("cell_id","frame")) %>%
     # remove marging cell surrounding the tissue
     filter(cell_id!=10000) %>%
@@ -579,14 +580,57 @@ mqf_fg_cell_neighbor_count <- function(movieDir, rois=c(), cellContour=F){
     mutate(movie=basename(movieDir)) %>% add_dev_time()
   
   if (cellContour) {
-    csWithPoly %<>% dt.merge(locload(file.path(movieDir, "cellshapes.RData")), by=c("cell_id","frame")) %>%
+    neighborNumber %<>% dt.merge(locload(file.path(movieDir, "cellshapes.RData")), by=c("cell_id","frame")) %>%
       arrange(frame, cell_id, bond_order)
   }
   
   dbDisconnect(movieDb)
   
-  return(csWithPoly)
+  return(neighborNumber)
 }
+## mqf_fg_cell_polygon_class() ####
+# mqf_fg_cell_polygon_class <- function(#trim interval as argument
+#   ){
+#   
+#   # Description: count cell neighbors and retrieve the ordered list of vertices 
+#   # Usage: mqf_fg_cell_neighbor_count(movieDir, ...)
+#   # Arguments: 
+#   # movieDir = path to movie directory 
+#   # rois = all ROIs by default
+#   # cellContour=F
+#   # Output: a dataframe
+#   
+#   movieDb <- openMovieDb(movieDir)
+#   
+#   # Send a SQL query to get the cell elongation tensor in each frame
+#   dbonds <- dbGetQuery(movieDb, "select cell_id, dbond_id, conj_dbond_id, frame from directed_bonds")
+#   
+#   polyClass <- dt.merge(dbonds, 
+#                              with(dbonds, data.frame(dbond_id=conj_dbond_id, neighbor_cell_id=cell_id)),
+#                              by=c("dbond_id"), all=T, allow.cartesian=TRUE) %>%
+#     group_by(cell_id, frame) %>%
+#     mutate(poly_class=length(neighbor_cell_id)) %>%
+#     ungroup() %>%
+#     
+#     # only keep relevent columns
+#     select(cell_id, frame, neighbor_number) %>%
+#     unique_rows(c("cell_id","frame")) %>%
+#     # remove marging cell surrounding the tissue
+#     filter(cell_id!=10000) %>%
+#     addRois(movieDir,rois) %>%
+#     addTimeFunc(movieDb, .) %>% 
+#     mutate(movie=basename(movieDir)) %>% add_dev_time()
+#   
+#   if (cellContour) {
+#     neighborNumber %<>% dt.merge(locload(file.path(movieDir, "cellshapes.RData")), by=c("cell_id","frame")) %>%
+#       arrange(frame, cell_id, bond_order)
+#   }
+#   
+#   dbDisconnect(movieDb)
+#   
+#   return(neighborNumber)
+# }
+# }
 ## mqf_fg_dev_time ####
 mqf_fg_dev_time <- function(movieDir, rois=c()){
   
@@ -627,8 +671,8 @@ mqf_cg_roi_cell_area <- function(movieDir, rois=c()){
   
   return(area)
 }
-## mqf_cg_roi_cell_neighbor_counts ####
-mqf_cg_roi_cell_neighbor_counts <- function(movieDir, rois=c(), cellContour=F){
+## mqf_cg_roi_cell_neighbor_count ####
+mqf_cg_roi_cell_neighbor_count <- function(movieDir, rois=c(), cellContour=F){
   
   # Description: get averaged cell neighbor count per frame, in ROIs
   # Usage: in combination with multi_db_query(), ex: multi_db_query(movieDirs, mqf_avg_cell_neighbor_counts, selectedRois)
@@ -654,7 +698,7 @@ mqf_cg_roi_cell_neighbor_counts <- function(movieDir, rois=c(), cellContour=F){
   
   return(neighborCount)
 }
-## mqf_cg_roi_polygon_class ####
+## mqf_cg_roi_polygon_class ADD TRIM ARG ####
 mqf_cg_roi_polygon_class <- function(movieDir, rois=c()){
   
   # Description: count number of cells in each polygon class, per frame, in ROIs
