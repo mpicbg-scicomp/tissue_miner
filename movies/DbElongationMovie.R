@@ -144,7 +144,7 @@ ggplot(avgElongSmooth, aes(frame, nem_y_pos, color=paste(xGrid, yGrid))) + geom_
 
 
 render_movie(avgElongSmooth, paste0(db_name, "_DBelong_nematics.mp4"), list(
-    geom_segment(aes(x=xGrid-nem_x_pos, y=-(yGrid-nem_y_pos) , xend=xGrid+nem_x_pos, yend=-(yGrid+nem_y_pos)), size=3, lineend="round", color="red", na.rm=T),
+    geom_segment(aes(x=xGrid-nem_x_pos, y=(yGrid-nem_y_pos) , xend=xGrid+nem_x_pos, yend=(yGrid+nem_y_pos)), size=3, lineend="round", color="red", na.rm=T),
     guides(alpha=FALSE)
 ))
 
