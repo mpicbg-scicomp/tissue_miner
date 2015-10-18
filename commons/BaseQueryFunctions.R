@@ -968,7 +968,7 @@ mqf_cg_roi_unitary_nematics_CD <- function(movieDir, rois=c(), kernSize=11, disp
   
   movieDb <- openMovieDb(movieDir)
   
-  cgCDnematics <- mqf_fg_unitary_nematics_CD(movieDir) %>%
+  cgCDnematics <- mqf_fg_unitary_nematics_CD(movieDir, rois) %>%
     # average nematics in each frame and grid element
     group_by(frame, roi) %>%
     summarise(cgCDxx=mean(normCDxx),
