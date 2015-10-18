@@ -899,7 +899,7 @@ mqf_cg_roi_rate_shear <- function(movieDir, rois=c()){
                                                           yy.ma=ma(yy)/(ma(timeInt_sec)/3600),
                                                           TimeInt.ma=as.numeric(ma(timeInt_sec))), by=c("roi", "tensor")]) %>%
     # calculate the phi angle and norm of nematics
-    mutate(phi=0.5*(atan2(xy.ma, xx.ma)), 
+    mutate(phi=mod2pi(0.5*(atan2(xy.ma, xx.ma))), 
            norm= sqrt(xx.ma^2+xy.ma^2)) %>%
 #     # scale nematic norm for display and calculate the x and y nematic coordinates for ploting
 #     mutate(x1=center_x-0.5*displayFactor*norm*cos(phi),
@@ -1070,9 +1070,8 @@ mqf_cg_grid_nematics_cell_elong <- function(movieDir, rois="raw", gridSize=128, 
     smooth_tissue(cgExx, kernel_size=kernSize, gap_fill = NA, global_min_max = F) %>%
     smooth_tissue(cgExy, kernel_size=kernSize, gap_fill = NA, global_min_max = F) %>%
     # calculate the angle and norm of coarse-grained nematics
-    mutate(#phi=mod2pi(0.5*(atan2(cgExy_smooth, cgExx_smooth))),
-      phi=(0.5*(atan2(cgExy_smooth, cgExx_smooth))),
-      norm=sqrt(cgExy_smooth^2+cgExx_smooth^2)) %>%
+    mutate(phi=mod2pi(0.5*(atan2(cgExy_smooth, cgExx_smooth))),
+           norm=sqrt(cgExy_smooth^2+cgExx_smooth^2)) %>%
     # automatic scaling to grig size and nematic coordinates
     mutate(scaledFact=gridSize/quantile(norm, na.rm=T, probs=0.99),
            x1=xGrid-0.5*norm*scaledFact*cos(phi),
