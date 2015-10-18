@@ -937,7 +937,7 @@ mqf_cg_roi_nematics_cell_elong <- function(movieDir, rois=c(), kernSize=1, displ
     smooth_tissue(cgExx, kernel_size=kernSize, by="roi", gap_fill = NA, global_min_max = F) %>%
     smooth_tissue(cgExy, kernel_size=kernSize, by="roi", gap_fill = NA, global_min_max = F) %>%
     # calculate the angle and norm of coarse-grained nematics
-    mutate(phi=0.5*(atan2(cgExy_smooth, cgExx_smooth)),
+    mutate(phi=mod2pi(0.5*(atan2(cgExy_smooth, cgExx_smooth))),
            norm=sqrt(cgExy_smooth^2+cgExx_smooth^2)) %>%
     # automatic scaling to grig size and nematic coordinates
     mutate(x1=roi_center_x-0.5*norm*displayFactor*cos(phi),
@@ -1011,7 +1011,7 @@ mqf_cg_roi_unitary_nematics_T1 <- function(movieDir, rois=c(), kernSize=11, disp
   # Output: a dataframe
   
   movieDb <- openMovieDb(movieDir)
-  cgT1nematics <- mqf_fg_unitary_nematics_T1(movieDir) %>% 
+  cgT1nematics <- mqf_fg_unitary_nematics_T1(movieDir, rois) %>% 
     # average nematics in each frame and grid element
     group_by(frame, roi) %>%
     summarise(cgT1xx=mean(unitary_T1xx),
