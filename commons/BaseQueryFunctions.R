@@ -221,7 +221,6 @@ multi_db_query <- function(movieDirectories, queryFun=mqf_cell_count, ...){
 addRoiByDir <- function(rdataFile) transform(local(get(load(rdataFile))), roi=basename(dirname((rdataFile))))
 ## Attach ROIs to a data set. Note: rois are defined on a cell level here irrespective of frame ####
 addRois <-function(data, movieDir, rois=c()){
-  
   if (!"cell_id" %in% names(data)) {stop("addRois function requires a 'cell_id' column in the data")}
   ## dummy roi
   if(basename(movieDir)=="120531_Debug_Tissue_Sample") return(transform(data, roi="ttt"))
@@ -229,16 +228,27 @@ addRois <-function(data, movieDir, rois=c()){
   ## merge with data
   roiTrackFile=file.path(movieDir, "roi_bt/lgRoiSmoothed.RData")
   
-  
+  ## check any merged rois
+  mergedRoiFile= file.path(movieDir, "roi_bt/mergedROI.RData")
   
   if(file.exists(roiTrackFile)){
+    
     all_roi_def <- local(get(load(roiTrackFile))) %>%
       rbind(data.frame(cell_id=unique(data$cell_id), roi="raw"))
+    
+    if(file.exists(mergedRoiFile)){
+      all_merged_roi_def <- locload(mergedRoiFile) 
+      all_roi_def <- rbind(all_roi_def, all_merged_roi_def)
+    }
+    
     if(length(rois)==0) roi_def = all_roi_def else roi_def <- all_roi_def %>% filter(roi %in% rois)
     
   }else{
     stop(paste0(roiTrackFile," doesn't exit"))
   }
+  
+  
+  
   
   ## combine rois
   #  rois <- transform(rois, roi=ifelse(str_detect(roi, "interL|InterL|postL5"), "intervein", ifelse(str_detect(roi, "^L[0-9]{1}$"), "vein", ac(roi))))
@@ -1106,10 +1116,10 @@ mqf_cg_grid_unitary_nematics_CD <- function(movieDir, rois="raw", gridSize=128, 
     coarseGrid(gridSize) %>%
     # remove grid elements that overlap the margin cell
     removeBckndGridOvlp(getBckndGridElements(movieDb, gridSize)) %>%
-    # average nematics in each frame and grid element
+    # sum nematics in each frame and grid element
     group_by(frame, roi, xGrid, yGrid) %>%
-    summarise(cgCDxx=mean(normCDxx),
-              cgCDxy=mean(normCDxy))
+    summarise(cgCDxx=sum(normCDxx),
+              cgCDxy=sum(normCDxy))
   
   # do a time averaging over N frames in each grid element
   cgCDnematicsSmooth <- cgCDnematics %>%
@@ -1155,8 +1165,8 @@ mqf_cg_grid_unitary_nematics_T1 <- function(movieDir, rois="raw", gridSize=128, 
     removeBckndGridOvlp(getBckndGridElements(movieDb, gridSize)) %>%
     # average nematics in each frame and grid element
     group_by(frame, roi, xGrid, yGrid) %>%
-    summarise(cgT1xx=mean(unitary_T1xx),
-              cgT1xy=mean(unitary_T1xy))
+    summarise(cgT1xx=sum(unitary_T1xx),
+              cgT1xy=sum(unitary_T1xy))
   
   # do a time averaging over 11 frames in each grid element
   cgT1nematicsSmooth <- cgT1nematics %>%
@@ -1180,7 +1190,10 @@ mqf_cg_grid_unitary_nematics_T1 <- function(movieDir, rois="raw", gridSize=128, 
   
   return(cgT1nematicsSmooth)
 }
-
+## mqf_cg_grid_rate_shear() ####
+mqf_cg_grid_rate_shear <- function(movieDir, rois="raw", gridSize=128, kernSize=11, displayFactor=-1){
+  
+}
 
 
 ## DEBUG mqf_unitary_nematics_T1 ####
