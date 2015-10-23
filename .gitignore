@@ -6,4 +6,6 @@ deprecated
 *.RData
 *.o
 
+#scala ignores
+target
 
