@@ -1,4 +1,4 @@
-package de.mpicbg.eaton.tissueminer
+package de.mpicbg.eaton.tissueminer.misc
 
 import slick.codegen.SourceCodeGenerator
 

@@ -10,18 +10,17 @@ import scala.concurrent.Await
 import scala.concurrent.duration.Duration._
 
 /**
-  * Get all roots of the lineage tress
+  * Get the roots of the lineage trees
   *
   * @author Holger Brandl
   */
-object LIneageRoots extends App {
+object LineageRoots extends App {
 
   val db = Database.forURL("jdbc:sqlite:/Users/brandl/Desktop/demo_ForTissueMiner.sqlite", driver = "org.sqlite.JDBC")
   val cellHistories = TableQuery[CellHistories]
 
   implicit val cells: Seq[Tables.CellHistoriesRow] = Await.result(db.run(cellHistories.result), Inf)
 
-  //
 
   // define a recursive function to calculate the cell generation
   def findLineageRoot(cell: Tables.CellHistoriesRow): Tables.CellHistoriesRow = {

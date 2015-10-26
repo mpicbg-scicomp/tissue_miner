@@ -1,12 +1,12 @@
+package de.mpicbg.eaton.tissueminer.misc
 
 import de.mpicbg.eaton.tissueminer.Tables
 import de.mpicbg.eaton.tissueminer.Tables._
+import slick.driver.SQLiteDriver.api._
 import slick.lifted.TableQuery
 
 import scala.concurrent.Await
-import slick.driver.SQLiteDriver.api._
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.duration.Duration._
 
 
 /**
