@@ -6,6 +6,7 @@ import de.mpicbg.eaton.tissueminer._
 import slick.driver.SQLiteDriver.api._
 import slick.lifted.TableQuery
 
+import scala.collection.parallel.immutable.ParMap
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration._
 
@@ -22,16 +23,18 @@ object Generations extends App {
   implicit val cells: Seq[Tables.CellHistoriesRow] = Await.result(db.run(TableQuery[CellHistories].result), Inf)
 
 
+  case class GenCounter(cell: Tables.CellHistoriesRow, generation: Int)
+
   // define a recursive function to calculate the cell generation
-  def calcGeneration(genCounter: (Tables.CellHistoriesRow, Int)): (Tables.CellHistoriesRow, Int) = {
-    genCounter._1.mother match {
-      case Some(motherCell) => calcGeneration((motherCell, genCounter._2 + 1))
+  def calcGeneration(genCounter: GenCounter): GenCounter = {
+    genCounter.cell.mother match {
+      case Some(motherCell) => calcGeneration(GenCounter(motherCell, genCounter.generation + 1))
       case None => genCounter
     }
   }
 
 
-  val generations = cells.map(cell => cell -> calcGeneration((cell, 0))._2).toMap
+  val generations = cells.par.map(cell => cell -> calcGeneration(GenCounter(cell, 0)).generation).toMap
 
   // calculate a histogram (http://langref.org/scala/maps/algorithms/histogram)
   generations.groupBy(_._2).mapValues(_.size).mkString("\n")
