@@ -15,7 +15,7 @@ import scala.concurrent.duration.Duration._
   *
   * @author Holger Brandl
   */
-class Generations extends App {
+object Generations extends App {
 
   // define a db context to work with
   val db = Database.forURL("jdbc:sqlite:/Users/brandl/Desktop/demo_ForTissueMiner.sqlite", driver = "org.sqlite.JDBC")
@@ -33,11 +33,6 @@ class Generations extends App {
 
   val generations = cells.map(cell => cell -> calcGeneration((cell, 0))._2).toMap
 
-  // calculate a histogram
-  println("generation\tnum_cells")
-  generations.groupBy( _._2 ).mapValues( _.size ).foreach(x=> println(x._1 + "\t"+ x._2))
-
-  //http://langref.org/scala/maps/algorithms/histogram
-
-  // validate by checking the db
+  // calculate a histogram (http://langref.org/scala/maps/algorithms/histogram)
+  generations.groupBy(_._2).mapValues(_.size).mkString("\n")
 }

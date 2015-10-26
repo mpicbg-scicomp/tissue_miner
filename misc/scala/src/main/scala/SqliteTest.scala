@@ -113,30 +113,3 @@ object SqliteTest extends App {
   //      println(frame + vertexId, xPos, yPos)
 
 }
-
-
-
-
-package object traversalTesting {
-  val db = Database.forURL("jdbc:sqlite:/Users/brandl/Desktop/demo_ForTissueMiner.sqlite", driver = "org.sqlite.JDBC")
-
-  //  http://slick.typesafe.com/doc/3.1.0-RC3/gettingstarted.html#database-configuration
-  //  db.createSession()
-
-  val cellHistories = TableQuery[CellHistories]
-
-  implicit val cells: Seq[Tables.CellHistoriesRow] = Await.result(db.run(cellHistories.result), Inf)
-
-  import de.mpicbg.eaton.tissueminer.TraversalUtils._
-
-  val id = 10012
-  val query = CellHistories.filter(_.cellId === id)
-  val cellInfo = Await.result(db.run(query.result), Inf).head
-
-  val daughter: Option[Tables.CellHistoriesRow] = cellInfo.leftDaughter
-  val mother = cellInfo.mother
-
-  //  cells.map(_.mother).flatten
-
-
-}
