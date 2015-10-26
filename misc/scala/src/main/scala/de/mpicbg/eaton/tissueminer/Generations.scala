@@ -1,12 +1,13 @@
 package de.mpicbg.eaton.tissueminer
 
+import de.mpicbg.eaton.tissueminer.Generations.GenCounter
 import de.mpicbg.eaton.tissueminer.Tables._
 import de.mpicbg.eaton.tissueminer.TraversalUtils._
 import de.mpicbg.eaton.tissueminer._
+import de.mpicbg.eaton.tissueminer.examples.Generations.GenCounter
 import slick.driver.SQLiteDriver.api._
 import slick.lifted.TableQuery
 
-import scala.collection.parallel.immutable.ParMap
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration._
 
@@ -22,6 +23,7 @@ object Generations extends App {
   val db = Database.forURL("jdbc:sqlite:/Users/brandl/Desktop/demo_ForTissueMiner.sqlite", driver = "org.sqlite.JDBC")
   implicit val cells: Seq[Tables.CellHistoriesRow] = Await.result(db.run(TableQuery[CellHistories].result), Inf)
 
+  cells(3).mother
 
   case class GenCounter(cell: Tables.CellHistoriesRow, generation: Int)
 

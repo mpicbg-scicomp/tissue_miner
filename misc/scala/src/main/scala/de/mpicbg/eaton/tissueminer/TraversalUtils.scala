@@ -1,5 +1,6 @@
 package de.mpicbg.eaton.tissueminer
 
+import Generations
 import de.mpicbg.eaton.tissueminer.Tables
 import de.mpicbg.eaton.tissueminer.Tables._
 import slick.driver.SQLiteDriver.api._
@@ -7,6 +8,7 @@ import slick.lifted.TableQuery
 
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration._
+import de.mpicbg.eaton.tissueminer.TraversalUtils._
 
 
 /**
@@ -17,7 +19,7 @@ import scala.concurrent.duration.Duration._
 object TraversalUtils {
 
 
-  implicit class Traversa(val cell: Tables.CellHistoriesRow) {
+  implicit class Traversal(val cell: Tables.CellHistoriesRow) {
 
     def leftDaughter(implicit tissueHist: Seq[Tables.CellHistoriesRow]) = {
       cell.leftDaughterCellId match {
@@ -48,6 +50,7 @@ object TraversalUtils {
 
 package object TraversalTest {
 
+
   val db = Database.forURL("jdbc:sqlite:/Users/brandl/Desktop/demo_ForTissueMiner.sqlite", driver = "org.sqlite.JDBC")
 
   //  http://slick.typesafe.com/doc/3.1.0-RC3/gettingstarted.html#database-configuration
@@ -57,7 +60,6 @@ package object TraversalTest {
 
   implicit val cells: Seq[Tables.CellHistoriesRow] = Await.result(db.run(cellHistories.result), Inf)
 
-  import de.mpicbg.eaton.tissueminer.TraversalUtils._
 
   val id = 10012
   val query = CellHistories.filter(_.cellId === id)
@@ -65,8 +67,4 @@ package object TraversalTest {
 
   val daughter = cellInfo.leftDaughter
   val mother = cellInfo.mother
-
-  //  cells.map(_.mother).flatten
-
-
 }
