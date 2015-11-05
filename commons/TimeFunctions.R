@@ -56,21 +56,23 @@ chunk_time_into_intervals <- function(df, deltaT){
     mutate(interval_mid=round(0.5*(interval_start+interval_end)))
   
   # Merge all time intervals to each time point
-  dataWithIntFilt <- dt.merge(mutate(df, fakekey=T), mutate(timeIntervals, fakekey=T), by=c("fakekey"), all=T, allow.cartesian=TRUE) %>%
+  dfTimePoints <- select(df, time_sec) %>% distinct(time_sec)
+  timeSecByIntervals <- dt.merge(mutate(dfTimePoints, fakekey=T), mutate(timeIntervals, fakekey=T), by=c("fakekey"), all=T, allow.cartesian=TRUE) %>%
     # Filter the correct interval for each time point
     select(-fakekey) %>% filter(time_sec >= interval_start & time_sec <=interval_end)
- 
-  return(dataWithIntFilt) 
+  dfByIntervals <- dt.merge(df, timeSecByIntervals, by="time_sec")
+  
+  return(dfByIntervals) 
 }
 ## synchronize_frames() ####
 synchronize_frames <- function(df, deltaT, trimTails=T){
   
   # Description: chunk the time into synchronized intervals of deltaT in seconds
   # Usage: synchronize_frames(df, deltaT,trimTails) where trimTails is optional
-  # Arguments: df = input dataframe, 
+  # Arguments: df = input dataframe containing a movie column, 
   #            deltaT = time interval length in seconds
   #            trimTails = if TRUE (default), remove non-overlapping time data
-  
+  # browser()
   chunkedData <- chunk_time_into_intervals(df, deltaT)
   
   # Summarize dev_time and optimal frame for each time interval
@@ -86,18 +88,21 @@ synchronize_frames <- function(df, deltaT, trimTails=T){
       mutate(max_interval=max(interval_mid),
              min_interval=min(interval_mid)) %>%
       ungroup() %>%
-      filter(interval_mid<=min(max_interval) & interval_mid>=max(min_interval)) %>%
-      print_head()
+      filter(interval_mid<=min(max_interval) & interval_mid>=max(min_interval)) #%>%
+      # print_head()
   }
   
-  return(syncFrames)
+  dfWithSyncFrames <- dt.merge(df %>% select(-dev_time), syncFrames %>% dplyr::rename(frame=syncFrame), by=c("movie","frame"))
+  return(dfWithSyncFrames)
 }
 
 ## DEBUG synchronize_frames() ####
 if (F){
   movieDirs <- file.path(movieDbBaseDir, c("WT_25deg_111102","WT_25deg_111103","WT_25deg_120531"))
-  syncFrames <- multi_db_query(movieDirs, mqf_dev_time) %>%
-    synchronize_frames(3600) %>% print_head()
+  template <- multi_db_query(movieDirs, mqf_fg_cell_area, rois="raw")  #mqf_fg_dev_time
+  syncFrames <- template %>% synchronize_frames(3600) %>% print_head()
+  
+  ggplot(syncFrames, aes(frame, dev_time, color=movie)) + geom_point()
 }
  
 
