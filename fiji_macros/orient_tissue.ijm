@@ -20,15 +20,18 @@ imID=getImageID();
 //transfoType=newArray("Draw an axis","Ellipse Major Axis");
 transfoType=newArray("Draw a new X-axis", "Draw a new Y-axis");
 
-Dialog.create("Transformation options");
-Dialog.addCheckbox("Rotate ?", true);
+//Dialog.create("Transformation options");
+Dialog.create("Rotation options");
+//Dialog.addCheckbox("Rotate ?", true);
 Dialog.addChoice("Method: ",transfoType);
-Dialog.addCheckbox("Enable flip options ?", false);
+//Dialog.addCheckbox("Enable flip options ?", false);
 Dialog.addNumber("Pixel size in micron (optional): ",0.207);
 Dialog.show();
-isRotate=Dialog.getCheckbox();
+//isRotate=Dialog.getCheckbox();
+isRotate=true;
 rotMethod=Dialog.getChoice();
-isFlip=Dialog.getCheckbox();
+//isFlip=Dialog.getCheckbox();
+isFlip=false;
 pxsize=Dialog.getNumber();
 
 selectImage(imID);
@@ -209,14 +212,47 @@ function rotate_drawAxis(dir, file, pxsize,rotMethod){
 		// Rotation can only be enlarged if no roi on top of image: workaround = duplicate the image and rotate the duplicated image
 		selectImage(imID); run("Duplicate...", "rot template");rotImID=getImageID();
 		selectImage(imID);close(); 
-		
+
+		setBackgroundColor(0,0,0);
 		run("Rotate... ", "angle=&rotation grid=1 interpolation=Bilinear fill enlarge");	
 		
 		// Update coordinates for the new system of coordinates (new orientation => new boundaries)
+		// Rotate the four images corners A, B, C, D by the rotation matrix R(theta)
+		// convert rotation angle in radian	
+		rotationRad=rotation*PI/180;
+		A=newArray(-width/2, -height/2);
+		B=newArray(-1*-width/2, -height/2);//"-1*-" is needed in first place because of bug in macro language
+		C=newArray(-1*-width/2, height/2);
+		D=newArray(-width/2, height/2);
+
+		// Clockwise rotation but bounded box would be the same by symmetry if counter-clockwise rotation
+		Arot=newArray(A[0]*cos(rotationRad)-A[1]*sin(rotationRad),A[0]*sin(rotationRad)+A[1]*cos(rotationRad));
+		Brot=newArray(B[0]*cos(rotationRad)-B[1]*sin(rotationRad),B[0]*sin(rotationRad)+B[1]*cos(rotationRad));
+		Crot=newArray(C[0]*cos(rotationRad)-C[1]*sin(rotationRad),C[0]*sin(rotationRad)+C[1]*cos(rotationRad));
+		Drot=newArray(D[0]*cos(rotationRad)-D[1]*sin(rotationRad),D[0]*sin(rotationRad)+D[1]*cos(rotationRad));
+
+		// counter-clockwise rotation
+		//Arot=newArray(A[0]*cos(rotation)+A[1]*sin(rotation),-A[0]*sin(rotation)+A[1]*cos(rotation));
+		//Brot=newArray(B[0]*cos(rotation)+B[1]*sin(rotation),-B[0]*sin(rotation)+B[1]*cos(rotation));
+		//Crot=newArray(C[0]*cos(rotation)+C[1]*sin(rotation),-C[0]*sin(rotation)+C[1]*cos(rotation));
+		//Drot=newArray(D[0]*cos(rotation)+D[1]*sin(rotation),-D[0]*sin(rotation)+D[1]*cos(rotation));
+
+		xCoord=newArray(Arot[0],Brot[0],Crot[0],Drot[0]); Array.sort(xCoord);
+		yCoord=newArray(Arot[1],Brot[1],Crot[1],Drot[1]); Array.sort(yCoord);
+
+
+		boundedBoxDim=newArray(-1*-floor(abs(xCoord[0])+xCoord[3]+1),floor(abs(yCoord[0])+yCoord[3])+1);		
+		
 		widthnew = getWidth();
 		heightnew = getHeight();
-		rotationcenternewx = widthnew / 2;
-		rotationcenternewy = heightnew / 2;
+		//rotationcenternewx = widthnew / 2;
+		//rotationcenternewy = heightnew / 2;
+
+		rotationcenternewx = boundedBoxDim[0] / 2;
+		rotationcenternewy = boundedBoxDim[1] / 2;
+
+		print("Fiji bounded box dim:         ", widthnew, heightnew);
+		print("Calculated bounded box dim:", boundedBoxDim[0],boundedBoxDim[1]);
 		
 		success=getBoolean("Rotation OK?");
 		if (!success) {selectImage(rotImID);close();}
@@ -226,8 +262,7 @@ function rotate_drawAxis(dir, file, pxsize,rotMethod){
 	} while (success==0); //END OF LOOP
 
 	
-	// convert rotation angle in radian	
-	rotationRad=rotation*PI/180;
+	
 	
 	// Save transformation in transformation.txt
 	// HEADER
@@ -239,7 +274,7 @@ function rotate_drawAxis(dir, file, pxsize,rotMethod){
 	header="Angle_rad rotationCenterOld_x rotationCenterOld_y rotationCenterNew_x rotationCenterNew_y IsVerticalFlip IsHorizontalFlip newImWidth newImHeight method";
 	print(f, header);
 	sep=" "; isVerticalFlip=0; isHorizontalFlip=0;
-	values=toString(rotationRad) + sep + rotationcenterx + sep + rotationcentery + sep + rotationcenternewx + sep + rotationcenternewy + sep + isVerticalFlip + sep + isHorizontalFlip + sep + widthnew + sep + heightnew + sep + "drawAxis";
+	values=toString(rotationRad) + sep + rotationcenterx + sep + rotationcentery + sep + rotationcenternewx + sep + rotationcenternewy + sep + isVerticalFlip + sep + isHorizontalFlip + sep + boundedBoxDim[0] + sep + boundedBoxDim[1] + sep + "drawAxis";
 	print(f, values);
 	File.close(f);
 
