@@ -75,7 +75,7 @@ if (isRotate)  {
 			trafo=update_trafo(dir, trafo, IsVerticalFlip, IsHorizontalFlip); print(trafo);
 		}
 	}
-	wait(3000); close();
+	wait(2000); close();
 }
 
 // Case flip only
@@ -213,7 +213,7 @@ function rotate_drawAxis(dir, file, pxsize,rotMethod){
 		selectImage(imID); run("Duplicate...", "rot template");rotImID=getImageID();
 		selectImage(imID);close(); 
 
-		setBackgroundColor(0,0,0);
+		setBackgroundColor(255,0,0);
 		run("Rotate... ", "angle=&rotation grid=1 interpolation=Bilinear fill enlarge");	
 		
 		// Update coordinates for the new system of coordinates (new orientation => new boundaries)
