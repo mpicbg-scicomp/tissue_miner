@@ -1,12 +1,10 @@
 
 /*
- * GUI MACRO to select one image on which to define the transformation
- * It must be the last image of the movie if rotate_wing_L4 method is used
- * It must be the first image of the movie if rotate_wing_SO method is used
+ * GUI MACRO to select one image on which to define the rotation
+ * It returns a file called transformation.txt that is used by the TissueMiner framework
  * 
  */
 
-// TODO: make a flip function with possibility to redo the flip if the user isn't happy with what it did
 
 // Select trafo method and image file to rotate
 path=select_image_file();
