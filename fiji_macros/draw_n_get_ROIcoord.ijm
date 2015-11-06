@@ -99,7 +99,7 @@ function setDefaultTemplatesFile(templatesPathName)
 {
 	f = File.open(templatesPathName);
 	print(f, "pupal wing,blade,interL1-L2,L2,interL2-L3,L3,proxInterL3-L4,distInterL3-L4,L4,proxInterL4-L5,postCV,distInterL4-L5,L5,postL5,HBinterface,hinge");
-	print(f, "wing disk,DV,AP,DorsInLeft,DorsInRight,VentrInRight,VentrInLeft,DorsOutLeft,DorsOutRight,VentrOutRight,VentrOutLeft");
+	//print(f, "wing disk,DV,AP,DorsInLeft,DorsInRight,VentrInRight,VentrInLeft,DorsOutLeft,DorsOutRight,VentrOutRight,VentrOutLeft");
 	File.close(f);
 }
 
