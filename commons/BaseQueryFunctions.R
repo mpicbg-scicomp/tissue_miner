@@ -299,7 +299,8 @@ mqf_fg_nematics_cell_elong <- function(movieDir, rois=c(), cellContour=F, displa
     mutate(phi=mod2pi(0.5*(atan2(elong_xy, elong_xx))), 
            norm= sqrt(elong_xx^2+elong_xy^2)) %>%
     # scale nematic norm for display and calculate the x and y nematic coordinates for ploting
-    mutate(x1=center_x-0.5*displayFactor*norm*cos(phi),
+    mutate(displayFactor=displayFactor,
+           x1=center_x-0.5*displayFactor*norm*cos(phi),
            y1=center_y-0.5*displayFactor*norm*sin(phi),
            x2=center_x+0.5*displayFactor*norm*cos(phi),
            y2=center_y+0.5*displayFactor*norm*sin(phi)) %>%
