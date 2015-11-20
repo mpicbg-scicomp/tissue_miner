@@ -50,30 +50,35 @@ check_version("dplyr", "0.4-3")
 ####################################################################################################
 ## Helper functions
 
-## Establish DB connection
+## Establish DB connection ####
 openMovieDb <- function(movieDir){
+  
+  # Description: open a SQLite database connection
+  # Usage: openMovieDb(movieDir)
+  # Arguments: movieDir = path to a given movie folder
+  
   db_name=basename(movieDir)
   dbFile=file.path(movieDir, paste0(db_name, ".sqlite"))
-
+  
   if(str_detect(dbFile, "project-raphael")) {
     dbSizeBytes=file.info(dbFile)$size
-
+    
     if(is.na(dbSizeBytes) || dbSizeBytes==0) stop(paste0("db '",dbFile,"'in is empty or does not exist"))
-
+    
     tmpDbFile <- paste0("/tmp/",db_name, "__", dbSizeBytes, ".sqlite")
-    ## copy db to tmp on madmax because sqlite driver doesn't seem to like lustre
+    ## copy db to tmp on madmax because sqlite driver doesn't seem to like lustre    
     if(!file.exists(tmpDbFile)){
       echo("creating database copy under '",tmpDbFile,"' for db: ", db_name)
       system(paste("cp ",dbFile,tmpDbFile))
     }else{
       echo("using cached db:", tmpDbFile)
     }
-
+    
     dbFile=tmpDbFile;
   }
-
+  
   db <- dbConnect(SQLite(), dbname=paste0(dbFile))
-
+  
   return(db)
 }
 
