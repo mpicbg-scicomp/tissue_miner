@@ -608,11 +608,17 @@ dbDisconnect(db)
 ## http://stackoverflow.com/questions/3820213/what-is-the-difference-between-primary-key-and-unique-key-constraint
 ## Index creation http://www.w3schools.com/sql/sql_create_index.asp
 #CREATE INDEX idx_cells_cell_id ON pk_cells (cell_id)
+# Create explicit index for table primary keys
 system(paste("sqlite3", dbfile, "'
+CREATE INDEX idx_cells_frame ON cells (frame);
 CREATE INDEX idx_cells_cell_id ON cells (cell_id);
-CREATE INDEX idx_dbonds_conjdbonds ON dbonds (conj_dbond_id);
-CREATE INDEX idx_dbonds_leftbonds ON dbonds (left_dbond_id);
-CREATE INDEX idx_dbonds_vertex ON dbonds (vertex_id);
+CREATE INDEX idx_cell_histories_cell_id ON cell_histories (cell_id);
+CREATE INDEX idx_dbonbs_dbond_id ON directed_bonds (dbond_id);
+CREATE INDEX idx_dbonds_conjdbonds ON directed_bonds (conj_dbond_id);
+CREATE INDEX idx_dbonds_leftbonds ON directed_bonds (left_dbond_id);
+CREATE INDEX idx_dbonds_cell_id ON directed_bonds (cell_id);
+CREATE INDEX idx_dbonds_vertex_id ON directed_bonds (vertex_id);
+CREATE INDEX idx_vertices_vertex_id ON vertices (vertex_id);
 '"))
 
 #dbSendQuery(db, "CREATE INDEX idx_cells_cell_id ON cells (cell_id);")
