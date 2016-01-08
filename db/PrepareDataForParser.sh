@@ -1,21 +1,21 @@
 #!/bin/bash
 
 
-while getopts t flag; do
-  case $flag in
-    t)
-      echo "Preparing movie db including rotation";
-      useRotation=TRUE
-      ;;
-    ?)
-      exit;
-      ;;
-  esac
-done
-shift $(( OPTIND - 1 ));
+#while getopts t flag; do
+#  case $flag in
+#    t)
+#      echo "Preparing movie db";
+#      useRotation=TRUE
+#      ;;
+#    ?)
+#      exit;
+#      ;;
+#  esac
+#done
+#shift $(( OPTIND - 1 ));
 
 
-if [ $# -ne 1 ]; then echo "Usage: `basename $0` [-t to enable rotation] <Movie Data Directory>" >&2 ; exit; fi
+if [ $# -ne 1 ]; then echo "Usage: `basename $0` <Movie Data Directory>" >&2 ; exit; fi
 
 export movieDbDir=$1
 
