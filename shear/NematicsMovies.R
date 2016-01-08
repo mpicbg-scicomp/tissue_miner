@@ -304,7 +304,7 @@ makeNemMovie(Qcg_t, paste0(db_name,"_cell_elongation.mp4"))
 
 shearScale=gridSize*100 #shearScale=gridSize*40*3
 
-makeNemMovie(totalPureShear, paste0(db_name,"_pure_shear.mp4"), shearScale, "cyan")
+makeNemMovie(totalPureShear, paste0(db_name,"_pure_shear.mp4"), shearScale, "royalblue")
 makeNemMovie(shearByCE, paste0(db_name,"_shear_ce.mp4"), shearScale, "green")
 makeNemMovie(shearByCrc, paste0(db_name,"_shear_crc.mp4"), shearScale, "magenta")
 makeNemMovie(Qcg_t1, paste0(db_name,"_shear_t1.mp4"), shearScale, "red")
