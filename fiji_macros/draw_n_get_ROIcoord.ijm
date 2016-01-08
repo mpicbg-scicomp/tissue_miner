@@ -30,7 +30,7 @@ function define_ROI(listROI,outDir,file,pxsize){
 		//roiManager("Show None");
 	}
 	
-	roiManager("Save", outDir+"RoiSet.zip")
+	roiManager("Save", outDir+"RoiSet.zip");
 	selectWindow("ROI Manager");
 	run("Close");
 
