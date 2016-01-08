@@ -38,7 +38,8 @@ rule all:
 rule prepare_movie:
     params: name="prepare_movie"
     output: "Segmentation/movieInformation.dat"
-    shell: "CreateMovieInfoDat.sh "  + movieDbDir
+    #shell: "CreateMovieInfoDat.sh "  + movieDbDir 
+	shell: "PrepareDataForParser.sh " + movieDbDir # also generate original.png needed by the parser 
 
 
 rule parse_tables:
