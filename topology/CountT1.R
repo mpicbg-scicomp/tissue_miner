@@ -12,7 +12,7 @@ if(length(argv) != 1){
 
 ## DEBUG epc
 # movieDir <- "/media/project-raphael@mack/movie_dbs/wt_comparison_no_rot/WT_distLinkCut-25deg_131226"
-# movieDir <- "/media/project_raphael@fileserver/movieDB_rotated/WT_25deg_111102"
+# movieDir <- "/media/project_raphael@fileserver/TissueMiner_DB/WT_1"
 # movieDir <- "/home/brandl/mnt/mack/project-raphael/movie_dbs/MoviesDB_rotated/WT_25deg_111102"
 # movieDir <- "/home/brandl/mnt/mack/project-raphael/movie_dbs/db_tests/PA_Sample_NoCorrection"
 
@@ -219,7 +219,7 @@ save(topoChangeSummary, file="topoChangeSummary.RData")
 #ggplot(topoChangeSummary, aes(num_t1_gained)) + geom_bar()
 topoByFrame <- topoChangeSummary %>%
     dt.merge(., locload("../roi_bt/lgRoiSmoothed.RData"), allow.cartesian=TRUE) %>%
-    filter(roi=="blade") %>%
+    filter(roi=="whole_tissue") %>%
     group_by(roi, frame) %>%
     summarise(
         sum_t1_gained=sum(num_t1_gained),
