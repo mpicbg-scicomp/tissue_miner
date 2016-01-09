@@ -12,37 +12,42 @@ render_frame_label <- function(frame){ paste("frame", frame) }
 
 
 
-algnModel <- c("WT_25deg_111102"=0, #REF: histoblast nest fusion takes place at 26.5hAPF,
-    ## todo remove this one
-   "WT_25deg_111102_ForTissueMiner"=0, #REF: histoblast nest fusion takes place at 26.5hAPF
-   "WT_25deg_111102_Cor"=27000,
-   "WT_25deg_111103"=5671, # alignement based on cell elongation state
-   "WT_25deg_120531"=5030, # alignement based on cell elongation state
-   "WT_25deg_111017"=5400, # alignement based on histoblast nest fusion
-   "WT_25deg_111019"=6300, # alignement based on histoblast nest fusion
-   "WT_25deg_111020"=600, # alignement based on histoblast nest fusion
-   "WT_25-30deg_130921"=5632, # alignement based on cell elongation state
-   "WT_25-30deg_130926"=2000, # TO BE ALIGNED
-   "WT_25-30deg_130702"=9500, # TO BE ALIGNED
-   "HTcdc2_25-30deg_130924"=6600, # TO BE ALIGNED
-   "HTcdc2_25-30deg_130925"=3600, # TO BE ALIGNED
-   "HTcdc2_25-30deg_130927"=11598, # alignement based on cell elongation state
-   "MTcdc2_25-30deg_130916"=7831, # alignement based on cell elongation state
-   "MTcdc2_25-30deg_130917"=6247, # alignement based on cell elongation state
-   "MTcdc2_25-30deg_130919"=9871, # alignement based on cell elongation state
-   "MTcdc2_25deg_130930"=667, # alignement based on cell elongation state
-   "MTcdc2_25deg_130905"=4699, # alignement based on cell elongation state
-   "WT_distLinkCut-25deg_131226"=18100, # alignement based on histoblast nest fusion
-   "WT_antLinkCut-25deg_131227"=23500, # alignement based on histoblast nest fusion
-   "MTdp_25deg_140222"=2000, # alignement based on histoblast nest fusion
-   "MTdp_25deg_140226"=3600, # ???
-   "WT_severedHBdist-25deg_130110"=4500, # alignement based on histoblast nest fusion
-   "WT_sevBdist-25deg_130131"=4000, # alignement based on histoblast nest fusion
-   "WT_severedHB-25deg_130107"=3600, # alignement based on histoblast nest fusion
-   "20140312_pk30_17h"=-1200, # TO BE ALIGNED
-   "PA_Sample_NoCorrection"=3249,
-   "demo"=0) %>%
-   vec2df() %>% set_names("movie","time_shift")
+algnModel <- c(
+  "WT_25deg_111102"=0, #REF: histoblast nest fusion takes place at 26.5hAPF,
+  ## todo remove this one
+  "WT_1"=0, # as refered to WT_25deg_111102
+  "WT_2"=5671, # as refered to WT_25deg_111103
+  "WT_3"=5030, # as refered to WT_25deg_120531
+  "WT_25deg_111102_ForTissueMiner"=0, #REF: histoblast nest fusion takes place at 26.5hAPF
+  "WT_25deg_111102_Cor"=27000,
+  "WT_25deg_111103"=5671, # alignement based on cell elongation state
+  "WT_25deg_120531"=5030, # alignement based on cell elongation state
+  "WT_25deg_111017"=5400, # alignement based on histoblast nest fusion
+  "WT_25deg_111019"=6300, # alignement based on histoblast nest fusion
+  "WT_25deg_111020"=600, # alignement based on histoblast nest fusion
+  "WT_25-30deg_130921"=5632, # alignement based on cell elongation state
+  "WT_25-30deg_130926"=2000, # TO BE ALIGNED
+  "WT_25-30deg_130702"=9500, # TO BE ALIGNED
+  "HTcdc2_25-30deg_130924"=6600, # TO BE ALIGNED
+  "HTcdc2_25-30deg_130925"=3600, # TO BE ALIGNED
+  "HTcdc2_25-30deg_130927"=11598, # alignement based on cell elongation state
+  "MTcdc2_25-30deg_130916"=7831, # alignement based on cell elongation state
+  "MTcdc2_25-30deg_130917"=6247, # alignement based on cell elongation state
+  "MTcdc2_25-30deg_130919"=9871, # alignement based on cell elongation state
+  "MTcdc2_25deg_130930"=667, # alignement based on cell elongation state
+  "MTcdc2_25deg_130905"=4699, # alignement based on cell elongation state
+  "WT_distLinkCut-25deg_131226"=18100, # alignement based on histoblast nest fusion
+  "WT_antLinkCut-25deg_131227"=23500, # alignement based on histoblast nest fusion
+  "MTdp_25deg_140222"=2000, # alignement based on histoblast nest fusion
+  "MTdp_25deg_140226"=3600, # ???
+  "WT_severedHBdist-25deg_130110"=4500, # alignement based on histoblast nest fusion
+  "WT_sevBdist-25deg_130131"=4000, # alignement based on histoblast nest fusion
+  "WT_severedHB-25deg_130107"=3600, # alignement based on histoblast nest fusion
+  "20140312_pk30_17h"=-1200, # TO BE ALIGNED
+  "PA_Sample_NoCorrection"=3249,
+  "demo"=0
+) %>%
+  vec2df() %>% set_names("movie","time_shift")
 
 
 
