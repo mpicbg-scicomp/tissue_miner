@@ -2047,7 +2047,7 @@ avgCellArea <- multi_db_query(movieDirs, mqf_cg_roi_cell_area, selectedRois) %>%
 ## 4  WT_1     1 whole_tissue 756.8944 229339.0    303      287         286      54000 15.07972
 ## 5  WT_1     2       distL3 552.5098  28178.0     51      573         276      54000 15.15917
 ## 6  WT_1     2 whole_tissue 758.2180 231256.5    305      573         276      54000 15.15917
-## [1] 1208
+## [1] 1206
 ```
 
 
@@ -2089,7 +2089,7 @@ avgCellElong <- multi_db_query(movieDirs, mqf_cg_roi_nematics_cell_elong, select
 ## 4         286      54000 15.07972
 ## 5         276      54000 15.15917
 ## 6         276      54000 15.15917
-## [1] 1208
+## [1] 1206
 ```
  
 
@@ -2123,7 +2123,7 @@ avgNeighborNb <- multi_db_query(movieDirs, mqf_cg_roi_cell_neighbor_count, selec
 ## 4  WT_1     1 whole_tissue          6.006601      287         286      54000 15.07972
 ## 5  WT_1     2       distL3          5.941176      573         276      54000 15.15917
 ## 6  WT_1     2 whole_tissue          6.016393      573         276      54000 15.15917
-## [1] 1202
+## [1] 1200
 ```
 
 ***
