@@ -5,6 +5,7 @@ deprecated
 ._
 *.RData
 *.o
+R-tutorial_cache
 
 #scala ignores
 target

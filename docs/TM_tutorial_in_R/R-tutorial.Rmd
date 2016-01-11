@@ -126,7 +126,8 @@ http://superuser.com/questions/568464/how-to-install-libav-avconv-on-osx
 
 ```{r Setup IN/OUT, warning=FALSE, message=FALSE, echo=T,results='hide'}
 # Define path to all processed movies: TO BE EDITED BY THE USER
-movieDbBaseDir="/media/junk/Raphael_RawData/ownCloud/MovieRepository_DB"
+#movieDbBaseDir="/media/junk/Raphael_RawData/ownCloud/MovieRepository_DB"
+movieDbBaseDir=Sys.getenv("TUTORIAL_DATA")
 # movieDbBaseDir="/Users/retourna/ownCloud/DB"
 
 # Define a working directory where to save the analysis: TO BE EDITED BY THE USER

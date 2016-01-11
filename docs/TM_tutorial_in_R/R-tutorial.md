@@ -1,10 +1,8 @@
----
-title: "TissueMiner: an R-tutorial to visualize cell dynamics in 2D tissues"
-output:
-  html_document:
-    toc: true
-    number_sections: true
----
+# TissueMiner: an R-tutorial to visualize cell dynamics in 2D tissues
+Raphael Etournay  
+25 November 2015  
+
+
 
 
 
@@ -14,8 +12,7 @@ output:
 * **Prerequisite:** it is assumed in this tutorial that 
     + time-lapses have been processed using the TissueMiner automated workflow [here](https://github.com/mpicbg-scicomp/tissue_miner)
 
-
-* **We provide three processed time-lapses** corresponding to 3 wild-type *Drosophila* pupal wings. [Please, download them here](files.mpi-cbg.de). 
+* **We provide three processed time-lapses** corresponding to the distal part of 3 wild-type *Drosophila* pupal wings. [Please, download them here](https://cloud.mpi-cbg.de/index.php/s/XF5swEw9lxRmZNj). 
 
 * **No programming skill required:** this tutorial will guide the user, without any previous knowledge in programming, through the main aspects of data manipulation and visualization using the R language. 
 
@@ -23,7 +20,7 @@ output:
 
 * **TissueMiner extends this grammar** to facilitate the visualization and quantification of cell dynamics during tissue morphogenesis
 
-* **TissueMiner is compatible with the Python programming language**. We provide a Python-tutorial of TissueMiner [here](link)
+* **TissueMiner is compatible with the Python programming language**. We provide a Python-tutorial of TissueMiner [here](https://github.com/mpicbg-scicomp/tissue_miner/tree/master/docs)
 
 * **High performance computing platform**. TissueMiner has been designed to be used in command-line in order to easily batch repetitive tasks and to run tasks on a high performance computing platform (cluster). 
 
@@ -124,7 +121,8 @@ http://superuser.com/questions/568464/how-to-install-libav-avconv-on-osx
 
 ```r
 # Define path to all processed movies: TO BE EDITED BY THE USER
-movieDbBaseDir="/media/junk/Raphael_RawData/ownCloud/MovieRepository_DB"
+#movieDbBaseDir="/media/junk/Raphael_RawData/ownCloud/MovieRepository_DB"
+movieDbBaseDir=Sys.getenv("TUTORIAL_DATA")
 # movieDbBaseDir="/Users/retourna/ownCloud/DB"
 
 # Define a working directory where to save the analysis: TO BE EDITED BY THE USER
@@ -185,9 +183,9 @@ movieColors <- c("WT_1"="blue",
 Many books or web sites describe the R language, and we only introduce the necessary knowledge to understand this tutorial.
 We recommend of few references that have been useful to us:
 
-* The art of R programming
-* The R cookbook
-* The R graphics cookbook
+* *The art of R programming* by Norman Matloff 
+* *R cookbook* by Paul Teetor
+* *R graphics cookbook* by Winston Chang
 * [https://www.rstudio.com/resources/cheatsheets/](https://www.rstudio.com/resources/cheatsheets/)
 
 ### Variable assignment and simple instructions
@@ -356,6 +354,10 @@ movieDir <- file.path(movieDbBaseDir, c("WT_1"))
 
 # Connection to the DB stored in the "db" variable
 db <- openMovieDb(movieDir)
+```
+
+```
+## creating database copy under ' /tmp/WT_1__329011200.sqlite ' for db:  WT_1
 ```
 
 
@@ -948,7 +950,7 @@ Please, read the current definition of the **render_frame()** function at the [f
     + **raw**: this ROI corresponds to all tracked cells contained in the DB
     + **whole_tissue**: this ROI corresponds to the largest population of cells that is visible throughout the movie. It's a subset of **raw** obtained by the lineage-browser algorithm that is part of the automated workflow of TissueMiner
 
-* Other regions of interest can be manually defined by the user in Fiji ([see Manual](link)). Of note, these additional ROIs are only taken into account if they were defined **before** running the automated workflow.  
+* Other regions of interest can be manually defined by the user in Fiji ([see Fiji macro](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/fiji_macros/draw_n_get_ROIcoord.ijm)). Of note, these additional ROIs are only taken into account if they were defined **before** running the automated workflow.  
 
 The automated workflow includes routines to browse the cell lineage and to follow ROIs in time once defined on a given image of the time-lapse. Please note that cells in contact with the margin are discarded because the segmentation and tracking quality isn't optimum near the margin.
 
@@ -1110,6 +1112,7 @@ bond_with_vx <- mqf_fg_bond_length(movieDir, "raw") %>% print_head()
 ```
 
 ```
+## using cached db: /tmp/WT_1__329011200.sqlite
 ##   movie frame cell_id bond_id vertex_id.2 vertex_id.1   x_pos.1   y_pos.1   x_pos.2   y_pos.2 bond_length roi time_sec timeInt_sec time_shift
 ## 1  WT_1     0   10000      14          17          25  98.06311 1342.9089  91.39899 1316.2707     34.8701 raw        0         287      54000
 ## 2  WT_1     0   10000      30          13          38 110.51102 1414.2745  92.36590 1396.3648     37.6569 raw        0         287      54000
@@ -1228,8 +1231,13 @@ render_movie(cellArea, "CellAreaPattern.mp4", list(
 ```r
 # We now select the blade ROI that we defined using the draw_n_get_ROIcoord.ijm Fiji macro.
 cellArea <- mqf_fg_cell_area(movieDir, rois = c("raw"), cellContour = T)
+```
 
+```
+## using cached db: /tmp/WT_1__329011200.sqlite
+```
 
+```r
 whole_tissue_roi <- locload(file.path(movieDir, "roi_bt/lgRoiSmoothed.RData")) %>% 
   filter(roi=="whole_tissue") %>% print_head() 
 ```
@@ -1353,12 +1361,12 @@ render_movie(cellShapesElong, "CellElongationPattern.mp4", list(
 
 * Using the **TissueMiner grammar**, one can get cell elongation nematics for plotting in one step
 
-* The **get_nematics_DBelong()** does the following:
+* The **mqf_fg_nematics_cell_elong()** does the following:
     + it retrieves elongation nematics from the database. 
     + it calculates nematic angle and norm.
     + it scales nematics for display on the image (automatic scaling by default)
 
-* Please, read the **get_nematics_DBelong()** definition [here](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/commons/NematicQueryFunctions.R)
+* Please, read the **mqf_fg_nematics_cell_elong()** definition [here](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/commons/BaseQueryFunctions.R)
 
 
 
@@ -1367,6 +1375,8 @@ cellElongNematics <- mqf_fg_nematics_cell_elong(movieDir, "raw") %>% print_head(
 ```
 
 ```
+## using cached db: /tmp/WT_1__329011200.sqlite
+## using cached db: /tmp/WT_1__329011200.sqlite
 ##   movie frame cell_id center_x  center_y    elong_xx    elong_xy roi       phi       norm displayFactor       x1        y1       x2        y2
 ## 1  WT_1     0   10001 176.6084  576.1622 -0.05983052  0.05619121 raw 1.1937758 0.08208010      23.39504 176.2549  575.2695 176.9618  577.0549
 ## 2  WT_1     0   10002 385.9889  886.4995  0.08673475 -0.14837206 raw 5.7622877 0.17186385      23.39504 384.2452  887.5000 387.7327  885.4990
@@ -1413,14 +1423,14 @@ cellElongNematics %>%
 
 * TissueMiner provides a **coarseGrid()** function to map cell positions to each element of a square grid. The user can find its definition [here](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/commons/RoiCommons.R).
 
-* TissueMiner provides more specific routines using this **coarseGrid()** function to average nematics in space and time. Concerning cell elongtation, the **get_nematics_DBelong_cg()** TissueMiner function allows the user to directly get coarse-grained nematics that are automatically scaled for display on the original image. The display factor can also be manually defined.
+* TissueMiner provides more specific routines using this **coarseGrid()** function to average nematics in space and time. Concerning cell elongtation, the **mqf_cg_grid_nematics_cell_elong()** TissueMiner function allows the user to directly get coarse-grained nematics that are automatically scaled for display on the original image. The display factor can also be manually defined.
 
-* The **get_nematics_DBelong_cg()** from the TissueMiner grammar does the following:
+* The **mqf_cg_grid_nematics_cell_elong()** from the TissueMiner grammar does the following:
     + it assigns grid elements to cells and get the cell elongation tensors from the database. 
     + it averages nematics in each grid element.
     + it scales nematics for display on the image (automatic scaling by default)
 
-* Please, read the **get_nematics_DBelong_cg()** definition [here](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/commons/NematicQueryFunctions.R)
+* Please, read the **mqf_cg_grid_nematics_cell_elong()** definition [here](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/commons/BaseQueryFunctions.R)
 
 
 ```r
@@ -1429,6 +1439,9 @@ cellElongNematicsCG <- mqf_cg_grid_nematics_cell_elong(movieDir, gridSize = 96) 
 ```
 
 ```
+## using cached db: /tmp/WT_1__329011200.sqlite
+## using cached db: /tmp/WT_1__329011200.sqlite
+## using cached db: /tmp/WT_1__329011200.sqlite
 ##   movie frame xGrid yGrid roi cgExx_smooth cgExy_smooth       phi       norm       x1       y1       x2       y2 time_sec timeInt_sec time_shift
 ## 1  WT_1     0   145   433 raw   0.05120609  0.076291150 0.4898333 0.09188255 133.6416 426.9440 156.3584 439.0560        0         287      54000
 ## 2  WT_1     0   145   529 raw  -0.10856375  0.131458662 1.1305478 0.17049184 134.8213 507.3930 155.1787 550.6070        0         287      54000
@@ -1481,17 +1494,21 @@ render_movie(cellElongNematicsCG, "CellElongationNematicPattern.mp4", list(
 
 * Using the **TissueMiner grammar**, one can get the cell neighbor count for plotting in one step
 
-* The **get_cell_neighbor_count()** does the following:
+* The **mqf_fg_cell_neighbor_count()** does the following:
     + it establishes all cell-cell contact from the database. 
     + it counts the number of cell-cell contact for each cell
     + it trims the neighbor count between 4 and 8 neighbors for display
     + it retrieves cell contours for display
 
-* Please, read the **get_cell_neighbor_count()** definition [here](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/commons/BaseQueryFunctions.R)
+* Please, read the **mqf_fg_cell_neighbor_count()** definition [here](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/commons/BaseQueryFunctions.R)
 
 
 ```r
 cellPolygonClass <- mqf_fg_cell_neighbor_count(movieDir, "raw", cellContour = T)
+```
+
+```
+## using cached db: /tmp/WT_1__329011200.sqlite
 ```
 
 ***
@@ -1603,11 +1620,11 @@ render_movie(cellsWithLin, "CellGenerationPattern.mp4", list(
 ### Get and manipulate the data for plotting
 * Using the **TissueMiner grammar**, one can get cell division unit nematics for plotting in one step
 
-* The **get_unit_nematics_CD()** does the following:
+* The **mqf_fg_unit_nematics_CD()** does the following:
     + it uses the cell center of mass of the daughter cells to calculate a unit nematic describing the division orientation
     + it scales nematics for display on the image (automatic scaling by default)
 
-* Please, read the **get_unit_nematics_CD()** definition [here](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/commons/NematicQueryFunctions.R)
+* Please, read the **mqf_fg_unit_nematics_CD()** definition [here](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/commons/BaseQueryFunctions.R)
 
 
 ```r
@@ -1616,6 +1633,8 @@ cdNematics <- mqf_fg_unit_nematics_CD(movieDir, rois = "raw", cellContour = T) %
 ```
 
 ```
+## using cached db: /tmp/WT_1__329011200.sqlite
+## using cached db: /tmp/WT_1__329011200.sqlite
 ##   frame cell_id movie mother_cell_id roi   normCDxx  normCDxy      phi center_x center_y       x1       y1       x2       y2 time_sec timeInt_sec
 ## 1     1   10201  WT_1          10200 raw -0.6039906 0.7969914 1.109648  511.151 1040.345 500.7408 1019.393 521.5613 1061.296      287         286
 ## 2     1   10201  WT_1          10200 raw -0.6039906 0.7969914 1.109648  511.151 1040.345 500.7408 1019.393 521.5613 1061.296      287         286
@@ -1659,16 +1678,22 @@ cdNematics %>%
 
 * Using the **TissueMiner grammar**, one can coarse-grain cell division unit nematics for plotting in one step
 
-* The **get_unit_nematics_CD()** does the following:
+* The **mqf_cg_grid_unit_nematics_CD()** does the following:
     + it assigns grid elements to cells and calculate the cell division unit nematics
     + it averages nematics in each grid element.
     + it scales nematics for display on the image (automatic scaling by default)
 
-* Please, read the **get_unit_nematics_CD()** definition [here](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/commons/NematicQueryFunctions.R)
+* Please, read the **mqf_cg_grid_unit_nematics_CD()** definition [here](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/commons/BaseQueryFunctions.R)
 
 
 ```r
 cgCDnematicsSmooth <- mqf_cg_grid_unit_nematics_CD(movieDir, gridSize = 160, kernSize = 11)
+```
+
+```
+## using cached db: /tmp/WT_1__329011200.sqlite
+## using cached db: /tmp/WT_1__329011200.sqlite
+## using cached db: /tmp/WT_1__329011200.sqlite
 ```
 
 ***
@@ -1771,12 +1796,12 @@ render_movie(csWithTopoT1, "CellNeighborChangePattern.mp4", list(
 
 * Using the **TissueMiner grammar**, one can get T1 unit nematics for plotting in one step
 
-* The **get_unit_nematics_T1()** does the following:
+* The **mqf_fg_unit_nematics_T1()** does the following:
     + it uses the cell center of mass of cells gaining or losing contact to calculate a unit nematic 
     + it flips (90°) nematics of cells gaining contact so that all nematics would add up upon a T1 transition or cancel out if the T1 event is reversed
     + it scales nematics for display on the image (automatic scaling by default)
 
-* Please, read the **mqf_unit_nematics_T1()** definition [here](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/commons/BaseQueryFunctions.R)
+* Please, read the **mqf_fg_unit_nematics_T1()** definition [here](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/commons/BaseQueryFunctions.R)
 
 
 ```r
@@ -1785,6 +1810,8 @@ t1nematics <- mqf_fg_unit_nematics_T1(movieDir, "raw", cellContour = T) %>% prin
 ```
 
 ```
+## using cached db: /tmp/WT_1__329011200.sqlite
+## using cached db: /tmp/WT_1__329011200.sqlite
 ##   frame cell_id movie type roi  unit_T1xx  unit_T1xy      phi center_x center_y      x1       y1       x2       y2 time_sec timeInt_sec time_shift
 ## 1     0   10001  WT_1 loss raw -0.6071794 -0.7945648 5.171534 167.5872 594.4095 162.403 604.8955 172.7713 583.9235        0         287      54000
 ## 2     0   10001  WT_1 loss raw -0.6071794 -0.7945648 5.171534 167.5872 594.4095 162.403 604.8955 172.7713 583.9235        0         287      54000
@@ -1845,12 +1872,12 @@ t1nematics %>%
 
 * Using the **TissueMiner grammar**, one can coarse-grain T1 unit nematics for plotting in one step
 
-* The **get_unit_nematics_T1_cg()** does the following:
+* The **mqf_cg_grid_unit_nematics_T1()** does the following:
     + it assigns grid elements to cells and calculate T1 unit nematics
     + it averages nematics in each grid element.
     + it scales nematics for display on the image (automatic scaling by default)
 
-* Please, read the **get_unit_nematics_T1_cg()** definition [here](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/commons/NematicQueryFunctions.R)
+* Please, read the **mqf_cg_grid_unit_nematics_T1()** definition [here](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/commons/BaseQueryFunctions.R)
 
 
 ```r
@@ -1859,6 +1886,9 @@ cgT1nematics <- mqf_cg_grid_unit_nematics_T1(movieDir, rois="raw", gridSize = 16
 ```
 
 ```
+## using cached db: /tmp/WT_1__329011200.sqlite
+## using cached db: /tmp/WT_1__329011200.sqlite
+## using cached db: /tmp/WT_1__329011200.sqlite
 ##   movie frame xGrid yGrid roi cgT1xx_smooth cgT1xy_smooth phi norm scaledFact x1 y1 x2 y2 time_sec timeInt_sec time_shift dev_time
 ## 1  WT_1     0   241   561 raw            NA            NA  NA   NA    133.391 NA NA NA NA        0         287      54000       15
 ## 2  WT_1     0   241   721 raw            NA            NA  NA   NA    133.391 NA NA NA NA        0         287      54000       15
@@ -1993,7 +2023,7 @@ dbDisconnect(db)
 
 ## General principles:
 
-**CAUTION**: Tissue orientation matters for nematic components. Indeed, nematic tensors are symmetric traceless tensors that are characterized by 2 components projected onto the x and y axis of the Cartesian system. In order to compare nematics amongst different time-lapse one has to make sure that the tissues have a similar orientation with respect to the x and y axes. In the workflow, one has the possibility to rotate the images along with the data [see Manual](link) to obtain visually comparable time-lapse. 
+**CAUTION**: Tissue orientation matters for nematic components. Indeed, nematic tensors are symmetric traceless tensors that are characterized by 2 components projected onto the x and y axis of the Cartesian system. In order to compare nematics amongst different time-lapse one has to make sure that the tissues have a similar orientation with respect to the x and y axes. In the workflow, one has the possibility to rotate the images along with the data [see Fiji macro](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/fiji_macros/orient_tissue.ijm) to obtain visually comparable time-lapse. 
 
 **CAUTION**: Cumulative quantities are strongly influenced by the developmental time. Therefore, movies must be aligned in time prior to comparison between movies. We have aligned the three WT wing movies in time by aligning the peaks of their respective average cell elongation curves as a function of time. One movie is used as a reference and time shifts are applied to other movies. These time shifts must be stored in a configuration file containing the *algnModel* table as defined [here](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/config/flywing_tm_config.R).
 
@@ -2251,6 +2281,11 @@ T1Nematics <- multi_db_query(movieDirs, mqf_cg_roi_unit_nematics_T1, selectedRoi
 ```
 
 ```
+## using cached db: /tmp/WT_1__329011200.sqlite
+## using cached db: /tmp/WT_1__329011200.sqlite
+## using cached db: /tmp/WT_1__329011200.sqlite
+## using cached db: /tmp/WT_1__329011200.sqlite
+## using cached db: /tmp/WT_1__329011200.sqlite
 ## Source: local data frame [6 x 20]
 ## Groups: movie, roi [1]
 ## 
@@ -2427,6 +2462,7 @@ triProperties <- mqf_fg_triangle_properties(movieDir, "raw", triContour = T) %>%
 ```
 
 ```
+## using cached db: /tmp/WT_1__329011200.sqlite
 ##   tri_id movie frame    ta_xx    ta_xy     ta_yx    ta_yy tri_area      s_a    theta_a two_phi_a       Q_a roi time_sec timeInt_sec time_shift
 ## 1      1  WT_1    41 25.73521 4.237465  -8.08430 12.82599 364.3366 2.949039 -0.3092837  5.684289 0.3459120 raw    11617         283      54000
 ## 2      1  WT_1    41 25.73521 4.237465  -8.08430 12.82599 364.3366 2.949039 -0.3092837  5.684289 0.3459120 raw    11617         283      54000
