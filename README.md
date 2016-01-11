@@ -84,6 +84,7 @@ Although we do not recommend it, you can also run each of the TissueMiner tools 
 
 Data structure
 ================
+
 We advice the user to store all movies in a movie repository folder <movie_repository> to facilitate automated movie comparison.
 
 Here is the required structure of a movie:
@@ -98,6 +99,10 @@ Upon segmentation and tracking, TissueAnalyzer will generate one folder per imag
 
 TissueMiner will generate additional folders and files in the \<movie_directory\> folder.
 
+Documentation
+=============
+
+We provide an exhaustive **[tutorial](https://mpicbg-scicomp.github.io/tissue_miner/tm_tutorial/R-tutorial.html)** with lots of examples, background information and API details. For a more general overview consider the [resource paper](/link/here/once/published)
 
 Support
 =========
