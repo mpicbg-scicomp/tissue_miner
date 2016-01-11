@@ -1,8 +1,10 @@
-# TissueMiner: an R-tutorial to visualize cell dynamics in 2D tissues
-Raphael Etournay  
-25 November 2015  
-
-
+---
+title: "TissueMiner: an R-tutorial to visualize cell dynamics in 2D tissues"
+output:
+  html_document:
+    toc: true
+    number_sections: true
+---
 
 
 
