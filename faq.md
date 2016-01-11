@@ -24,4 +24,4 @@ Only the tracking step in TissueAnalyzer is currently required for TissueMiner t
 
 ## Is TissueAnalyzer part of TissueMiner ?
 
-TissueMiner works **downstream of** TissueAnalyzer. Therefore TissueAnalyzer is incuded in the TissueMiner framework.
+TissueMiner works **downstream of** TissueAnalyzer. Therefore TissueAnalyzer is included in the TissueMiner framework.
