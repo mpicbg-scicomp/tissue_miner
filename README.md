@@ -87,6 +87,8 @@ Data structure
 We advice the user to store all movies in a movie repository folder <movie_repository> to facilitate automated movie comparison.
 
 Here is the required structure of a movie:
+
+
 \<movie_repository\>/\<movie_directory\>/**Segmentation**/\<movie_directory_name\>_%03d.png
 
 %03d represents a number padded with 3 digits. The number of digits can be modified [FAQ](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/faq.md).
