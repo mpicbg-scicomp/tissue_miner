@@ -94,7 +94,7 @@ Here is the required structure of a movie:
 All movie images are contained in the 'Segmentation' folder.
 Upon segmentation and tracking, TissueAnalyzer will generate one folder per image, in the Segmentation folder.
 
-TissueMiner will generate additional folders and files in the <movie_directory> folder.
+TissueMiner will generate additional folders and files in the \<movie_directory\> folder.
 
 
 Support
