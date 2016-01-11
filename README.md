@@ -82,6 +82,21 @@ For snakemake details see the its [reference](https://bitbucket.org/johanneskoes
 
 Although we do not recommend it, you can also run each of the TissueMiner tools separately. See [simple_workflow.sh](workflow/simple_workflow.sh) for an example pipeline.
 
+Data structure
+================
+We advice the user to store all movies in a movie repository folder <movie_repository> to facilitate automated movie comparison.
+
+Here is the required structure of a movie:
+<movie_repository>/<movie_directory>/**Segmentation**/<movie_directory_name>_%03d.png
+
+%03d represents a number padded with 3 digits. The number of digits can be modified [FAQ](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/faq.md).
+
+All movie images are contained in the 'Segmentation' folder.
+Upon segmentation and tracking, TissueAnalyzer will generate one folder per image, in the Segmentation folder.
+
+TissueMiner will generate additional folders and files in the <movie_directory> folder.
+
+
 Support
 =========
 
