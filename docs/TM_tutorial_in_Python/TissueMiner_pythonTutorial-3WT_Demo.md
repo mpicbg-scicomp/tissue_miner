@@ -3,22 +3,31 @@
 This tutorial is intended to demonstrate how Python can be used for visualisation and quantification of the data produced by the TissueMiner workflow. It can be run as Ipython Notebook.
 
 Prerequisites:
+
     - time-lapse movies have been processed using TissueMiner workflow 
+
     - python libraries: numpy, matplotlib, pandas, ipython, sqlite3, rpy2
+
     - provided tissue_miner.py and tisue_miner_tools.py files are stored in the same folder -> no other installation is necessary
 
 Tutorial is centered around Pandas and Matplotlib libraries. Although we provide several simple examples, basic knowledge of python and these two libraries is recommended. For a 10 minutes introduction to Pandas see: http://pandas.pydata.org/pandas-docs/stable/10min.html . Beginner guide to Matplotlib can be found here: http://matplotlib.org/users/beginner.html
 
 
 Tutorial is organized in three parts:
+    
     - Introduction
+        
         - How to use Pandas and Matplotlib libraries for basic analysis of TissueMiner data?
+    
     - Visualisation
+        
         - How to visualise different cell properties on original images in cellular resolution?
+    
     - Comparing movies and ROIs
+        
         - How to compare data between different movies and/or regions of interest (ROIs)?
 
-# Introduction
+# 1 Introduction
 
 
 ```python
@@ -72,7 +81,7 @@ import pandas as pd
 import pandas.io.sql as psql
 ```
 
-## Database and supplementary data
+## 1.1 Database and supplementary data
 ### Movie class
 Movie class is the basic object for manipulating the data produced by TissueMiner. It is implemented in tissue_miner.py and can be simply extended by user. 
 Each movie will have a dedicated instance of Movie class which is supplied with methods for loading and performing basic operations on the corresponding movie data. 
@@ -180,8 +189,11 @@ movie.DB_table['cells'].head()
 
 ### Loading the supplement data
 In addition to the SQL database, extra tables are provided for each time-lapse movie. Each set of supplment data has a dedicated method for loading. In this tutorial we will use:
+
     - cellshapes.RData - cell contours by using anticlockwisely ordered cell vertices
+
     - ./roi_bt/lgRoiSmoothed.RData - user-defined regions of interest
+    
     - ./shear_contrib/<ROI_name>/avgDeformTensorsWide.tsv - precalculated deformation rates of triangles and tissue for each region of interest
 
 Note that some of these extra tables are provided in .RData format. On the first run these are converted to pickle format which might take some time.
@@ -259,7 +271,7 @@ movie.cellshapes.head()
 
 
 
-## Manipulation of large data sets using Pandas library
+## 1.2 Manipulation of large data sets using Pandas library
 Here we provide several simple examples of data manipulation using Pandas 
 
 
@@ -596,7 +608,7 @@ plt.savefig(outDatabaseDir+'averageAreaInTime.png')
 ![png](output_17_0.png)
 
 
-# Visualization
+# 2 Visualization
 Here we demonstrate how to load and visualise cell data on the original images.
 We first show all the details on a simple example and then we use Movie.plot_frame_cells() method to visualize cell area, cell elongation, cell packnig and division patterns. All examples on are done for a single frame.
 
@@ -625,12 +637,8 @@ plt.ylim(300, 1800)
 plt.savefig(outDatabaseDir+'cell_outlines_reversed.png')
 ```
 
-    /usr/lib64/python2.7/site-packages/matplotlib/collections.py:590: FutureWarning: elementwise comparison failed; returning scalar instead, but in the future will perform elementwise comparison
-      if self._edgecolors == str('face'):
 
-
-
-![png](output_19_1.png)
+![png](output_19_0.png)
 
 
 
@@ -663,7 +671,7 @@ plt.savefig(outDatabaseDir+'cell_outlines.png')
 ![png](output_20_0.png)
 
 
-## Cell area
+## 2.1 Cell area
 
 
 ```python
@@ -694,7 +702,7 @@ plt.savefig(outDatabaseDir+'cell_area_frame_' + tml.fill_zeros(str(frame), 3) + 
 ![png](output_23_0.png)
 
 
-## Cell elongation
+## 2.2 Cell elongation
 
 
 ```python
@@ -720,7 +728,7 @@ plt.savefig(outDatabaseDir+'cell_elong_frame_' + tml.fill_zeros(str(frame), 3) +
 ![png](output_26_0.png)
 
 
-## Cell packing 
+## 2.3 Cell packing 
 
 
 ```python
@@ -888,7 +896,7 @@ plt.savefig(outDatabaseDir+'cell_packnig_frame_' + tml.fill_zeros(str(frame), 3)
 ![png](output_32_0.png)
 
 
-## Cell division patterns
+## 2.4 Cell division patterns
 
 
 ```python
@@ -1019,7 +1027,7 @@ plt.savefig(outDatabaseDir+'cell_division_pattern_frame_' + tml.fill_zeros(str(f
 ![png](output_36_0.png)
 
 
-# Comparing average quantities among movies and ROIs
+# 3 Comparing average quantities among movies and ROIs
 Data produced by TissueMiner is easy to compare among different movies and regions of interest. Here we first demonstrate the comparison of total cell number in three provided movies and then we compare average cell area and elongation between the three movies in different regions of interest.
 
 
@@ -1059,7 +1067,7 @@ for name in movie_list:
     Loading roiBT ...
 
 
-## Cell count for different movies
+## 3.1 Cell count for different movies
 
 
 ```python
@@ -1092,7 +1100,7 @@ plt.savefig(outDatabaseDir+'cell_count_comparison.png')
 ![png](output_41_0.png)
 
 
-## Average cell area in different ROIs and movies
+## 3.2 Average cell area in different ROIs and movies
 
 
 ```python
@@ -1129,7 +1137,7 @@ plt.savefig(outDatabaseDir+'cell_average_area_ROI_comparison.png')
 ![png](output_44_0.png)
 
 
-## Norm of  average cell elongation in different ROIs and movies
+## 3.3 Norm of  average cell elongation in different ROIs and movies
 
 
 ```python
