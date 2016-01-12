@@ -104,6 +104,17 @@ Documentation
 
 We provide an exhaustive **[tutorial](https://mpicbg-scicomp.github.io/tissue_miner/tm_tutorial/R-tutorial.html)** with lots of examples, background information and API details. For a more general overview consider the [resource paper](/link/here/once/published)
 
+TissueAnalyzer
+=============
+-Tissue Analyzer (copyright Aigouy 2016) ships with its own licence
+see license_TA.txt bundled in the software. Tissue Analyzer should not be modified or
+reverse engineered.  Tissue Analyzer should always be distributed
+bundled with TM and not alone.
+
+[Download TissueAnalyzer](/link/to/be/defined)
+
+For aa quick start guide, click [here](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/docs/TAdoc.pdf)
+
 Support
 =========
 
