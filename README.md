@@ -113,7 +113,7 @@ bundled with TM and not alone.
 
 [Download TissueAnalyzer](/link/to/be/defined)
 
-For aa quick start guide, click [here](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/docs/TAdoc.pdf)
+For a quick start guide, click [here](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/docs/TAdoc.pdf)
 
 Support
 =========
