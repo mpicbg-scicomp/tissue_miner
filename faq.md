@@ -25,3 +25,8 @@ Only the tracking step in TissueAnalyzer is currently required for TissueMiner t
 ## Is TissueAnalyzer part of TissueMiner ?
 
 TissueMiner works **downstream of** TissueAnalyzer. Therefore TissueAnalyzer is included in the TissueMiner framework.
+
+
+## How to change the number of digits used for padding ?
+Edit the tm.snkmk file located in the *workflow* folder, and find and replace %03d by the desired padding (ex: %04d for 4 digits).
+
