@@ -107,7 +107,7 @@ We provide an exhaustive **[tutorial](https://mpicbg-scicomp.github.io/tissue_mi
 TissueAnalyzer
 =============
 -Tissue Analyzer (copyright Aigouy 2016) ships with its own licence
-see license_TA.txt bundled in the software. Tissue Analyzer should not be modified or
+(see license_TA.txt bundled in the software). Tissue Analyzer should not be modified or
 reverse engineered.  Tissue Analyzer should always be distributed
 bundled with TM and not alone.
 
