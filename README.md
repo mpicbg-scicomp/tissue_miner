@@ -114,16 +114,14 @@ bundled with TM and not alone.
 You can install the latest version of Tissue Analyzer (formerly known
 as Packing Analyzer) within FIJI (http://fiji.sc/Fiji). To do so:
 
--launch FIJI
--open the "Help" menu
--click on "Update..."
--click on "Manage update sites"
--click on "Add" and enter "http://sites.imagej.net/TA/" in the URL
-field (and anything you like in the "Name" field)
--click "Close" and FIJI should offer you to install TA.
+* -launch FIJI
+* -open the "Help" menu
+* -click on "Update..."
+* -click on "Manage update sites"
+* -click on "Add" and enter "http://sites.imagej.net/TA/" in the URL field (and anything you like in the "Name" field)
+* -click "Close" and FIJI should offer you to install TA.
 
-Once the installation is complete, restart FIJI, open the "Plugins"
-menu and click on "Tissue Analyzer"
+Once the installation is complete, restart FIJI, open the "Plugins" menu and click on "Tissue Analyzer"
 
 For a quick start guide, click [here](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/docs/TAdoc.pdf)
 
