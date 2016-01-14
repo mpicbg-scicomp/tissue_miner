@@ -11,6 +11,7 @@ About
 
 How to get started?
 ================
+Install the [docker engine](https://docs.docker.com/) on your system.
 
 We provide a preconfigured [docker image](https://registry.hub.docker.com/u/brandl/tissue_miner/) to run TissueMiner without any setup. Just do
 
