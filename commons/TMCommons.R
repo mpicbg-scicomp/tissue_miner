@@ -40,11 +40,14 @@ options("scipen"=100)
 ## see http://stackoverflow.com/questions/9314783/require-minimum-version-of-r-package
 check_version = function(pkg_name, min_version) {
     cur_version = packageVersion(pkg_name)
-    if(cur_version < min_version) stop(sprintf("Package %s needs a newer version,
-               found %s, need at least %s", pkg_name, cur_version, min_version))
+
+    if(cur_version < min_version){
+        stop(sprintf("Package %s needs a newer version, found %s, need at least %s", pkg_name, cur_version, min_version))
+    }
 }
 
 check_version("dplyr", "0.4-3")
+check_version("ggplot2", "2.0.0")
 #check_version("magrittr", "1.5")
 
 ####################################################################################################

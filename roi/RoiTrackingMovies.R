@@ -35,7 +35,7 @@ mcdir(file.path(movieDir, "roi_bt"))
 cellshapes <- local(get(load(file.path(movieDir, "cellshapes.RData"))))
 
 ## todo disable
-skip_existing_movies<-T
+#skip_existing_movies<-T
 
 ########################################################################################################################
 #### Render simple cell tracking movie excluding blade to avoid overplotting
@@ -123,9 +123,9 @@ roiHulls <- local(get(load("roiHulls.RData")))
 csWithLineageWholeTissue <- dt.merge(cellshapes, subset(lgRoiSmoothed, roi=="whole_tissue"), by="cell_id")
 csWithLineageWholeTissue <- arrange(csWithLineageWholeTissue, frame, cell_id, bond_order) ## .. because merge messed up the ordering
 
- render_movie(csWithLineageWholeTissue, "whole_tissue__bh_fix_peeled.mp4", list(
-     geom_polygon(aes(x_pos, y_pos, fill=roi, group=cell_id),  alpha=0.5)
- ))
+render_movie(csWithLineageWholeTissue, "whole_tissue__bh_fix_peeled.mp4", list(
+    geom_polygon(aes(x_pos, y_pos, fill=roi, group=cell_id),  alpha=0.5)
+))
 
 rm(csWithLineageWholeTissue)
 

@@ -60,7 +60,7 @@ grpGraph <- ftM2graphNEL(as.matrix(lgInterfcesNoDup), edgemode="undirected")
 graphColors <- sequential.vertex.coloring(grpGraph)
 graphColorsDF <- data.frame(lineage_group=names(graphColors[[2]]), color=as.numeric(graphColors[[2]]))
 
-gg <- ggplot(graphColorsDF, aes(as.factor(color))) + geom_histogram() + ggtitle("color counts") + xlab("color") + ggtitle("lineage group coloring distribution")
+gg <- ggplot(graphColorsDF, aes(as.factor(color))) + geom_bar() + ggtitle("color counts") + xlab("color") + ggtitle("lineage group coloring distribution")
 ggsave2(gg)
 
 ## save for later (to be plugged in as color scheme

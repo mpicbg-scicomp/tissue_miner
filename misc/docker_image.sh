@@ -12,21 +12,31 @@ docker build -t brandl/tissue_miner .
 #docker push brandl/tissue_miner
 
 
+## test the example from the README.md
+# mcdir /home/brandl/projects/tm_demo
+# curl https://cloud.mpi-cbg.de/index.php/s/EspCWSQn3k6NKLA/download  | tar -zxvf -
+
+docker run --rm -ti -v $(pwd)/example_movies:/movies -w /movies/demo_ForTissueMiner brandl/tissue_miner sm all
+
+docker run --rm -ti -v $(pwd)/example_movies:/movies -w /movies/demo_ForTissueMiner brandl/tissue_miner /bin/bash --login
+
+
 #docker run --rm -ti -v $(pwd)/example_movies:/movies brandl/tissue_miner /bin/bash --login
 #docker run --rm -ti -v $(pwd)/example_movies:/movies brandl/tissue_miner /bin/bash --login -c "cd demo_ForTissueMiner; sm -j 5 all"
 #docker run --rm -ti -v $(pwd)/example_movies:/movies brandl/tissue_miner /bin/bash --login -c "source /.bash_profile; cd demo_ForTissueMiner; sm all"
 docker run --rm -t -i -v $(pwd)/example_movies:/movies -w /movies/demo_ForTissueMiner brandl/tissue_miner sm -n all
-docker run --rm -t -i -v $(pwd)/example_movies:/movies -w /movies/demo_ForTissueMiner brandl/tissue_miner sm -f tri_create
+docker run --rm -t -i -v $(pwd)/example_movies:/movies -w /movies/demo_ForTissueMiner brandl/tissue_miner /bin/bash --login
 
 
-
-docker run  --rm -ti brandl/tissue_miner /bin/bash --login
+docker run --rm -ti -v $(pwd):/movies brandl/tissue_miner /bin/bash --login
+docker run -ti -v $(pwd):/movies brandl/tissue_miner /bin/bash --login
+docker run -ti -v $(pwd):/example_movies brandl/tissue_miner /bin/bash
+docker run -i -t  brandl/tissue_miner /bin/bash
 
 ## signal forwarding
 docker run --rm -ti -v $(pwd):/movies brandl/tissue_miner  /bin/bash --login -c "sleep 10000"
-docker run --rm -ti -v $(pwd):/movies brandl/tissue_miner  /bin/bash --login
-
 docker run --rm -ti -v $(pwd):/movies brandl/tissue_miner ls
+docker run --rm -ti -v $(pwd):/movies brandl/tissue_miner /bin/bash --login
 docker run --rm -ti -v $(pwd):/movies brandl/tissue_miner sm -n
 
 
@@ -156,4 +166,5 @@ sm  --dag | dot -Tpdf > dag_tbd.pdf
 http://askubuntu.com/questions/472412/how-do-i-upgrade-docker
 
 ## bundle the example movies
+cd /Users/brandl/owncloud/public/tissue_miner
 tar -zcvf tm_example_data.tar.gz example_movies
