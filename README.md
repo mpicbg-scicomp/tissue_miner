@@ -102,17 +102,6 @@ Second, run the setup procedure in a terminal (Unix-shell interpreter)
     export PATH=${TM_HOME}/parser:$PATH
     
 
-We recommend to add the following lines in your *.bashrc* or *.bash_profile* so that you don't have to export the environment variables again:
-
-    ## Copy these lines into your .bashrc (or .bash_profile):
-    export TM_HOME="~/tissue_miner"
-    export PATH=$TM_HOME/db:$TM_HOME/shear:$TM_HOME/roi:$TM_HOME/misc:$TM_HOME/movies:$TM_HOME/shear_contributions:$TM_HOME/topology:$TM_HOME/triangles:$TM_HOME/lineage:$PATH
-    export PATH=${TM_HOME}/parser:$PATH
-    
-    ## Then apply changes
-    source .bashrc
-
-
 Don't forget to define a TM_HOME shell variable, pointing to the root of your TissueMiner installation, since it will require it to resolve script paths internally.
 
 Then you can run TissueMiner to analyze your movie, provided your movie folder contains a **Segmentation** folder in which to find the original images as well as the TissueAnalyzer outputs.
@@ -144,6 +133,21 @@ To run the automated workflow we recommend [snakemake](https://bitbucket.org/joh
 For snakemake details see the its [reference](https://bitbucket.org/johanneskoester/snakemake/wiki/Home).
 
 Although we do not recommend it, you can also run each of the TissueMiner tools separately. See [simple_workflow.sh](workflow/simple_workflow.sh) for an example pipeline.
+
+
+We recommend to add the following lines in your *.bashrc* or *.bash_profile* so that you don't have to export the environment variables again:
+
+    ## Copy these lines into your .bashrc (or .bash_profile):
+    export TM_HOME="~/tissue_miner"
+    export PATH=$TM_HOME/db:$TM_HOME/shear:$TM_HOME/roi:$TM_HOME/misc:$TM_HOME/movies:$TM_HOME/shear_contributions:$TM_HOME/topology:$TM_HOME/triangles:$TM_HOME/lineage:$PATH
+    export PATH=${TM_HOME}/parser:$PATH
+    sm() {
+        snakemake --snakefile ${TM_HOME}/workflow/tm.snkmk --keep-going "$@"
+    }
+    export -f sm
+    
+    ## Then apply changes
+    source .bashrc
 
 
 
