@@ -36,6 +36,6 @@ We recommend to follow the following procedure:
      docker pull brandl/tissue_miner
     
      ## Go to your movie repository  and run the TissueMiner automated workflow on the Demo 
-     
-     [see How to get started](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/README.md#how-to-get-started)
+
+[see How to get started](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/README.md#how-to-get-started)
     
