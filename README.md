@@ -11,18 +11,26 @@ About
 
 How to get started?
 ================
-Install the [docker engine](https://docs.docker.com/) on your system.
+Install the [docker engine](https://docs.docker.com/) on your system. And start it (a shell window pops up). Docker can run the TissueMiner automated workflow on your system (MacOSX, Linux, Windows) without any OS setup. To do so, you once need to download the TissuerMiner [docker image](https://registry.hub.docker.com/u/brandl/tissue_miner/) that we preconfigured. Just do
 
-We provide a preconfigured [docker image](https://registry.hub.docker.com/u/brandl/tissue_miner/) to run TissueMiner without any setup. Just do
-
-     ## download some example data
+     ## Step 1: download some example data for the demo
      curl https://cloud.mpi-cbg.de/index.php/s/EspCWSQn3k6NKLA/download  | tar -zxvf -
      
-     ## download the image and start the analysis
+     ## Step 2: download the TissueMiner application (bundled in a docker image called "brandl/tissue_miner")
      docker pull brandl/tissue_miner
-     docker run --rm -ti -v $(pwd)/example_movies:/movies -w /movies/demo_ForTissueMiner brandl/tissue_miner sm all
      
-To run TissueMiner over your own data, you'll need to set the source directory containing your movie directories and to replace the example movie name with your movie/directory of interest.
+     ## Step 3: Run the TissueMiner automated workflow on the provided example
+     docker run --rm -ti -v $(pwd)/example_movies:/movies -w /movies/demo_ForTissueMiner brandl/tissue_miner sm all
+
+For troubleshooting in case of out-of-date operating systems [click here](misc/docker_troubleshooting.md).
+
+To run TissueMiner over your own data, you'll need to go to the source directory containing your movie directories (use the *cd* command + drag and drop the folder containing your movie directories onto the shell + press enter) and to replace the example movie name (demo_ForTissueMiner) with your movie/directory of interest.
+
+    ## Example for "my_favorite_movie"
+    cd path_to_your_movie_repository
+    docker run --rm -ti -v $(pwd):/movies -w /movies/my_favorite_movie brandl/tissue_miner sm all
+
+Once your tracked-cell data have been processed by the TissueMiner automated workflow, you can perform a custom multiscale analysis of epithelial morphogenesis using the detailed [R-tutorial](https://mpicbg-scicomp.github.io/tissue_miner/tm_tutorial/R-tutorial.html) or the [Python-tutorial](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/docs/TM_tutorial_in_Python/TissueMiner_pythonTutorial-3WT_Demo.md).
 
 
 How to run locally?
