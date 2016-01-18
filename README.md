@@ -7,10 +7,11 @@
 About
 =================
 
-**TissueMiner** is a framework to perform a multiscale analysis of a developing epithelium. It takes tracked-cell data as an input. To generate such an input, we use [TissueAnalyzer](README.md#tissueanalyzer) by [Benoit Aigouy](http://dx.doi.org/10.1016/j.cell.2010.07.042) to segment and track cells over time. **TissueMiner** contains a GUI to group cells (ROI's) in space, and a lineage browsing algorithm to follow these ROI's backward and forward in time. 
+**TissueMiner** is a framework to perform a multiscale analysis of a developing epithelium, and it works in three steps. 
 
+First, it requires tracked-cell data as an input. To generate such an input, we use [TissueAnalyzer](README.md#tissueanalyzer) by [Benoit Aigouy](http://dx.doi.org/10.1016/j.cell.2010.07.042) to segment and track cells over time. **TissueMiner** contains a GUI to group cells (ROI's) in space, and a lineage browsing algorithm to follow these ROI's backward and forward in time. 
 
-**TissueMiner** consists of an **automated workflow** that stores information about:
+Second, **TissueMiner** consists of an **automated workflow** that stores information about:
 
 * cell geometry
 * cell topology (cell neighbor relationships)
@@ -24,7 +25,7 @@ into a **SQLite relational database**, which is automatically queried to **quant
 * rate of tissue deformation contributed by each type of cellular event
 * multiscale quantification and visualization using both dynamic ROI's (Lagrangian description) and fixed grids (Eulerian description): from individual cells to averages over the entire tissue
 
-**TissueMiner** also consists of a [toolkit](README.md#documentation) to perform *à-la-carte* analyses and visualizations of these processed data:
+Third, **TissueMiner** also consists of a [toolkit](README.md#documentation) to perform *à-la-carte* analyses and visualizations of these processed data:
 
 * time and orientation registrations for comparing multiple movies
 * synchronization tools to generate a video of combined movies at constant frame rate (by under-sampling time)
