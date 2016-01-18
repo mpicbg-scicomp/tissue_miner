@@ -2,7 +2,21 @@
 About
 =================
 
-**TissueMiner** is a framework to track cells and groups of cells (rois) in space an and time. It allows to calculate statistics about lineage, shape, deformation and topology. It comes along with various tools to visualize these data. 
+**TissueMiner** is a framework to perform a multiscale analysis of a developing epithelium. It takes tracked-cells data as an input. To generate such an input, we use [TissueAnalyzer](README.md#tissueanalyzer) by [Benoit Aigouy](doi:10.1016/j.cell.2010.07.042) to segment and track cells over time. TissueMiner contains a GUI to group cells (ROI's) in space, and a lineage browsing algorithm to follow these ROI's in time. TissueMiner contains an **automated workflow** that stores information about:
+
+* cell geometry
+* cell topology
+* cell ancestry 
+
+into a relational database, which is automatically queried to **quantify** and **visualize** cell dynamics during epithelium morphogenesis:
+
+* cell state properties (position, area, anisotropy, cell packing geometry, fluorescence intensity)
+* rates of cellular events (divions, cell neighbor changes, extrusions, shape changes)
+* rates of deformation due to each type of cellular event
+* rate of tissue deformation contributed by each type of cellular event
+* multiscale quantification and visualization using both ROI's (Lagrangian description) and fixed grid (Eulerian description): from individual cells to the entire tissue
+
+It comes along with various tools to customize the analysis and the visualization of these data. 
 
 
 ![alt tag](https://raw.githubusercontent.com/mpicbg-scicomp/tissue_miner/master/docs/readme_screenshots/stripes_0.jpg)
