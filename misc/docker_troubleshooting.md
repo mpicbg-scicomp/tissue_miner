@@ -14,9 +14,9 @@ On Ubuntu, we recommend not to use Docker, but rather to configure your system u
 Your Mac must be running OS X 10.8 “Mountain Lion” or newer to install the Docker Toolbox.
 See installation procedure [here](https://docs.docker.com/engine/installation/mac/)
 
-* **Windows**s
+* **Windows**
 
-Your machine must be running Windows 7 or newer to run Docker.
+Your machine must be running Windows 7 or newer to run Docker. 
 See installation procedure [here](https://docs.docker.com/engine/installation/windows/)
 
 
