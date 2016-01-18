@@ -16,7 +16,7 @@ About
 * cell topology (cell neighbor relationships)
 * cell ancestry 
 
-into a **relational database**, which is automatically queried to **quantify** and **visualize** cell dynamics during epithelium morphogenesis:
+into a **SQLite relational database**, which is automatically queried to **quantify** and **visualize** cell dynamics during epithelium morphogenesis:
 
 * cell state properties (position, area, anisotropy, cell packing geometry, fluorescence intensity)
 * rates of cellular events (divisions, cell neighbor changes, extrusions, shape changes)
@@ -24,7 +24,7 @@ into a **relational database**, which is automatically queried to **quantify** a
 * rate of tissue deformation contributed by each type of cellular event
 * multiscale quantification and visualization using both dynamic ROI's (Lagrangian description) and fixed grids (Eulerian description): from individual cells to averages over the entire tissue
 
-**TissueMiner** also consists of a [toolkit](README.md#documentation) to perform *à-la-carte* analyses and visualizations of these data:
+**TissueMiner** also consists of a [toolkit](README.md#documentation) to perform *à-la-carte* analyses and visualizations of these processed data:
 
 * time and orientation registrations for comparing multiple movies
 * synchronization tools to generate a video of combined movies at constant frame rate (by under-sampling time)
@@ -63,7 +63,7 @@ Data structure
 
 We advice the user to store all movies in a movie repository folder \<movie_repository\> to facilitate automated movie comparison.
 
-Here is the required structure of a movie:
+Here is the **required structure** of a movie:
 
 
 \<movie_repository\>/\<movie_directory\>/**Segmentation**/\<movie_directory_name\>_%03d.png
@@ -75,12 +75,12 @@ Upon segmentation and tracking, TissueAnalyzer will generate one folder per imag
 
 TissueMiner will generate additional folders and files in the \<movie_directory\> folder.
 
-How to run locally?
+How to run locally (Linux Ubuntu)?
 ================
 
-First, make sure that the packages listed in [install_dependencies.sh](misc/install_dependencies.sh) are installed on your system.
+First, make sure that the packages listed in [install_dependencies.sh](misc/install_dependencies.sh) are installed on your Ubuntu system.
 
-Second, just grab a copy of TissueMiner and run the setup procedure in a terminal (Unix-shell interpreter)
+Second, run the setup procedure in a terminal (Unix-shell interpreter)
 
     ## Set path to install TissueMiner in you home folder (please use an absolute path)
     export TM_HOME="~/tissue_miner"
@@ -101,11 +101,23 @@ Second, just grab a copy of TissueMiner and run the setup procedure in a termina
     export PATH=$TM_HOME/db:$TM_HOME/shear:$TM_HOME/roi:$TM_HOME/misc:$TM_HOME/movies:$TM_HOME/shear_contributions:$TM_HOME/topology:$TM_HOME/triangles:$TM_HOME/lineage:$PATH
     export PATH=${TM_HOME}/parser:$PATH
     
+
+We recommend to add the following lines in your *.bashrc* or *.bash_profile* so that you don't have to export the environment variables again:
+
+    ## Copy these lines into your .bashrc (or .bash_profile):
+    export TM_HOME="~/tissue_miner"
+    export PATH=$TM_HOME/db:$TM_HOME/shear:$TM_HOME/roi:$TM_HOME/misc:$TM_HOME/movies:$TM_HOME/shear_contributions:$TM_HOME/topology:$TM_HOME/triangles:$TM_HOME/lineage:$PATH
+    export PATH=${TM_HOME}/parser:$PATH
+    
+    ## Then apply changes
+    source .bashrc
+
+
 Don't forget to define a TM_HOME shell variable, pointing to the root of your TissueMiner installation, since it will require it to resolve script paths internally.
 
-Then you can run TissueMiner to analyze your movie, provided your movie folder contains a "Segmentation" folder in which to find the original images as well as the TissueAnalyzer outputs.
+Then you can run TissueMiner to analyze your movie, provided your movie folder contains a **Segmentation** folder in which to find the original images as well as the TissueAnalyzer outputs.
 
-To run the workflow we recommend [snakemake](https://bitbucket.org/johanneskoester/snakemake/wiki/Home). We provide a [snakemake workflow](workflow/tm.snkmk) to ease running TissueMiner on a cluster or locally on a single computer. It integrates all analyses implemented in TissueMiner and can be easily extended to include project specifc elements as well. This is how we usually run TissueMiner: 
+To run the automated workflow we recommend [snakemake](https://bitbucket.org/johanneskoester/snakemake/wiki/Home). We provide a [snakemake workflow](workflow/tm.snkmk) to ease running TissueMiner on a cluster or locally on a single computer. It integrates all analyses implemented in TissueMiner and can be easily extended to include project specifc elements as well. This is how we usually run TissueMiner: 
 
     ##  define a custom snakemake launcher to save typing
     sm() {
@@ -145,7 +157,7 @@ TissueAnalyzer
 **Tissue Analyzer** (copyright Aigouy 2016) ships with its own licence
 (see license_TA.txt bundled in the software). Tissue Analyzer should not be modified or
 reverse engineered.  Tissue Analyzer should always be distributed
-bundled with TM and not alone.
+bundled with **TissueMiner** and not alone.
 
 You can install the latest version of Tissue Analyzer (formerly known
 as Packing Analyzer) within FIJI (http://fiji.sc/Fiji). To do so:
