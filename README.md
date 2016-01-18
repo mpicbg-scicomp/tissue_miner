@@ -1,30 +1,34 @@
 
+
+![alt tag](https://raw.githubusercontent.com/mpicbg-scicomp/tissue_miner/master/docs/readme_screenshots/stripes_0.jpg)
+![alt tag](https://raw.githubusercontent.com/mpicbg-scicomp/tissue_miner/master/docs/readme_screenshots/veins_0.jpg)
+
+
 About
 =================
 
-**TissueMiner** is a framework to perform a multiscale analysis of a developing epithelium. It takes tracked-cells data as an input. To generate such an input, we use [TissueAnalyzer](README.md#tissueanalyzer) by [Benoit Aigouy](http://dx.doi.org/10.1016/j.cell.2010.07.042) to segment and track cells over time. **TissueMiner** contains a GUI to group cells (ROI's) in space, and a lineage browsing algorithm to follow these ROI's in time. **TissueMiner** contains an **automated workflow** that stores information about:
+**TissueMiner** is a framework to perform a multiscale analysis of a developing epithelium. It takes tracked-cell data as an input. To generate such an input, we use [TissueAnalyzer](README.md#tissueanalyzer) by [Benoit Aigouy](http://dx.doi.org/10.1016/j.cell.2010.07.042) to segment and track cells over time. **TissueMiner** contains a GUI to group cells (ROI's) in space, and a lineage browsing algorithm to follow these ROI's backward and forward in time. **TissueMiner** consists of an **automated workflow** that stores information about:
 
 * cell geometry
 * cell topology (cell neighbor relationships)
 * cell ancestry 
 
-into a relational database, which is automatically queried to **quantify** and **visualize** cell dynamics during epithelium morphogenesis:
+into a **relational database**, which is automatically queried to **quantify** and **visualize** cell dynamics during epithelium morphogenesis:
 
 * cell state properties (position, area, anisotropy, cell packing geometry, fluorescence intensity)
-* rates of cellular events (divions, cell neighbor changes, extrusions, shape changes)
+* rates of cellular events (divisions, cell neighbor changes, extrusions, shape changes)
 * rates of deformation due to each type of cellular event
 * rate of tissue deformation contributed by each type of cellular event
 * multiscale quantification and visualization using both dynamic ROI's (Lagrangian description) and fixed grids (Eulerian description): from individual cells to averages over the entire tissue
 
-It comes along with various [tools](README.md#documentation) to perform à-la-carte analyses and visualizations of these data:
+**TissueMiner** also consists of a [toolkit](README.md#documentation) to perform *à-la-carte* analyses and visualizations of these data:
 
 * time and orientation registrations for comparing multiple movies
-* synchronization tools to generate a video of combined movies at constant frame rate (by undersampling time)
+* synchronization tools to generate a video of combined movies at constant frame rate (by under-sampling time)
 * comparison of tissue and cell deformations between ROI's and between movies.
+* statistics
+* visualization of quantified data in graphs or directly on the tissue
 
-
-![alt tag](https://raw.githubusercontent.com/mpicbg-scicomp/tissue_miner/master/docs/readme_screenshots/stripes_0.jpg)
-![alt tag](https://raw.githubusercontent.com/mpicbg-scicomp/tissue_miner/master/docs/readme_screenshots/veins_0.jpg)
 
 
 How to get started?
