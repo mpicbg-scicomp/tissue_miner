@@ -25,7 +25,7 @@ into a **SQLite relational database**, which is automatically queried to **quant
 * rate of tissue deformation contributed by each type of cellular event
 * multiscale quantification and visualization using both dynamic ROI's (Lagrangian description) and fixed grids (Eulerian description): from individual cells to averages over the entire tissue
 
-**C/** Third, **TissueMiner** also consists of a [toolkit](README.md#documentation) to perform *à-la-carte* analyses and visualizations of these processed data:
+**C/** Third, **TissueMiner** also consists of a [toolkit](README.md#documentation), which can be used in the user-friendly [Rstudio](https://www.rstudio.com/products/RStudio/#Desktop) environment, to perform *à-la-carte* analyses and visualizations of these processed data:
 
 * time and orientation registrations for comparing multiple movies
 * synchronization tools to generate a video of combined movies at constant frame rate (by under-sampling time)
