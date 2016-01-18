@@ -7,7 +7,10 @@
 About
 =================
 
-**TissueMiner** is a framework to perform a multiscale analysis of a developing epithelium. It takes tracked-cell data as an input. To generate such an input, we use [TissueAnalyzer](README.md#tissueanalyzer) by [Benoit Aigouy](http://dx.doi.org/10.1016/j.cell.2010.07.042) to segment and track cells over time. **TissueMiner** contains a GUI to group cells (ROI's) in space, and a lineage browsing algorithm to follow these ROI's backward and forward in time. **TissueMiner** consists of an **automated workflow** that stores information about:
+**TissueMiner** is a framework to perform a multiscale analysis of a developing epithelium. It takes tracked-cell data as an input. To generate such an input, we use [TissueAnalyzer](README.md#tissueanalyzer) by [Benoit Aigouy](http://dx.doi.org/10.1016/j.cell.2010.07.042) to segment and track cells over time. **TissueMiner** contains a GUI to group cells (ROI's) in space, and a lineage browsing algorithm to follow these ROI's backward and forward in time. 
+
+
+**TissueMiner** consists of an **automated workflow** that stores information about:
 
 * cell geometry
 * cell topology (cell neighbor relationships)
