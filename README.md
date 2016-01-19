@@ -77,7 +77,7 @@ Upon segmentation and tracking, TissueAnalyzer will generate one folder per imag
 
 TissueMiner will generate additional folders and files in the \<movie_directory\> folder.
 
-How to run locally? (Linux Ubuntu)
+Installation on Ubuntu
 ================
 
 First, make sure that the packages listed in [install_dependencies.sh](misc/install_dependencies.sh) are installed on your Ubuntu system.
