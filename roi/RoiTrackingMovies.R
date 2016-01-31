@@ -142,13 +142,15 @@ render_movie(csWithLineageBlade, "blade_bh_fix_peeled.mp4", list(
 
 
 
-render_movie(csWithLineageBlade, "blade_bt_bhfix_peeled_with_hull.mp4", list(
-    geom_polygon(aes(x_pos, y_pos, fill=roi, group=cell_id),  alpha=0.5),
-    scale_fill_manual(values=c("blade"="green")),
-    scale_color_manual(values=c("blade"="green")),
-    geom_polygon(aes(x_pos, y_pos, color=roi, group=roi), size=2, alpha=0.8, fill=NA, data=subset(roiHulls, roi=="blade"), subset=.(frame==curFrame)),
-    guides(color=F, fill=F)
-))
+# csWithLineageBlade %>%
+# #    filter(frame <10) %>%
+# render_movie("blade_bt_bhfix_peeled_with_hull.mp4", list(
+#     geom_polygon(aes(x_pos, y_pos, fill=roi, group=cell_id),  alpha=0.5),
+#     scale_fill_manual(values=c("blade"="green")),
+#     scale_color_manual(values=c("blade"="green")),
+#     geom_polygon(aes(x_pos, y_pos, color=roi, group=roi), size=2, alpha=0.8, fill=NA, data=subset(roiHulls, roi=="blade"), subset=.(frame==curFrame)),
+#     guides(color=F, fill=F)
+# ))
 
 rm(csWithLineageBlade)
 
@@ -167,9 +169,9 @@ cellshapesWithAdjLineage <- arrange(cellshapesWithAdjLineage, frame, cell_id, bo
 
 render_movie(cellshapesWithAdjLineage, "bt_bhfix_peeled.mp4", geom_polygon(aes(x_pos, y_pos, fill=roi, group=cell_id),  alpha=0.5))
 
-render_movie(cellshapesWithAdjLineage, "bt_bhfix_peeled_with_hull.mp4", list(
-    geom_polygon(aes(x_pos, y_pos, fill=roi, group=cell_id),  alpha=0.5),
-    geom_polygon(aes(x_pos, y_pos, color=roi, group=roi), size=2, alpha=0.8, fill=NA, data=noOverlappingRoi(roiHulls), subset=.(frame==curFrame)),
-    guides(color=FALSE) ## it would be the same legend again
-))
+# render_movie(cellshapesWithAdjLineage, "bt_bhfix_peeled_with_hull.mp4", list(
+#     geom_polygon(aes(x_pos, y_pos, fill=roi, group=cell_id),  alpha=0.5),
+#     geom_polygon(aes(x_pos, y_pos, color=roi, group=roi), size=2, alpha=0.8, fill=NA, data=noOverlappingRoi(roiHulls), subset=.(frame==curFrame)),
+#     guides(color=FALSE) ## it would be the same legend again
+# ))
 
