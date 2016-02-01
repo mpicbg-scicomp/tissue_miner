@@ -12,8 +12,9 @@ About
 
 How to get started?
 ================
-Install the [docker engine](https://docs.docker.com/) on your system. And start it (a shell window pops up). Docker can run the TissueMiner automated workflow on your system (MacOSX, Linux, Windows) without any OS setup. To do so, you once need to download the TissuerMiner [docker image](https://registry.hub.docker.com/u/brandl/tissue_miner/) that we preconfigured. Just do
+Install the [docker engine](https://docs.docker.com/) on your system. And start it (a shell window pops up). Docker can run the TissueMiner automated workflow on your system (MacOSX, Linux, Windows) without any OS setup. To do so, you once need to download the TissuerMiner [docker image](https://registry.hub.docker.com/u/brandl/tissue_miner/) that we preconfigured. Just use the opened shell window (Unix-shell interpreter) and do
 
+     ## DEMO:
      ## Step 1: download some example data for the demo
      curl https://cloud.mpi-cbg.de/index.php/s/EspCWSQn3k6NKLA/download  | tar -zxvf -
      
@@ -25,7 +26,7 @@ Install the [docker engine](https://docs.docker.com/) on your system. And start 
 
 For troubleshooting in case of out-of-date operating systems [click here](misc/docker_troubleshooting.md).
 
-To run TissueMiner over your own data, you'll need to go to the source directory containing your movie directories (use the *cd* command + drag and drop the folder containing your movie directories onto the shell + press enter) and to replace the example movie name (demo_ForTissueMiner) with your movie/directory of interest.
+To run TissueMiner over **your own data**, you'll need to go to the source directory containing your movie directories (use the *cd* command + drag and drop the folder containing your movie directories onto the shell + press enter) and to replace the example movie name (demo_ForTissueMiner) with your movie/directory of interest.
 
     ## Example for "my_favorite_movie"
     cd path_to_your_movie_repository
