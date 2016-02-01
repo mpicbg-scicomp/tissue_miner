@@ -160,6 +160,10 @@ Support
 Please use the [github ticket system](https://github.com/mpicbg-scicomp/tissue_miner/issues) to report issues or suggestions. We also welcome pull requests.
 
 
+FAQ
+=========
+Go to [the FAQ page](faq.md)
+
 Reference
 ==========
 
