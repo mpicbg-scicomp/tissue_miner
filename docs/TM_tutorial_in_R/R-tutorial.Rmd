@@ -105,6 +105,17 @@ git clone https://github.com/mpicbg-scicomp/tissue_miner.git ${TM_HOME}
 
 ### Rstudio installation
 Please, follow the instructions [here](https://www.rstudio.com/products/rstudio/) to install RStudio desktop.
+```{bash RStudio startup, warning=FALSE, message=FALSE, echo=T, eval=F}
+
+# On MacOSX, setting up the .bash_profile might not be sufficient when starting RStudio from the launcher.
+# Just open a terminal (unix-shelll interpreter) and type in:
+echo "TM_HOME=~/tissue_miner" >> ~/.Renviron
+echo "TM_CONFIG=~/tissue_miner/config/flywing_tm_config.R" >> ~/.Renviron
+
+# On Windows, TM_HOME and TM_CONFIG must be defined in the .Renviron file.
+# Jut type in: help("Startup") in a R session (Rstudio), and follow the manual
+
+```
 
 ### Avconv installation
 ```{bash avconv, warning=FALSE, message=FALSE, echo=T, eval=F}
