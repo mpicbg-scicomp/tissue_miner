@@ -30,3 +30,14 @@ TissueMiner works **downstream of** TissueAnalyzer. Therefore TissueAnalyzer is 
 ## How to change the number of digits used for padding ?
 Edit the tm.snkmk file located in the *workflow* folder, and find and replace %03d by the desired padding (ex: %04d for 4 digits).
 
+## How to update my TissueMiner installation?
+
+On ubuntu simply fetch the changes by
+```
+cd  ${TM_HOME} && git pull origin && cd parser && make clean all
+```
+
+On other systems (MacOs, Windows) simply pull latest image again with
+```
+docker pull brandl/tissue_miner
+```

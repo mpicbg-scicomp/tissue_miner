@@ -1,0 +1,9 @@
+
+
+Download some
+1. Download some some example data (~100mb)
+```
+     ## DEMO:
+     ## Step 1: download some example data for the demo
+     curl https://cloud.mpi-cbg.de/index.php/s/EspCWSQn3k6NKLA/download  | tar -zxvf -
+```

@@ -6,9 +6,6 @@ System requirement
 Docker requires a 64-bit installation regardless of your Linux version and distribution. Additionally, your kernel must be 3.10 at minimum. The latest 3.10 minor version or a newer maintained version are also acceptable.
 See installation procedure for ubuntu [here](https://docs.docker.com/engine/installation/ubuntulinux/)
 
-On Ubuntu, we recommend not to use Docker, but rather to configure your system using [install_dependencies.sh](install_dependencies.sh). You just need to follow the procedure described [here](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/README.md#installation-on-ubuntu)
-
-
 * **MacOSX**
 
 Your Mac must be running OS X 10.8 “Mountain Lion” or newer to install the Docker Toolbox.

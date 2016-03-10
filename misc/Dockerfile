@@ -8,6 +8,11 @@ FROM ubuntu
 #RUN apt-get install -y git
 RUN apt-get install -y curl
 
+## install openssl for git
+sudo apt-get install --assume-yes libssl-dev
+sudo apt-get install --assume-yes git
+
+
 ## install dependencies without cloning the repository. This allows for a more efficient use of the docker build cache
 RUN /bin/bash -c "source <(curl https://raw.githubusercontent.com/mpicbg-scicomp/tissue_miner/master/misc/install_dependencies.sh)"  ## bump1
 
@@ -15,7 +20,7 @@ RUN /bin/bash -c "source <(curl https://raw.githubusercontent.com/mpicbg-scicomp
 RUN mkdir /tissue_miner && git clone https://github.com/mpicbg-scicomp/tissue_miner /tissue_miner ## test7
 
 ## http://stackoverflow.com/questions/20635472/using-the-run-instruction-in-a-dockerfile-with-source-does-not-work
-#RUN /bin/bash -c "source /tissue_miner/misc/install_dependencies.sh"
+RUN /bin/bash -c "source /tissue_miner/install_tm.sh"
 
 ## Install all required R packages
 RUN  /bin/bash -c "export TM_HOME='/tissue_miner'; /tissue_miner/Setup.R | tee tm_setup.log"
