@@ -1,7 +1,9 @@
 ########################################################################################################################
 ## Install requirements for TissueMiner
 
-## install R 3.2.1 (see http://www.thertrader.com/2014/09/22/installing-rrstudio-on-ubuntu-14-04/)
+## (optionally) install R 3.2.1 (see http://www.thertrader.com/2014/09/22/installing-rrstudio-on-ubuntu-14-04/)
+if [ -n "$(which R)" ]; then
+
 sudo echo "deb http://cran.rstudio.com/bin/linux/ubuntu trusty/" >> /etc/apt/sources.list
 sudo  cat /etc/apt/sources.list
 
@@ -10,6 +12,13 @@ sudo  cat /etc/apt/sources.list
 sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E084DAB9
 sudo apt-get update
 sudo apt-get install --assume-yes r-base
+fi
+
+## enforce at least R 3.2
+if [ -z "$(R --version | grep '3.2')" ]; then
+    echo "R is too old. At least v3.2 is required to run TissueMiner" > &2
+    exit 1
+fi
 
 ## install snakemake
 sudo apt-get install --assume-yes python3-setuptools
@@ -40,16 +49,17 @@ sudo apt-get install --assume-yes libav-tools
 sudo apt-get install --assume-yes graphviz
 
 
+## sem is disabled for now, since it's not essential to have it.
 ## sem for image conversion (see http://askubuntu.com/questions/12764/where-do-i-get-a-package-for-gnu-parallel)
 #sudo apt-get install --assume-yes parallel
-sudo apt-get install --assume-yes wget
-wget http://ftp.gnu.org/gnu/parallel/parallel-20140422.tar.bz2
-tar -xvjf parallel*
-cd parallel*
-#less README
-./configure
-make clean
-make
+#sudo apt-get install --assume-yes wget
+#wget http://ftp.gnu.org/gnu/parallel/parallel-20140422.tar.bz2
+#tar -xvjf parallel*
+#cd parallel*
+##less README
+#./configure
+#make clean
+#make
 
 
 #sudo make install

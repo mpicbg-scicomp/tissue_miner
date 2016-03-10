@@ -59,20 +59,22 @@ Documentation
 
 To get started with TissueMiner we suggest to do the **[quickstart tutorial](https://mpicbg-scicomp.github.io/tissue_miner/quickstart/TM_Quickstart.html)** using provided example data.
 
-We aslo provide an exhaustive [TM R User Manual](https://mpicbg-scicomp.github.io/tissue_miner/tm_tutorial/R-tutorial.html)** with lots of examples, background information and API details. For a more general overview consider the [resource paper](/link/here/once/published)
+We also provide an exhaustive [TM R User Manual](https://mpicbg-scicomp.github.io/tissue_miner/tm_tutorial/R-tutorial.html) with lots of examples, background information and API details.
 
-To learn about how to process your own movies see the [Batch Processing Guide](MovieProcessing.md)
+To learn about how to process your own movies see the [Batch Processing Guide](MovieProcessing.md).
+
+For a more general overview consider our [resource paper](/link/here/once/published).
+
+
+Commonly asked questions are answered in the [FAQ section](faq.md).
 
 
 Support
 =========
 
-Please use the [github ticket system](https://github.com/mpicbg-scicomp/tissue_miner/issues) to report issues or suggestions. We also welcome pull requests.
+Please use the [github ticket system](https://github.com/mpicbg-scicomp/tissue_miner/issues) to report issues or suggestions. We also welcome pull requests. If
 
 
-FAQ
-=========
-Go to [the FAQ page](faq.md)
 
 Reference
 ==========
