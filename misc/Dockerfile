@@ -23,7 +23,7 @@ RUN mkdir /tissue_miner && git clone https://github.com/mpicbg-scicomp/tissue_mi
 ##RUN /bin/bash -c "export TM_HOME='/tissue_miner'; source /tissue_miner/install_tm.sh"
 
 ## Install all required R packages
-RUN  /bin/bash -c "export TM_HOME='/tissue_miner'; /tissue_miner/Setup.R | tee tm_setup.log"
+RUN  /bin/bash -c "export TM_HOME='/tissue_miner'; /tissue_miner/Setup.R | tee ${TM_HOME}/.tm_install_rsetup.log"
 
 ## compile the parser needed to convert TissueAnalyzer outputs into csv
 RUN cd /tissue_miner/parser &&  make

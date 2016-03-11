@@ -6,6 +6,7 @@ export TM_HOME=/home/brandl/mnt/mack/project-raphael/scripts/tissue_miner
 cd ${TM_HOME}/misc || exit
 
 docker build -t brandl/tissue_miner .
+mailme "docker build done"
 
 ## publish the new image
 #docker login
@@ -113,6 +114,11 @@ docker commit $(docker ps -l | cut -f1 -d' ' | tail -n+2) brandl/test
 docker run -i -t brandl/test /bin/bash
 
 ## test tutorial and examples
+mcdir ~/projects/tm_test
+curl https://cloud.mpi-cbg.de/index.php/s/EspCWSQn3k6NKLA/download  | tar -zxvf -
+
+docker run -i -t brandl/test /bin/bash
+
 ## todo
 
 #######################################################

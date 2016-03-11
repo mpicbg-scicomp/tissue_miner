@@ -27,24 +27,20 @@ TissueMiner comes along with a great variety of tools to work with the created m
 
 Many of these tools provide tabular results as well as rendered movies to make the complex nature of timelapse more accessible.
 
-
 TissueMiner also contains a GUI (**todo rapha** really where is it?) to group cells (ROI's) in space, and a lineage browsing algorithm to follow these ROI's backward and forward in time.
 
 
 ### High-Level Programming API
 
-**todo rapha** mayebe we could thin out this section and put the complete listings into the R manual?
+TissueMiner provides a convenient R progmming interface to query, quantify and visualize cell dynamics during epithelium morphogenesis in [R](https://www.r-project.org/). The first step of a custom workflow is to query the movie database to the extract properties like:
 
-TissueMiner provides a convenient interface to query, quantify and visualize cell dynamics during epithelium morphogenesis in [R](https://www.r-project.org/).
-
-By doing so the following properties can be accessed
 * Cell state properties (position, area, anisotropy, cell packing geometry, fluorescence intensity)
 * Rates of cellular events (divisions, cell neighbor changes, extrusions, shape changes)
 * Orientation of cellular events (unit nematic description)
 * Rates of deformations of each type of cellular event (tensorial description)
 * Rates of tissue deformation (area expansion and convergence-extension) contributed by each type of cellular event (tensorial description)
 
-It provides means to
+These data can than be employed to
 * Analyze time and tissue-orientation registrations for comparing multiple movies
 * Synchronize different movies
 * Compare tissue and cell deformations between ROI's and between movies.
@@ -69,7 +65,7 @@ To install it on Ubuntu simply clone this repository and run the installation sc
     ## download this repository
     git clone https://github.com/mpicbg-scicomp/tissue_miner.git ${TM_HOME}
 
-    sudo ${TM_HOME}/install_tm.sh | tee ${TM_HOME}/installation.log
+    ${TM_HOME}/install_tm.sh
 ```
 
 To test the installation run

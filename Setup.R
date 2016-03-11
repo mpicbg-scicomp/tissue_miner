@@ -6,6 +6,8 @@ r["CRAN"] = "http://ftp5.gwdg.de/pub/misc/cran/"
 options(repos = r)
 rm(r)
 
+## needed since igraph will ask for it otherwise
+update.packages(ask=F)
 
 if (!require("codetools")) install.packages("codetools")
 if (!require("devtools")) install.packages("devtools")
@@ -47,6 +49,8 @@ require.auto(hash)
 
 
 sessionInfo()
+writeLines(capture.output(sessionInfo()), ".tm_setup_sessionInfo.txt")
+
 #R version 3.2.2 (2015-08-14)
 #Platform: x86_64-pc-linux-gnu (64-bit)
 #Running under: CentOS release 6.3 (Final)
