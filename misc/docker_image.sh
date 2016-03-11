@@ -3,7 +3,7 @@
 #######################################################
 
 export TM_HOME=/home/brandl/mnt/mack/project-raphael/scripts/tissue_miner
-cd ${TM_HOME}/misc
+cd ${TM_HOME}/misc || exit
 
 docker build -t brandl/tissue_miner .
 
@@ -51,40 +51,27 @@ docker run --rm -ti -v $(pwd):/movies brandl/tissue_miner sm -n
 # https://docs.docker.com/articles/basics/
 docker pull ubuntu
 
-docker run -i -t ubuntu /bin/bash
+docker run -it ubuntu /bin/bash
 
-## run all following bits within docker shell
-
-# source setup.sh
-
-
-#######################################################
-## Install all docker specific stuff
-#######################################################
-
-
-## prepare xvfb to allow to run it without X
-# run without x # run without xhttps://linuxmeerkat.wordpress.com/2014/10/17/running-a-gui-application-in-a-docker-container/
-apt-get install --assume-yes xvfb
-
-#Xvfb :1 -screen 0 1024x768x16 &> xvfb.log  &
-#DISPLAY=:1.0
 
 #######################################################
 ## Commit to local docker registry (skip for local installation)
 #######################################################
 
+#sudo docker ps -l
+
 ## submit changes to local docker registry
 ## http://stackoverflow.com/questions/19585028/i-lose-my-data-when-the-container-exits
 
 
-#sudo docker ps -l
+docker run ubuntu apt-get install -y ping
+
 #sudo docker commit a8889839969b brandl/tissue_miner
 #sudo docker commit a38860f9a922 brandl/test
-sudo docker commit $(sudo docker ps -l | cut -f1 -d' ' | tail -n+2) brandl/tissue_miner
+docker commit $(docker ps -l | cut -f1 -d' ' | tail -n+2) brandl/test
 
 #sudo docker run iman/ping ping www.google.com
-docker run -i -t brandl/tissue_miner /bin/bash
+docker run -i -t brandl/test /bin/bash
 #docker run -i -t brandl/test /bin/bash
 
 ## export docker image for testing on other machine
@@ -102,6 +89,31 @@ docker save brandl/tissue_miner > ~/mnt/mack/project-raphael/tissue_miner.docker
 #docker attach 5fa0912c33ee
 
 
+#######################################################
+## TM docker debugging
+#######################################################
+
+docker run -it ubuntu /bin/bash
+
+
+## do linux dependencies
+
+docker commit $(docker ps -l | cut -f1 -d' ' | tail -n+2) brandl/test
+docker run -i -t brandl/test /bin/bash
+
+## do R packages
+
+
+docker commit $(docker ps -l | cut -f1 -d' ' | tail -n+2) brandl/test
+docker run -i -t brandl/test /bin/bash
+## finalize image
+
+
+docker commit $(docker ps -l | cut -f1 -d' ' | tail -n+2) brandl/test
+docker run -i -t brandl/test /bin/bash
+
+## test tutorial and examples
+## todo
 
 #######################################################
 ## Run the workflow via docker
