@@ -24,6 +24,14 @@ Once the installation is complete, restart FIJI, open the "Plugins" menu and cli
 For a quick start guide, click [here](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/docs/TAdoc.pdf)
 
 
+Tools
+=====
+
+These are the bundled batch anlysis tools in TissueMiner
+* CreateMovieInfoDat.sh ...
+* **todo-raphael** continue here and potentially rename tools to have more descriptive names
+
+
 Data structure
 ================
 
@@ -52,6 +60,8 @@ First we need to tweak the $PATH to include the tools.
 ```
 export TM_HOME="~/tissue_miner"
 export
+
+## adjust your path to include all tools
 export PATH=$TM_HOME/db:$TM_HOME/shear:$TM_HOME/roi:$TM_HOME/misc:$TM_HOME/movies:$TM_HOME/shear_contributions:$TM_HOME/topology:$TM_HOME/triangles:$TM_HOME/lineage:$PATH
 export PATH=${TM_HOME}/parser:$PATH
 sm() {
