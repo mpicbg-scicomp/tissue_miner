@@ -16,7 +16,7 @@ RUN apt-get install -y git
 
 
 ## install dependencies without cloning the repository. This allows for a more efficient use of the docker build cache
-RUN /bin/bash -c "source <(curl https://raw.githubusercontent.com/mpicbg-scicomp/tissue_miner/master/misc/install_dependencies.sh)"  ## bump1
+RUN /bin/bash -c "source <(curl https://raw.githubusercontent.com/mpicbg-scicomp/tissue_miner/master/misc/basic_TM_docker_image/install_dependencies.sh)"  ## bump1
 
 ## force image rebuild after changing sources by changing comment in line
 RUN mkdir /tissue_miner && git clone https://github.com/mpicbg-scicomp/tissue_miner /tissue_miner ## bump1
