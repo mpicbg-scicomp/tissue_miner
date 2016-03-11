@@ -3,7 +3,7 @@
 #######################################################
 
 export TM_HOME=/home/brandl/mnt/mack/project-raphael/scripts/tissue_miner
-cd ${TM_HOME}/misc || exit
+cd ${TM_HOME}/misc/basic_TM_docker_image || exit
 
 docker build -t brandl/tissue_miner .
 mailme "docker build done"
@@ -100,7 +100,7 @@ docker save brandl/tissue_miner > ~/mnt/mack/project-raphael/tissue_miner.docker
 
 
 export TM_HOME=/home/brandl/mnt/mack/project-raphael/scripts/tissue_miner
-cd ${TM_HOME}/misc || exit
+cd ${TM_HOME}/misc/basic_TM_docker_image || exit
 
 
 docker run -it ubuntu /bin/bash
