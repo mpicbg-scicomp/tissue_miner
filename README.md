@@ -31,7 +31,7 @@ Many of these tools provide tabular results as well as rendered movies to make t
 TissueMiner also contains a GUI (**todo rapha** really where is it?) to group cells (ROI's) in space, and a lineage browsing algorithm to follow these ROI's backward and forward in time.
 
 
-## High-Level Programming API
+### High-Level Programming API
 
 **todo rapha** mayebe we could thin out this section and put the complete listings into the R manual?
 
