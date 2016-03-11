@@ -1,9 +1,20 @@
 
+# First Use of TissueMiner
 
-Download some
-1. Download some some example data (~100mb)
+## 1. Download some some example data (~100mb)
 ```
      ## DEMO:
      ## Step 1: download some example data for the demo
      curl https://cloud.mpi-cbg.de/index.php/s/EspCWSQn3k6NKLA/download  | tar -zxvf -
 ```
+
+## 2. In the TM-GUI, click Intall/update-TM and grab a cup of coffee
+The installation take a while:
+on Ubuntu: 10 min 
+on MacOS: 30 min
+on Windows: 30 min
+
+## 3. Then, click on autoTM>MakeDB
+
+## 4. 
+

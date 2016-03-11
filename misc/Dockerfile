@@ -17,7 +17,7 @@ RUN apt-get install -y git
 RUN /bin/bash -c "source <(curl https://raw.githubusercontent.com/mpicbg-scicomp/tissue_miner/master/misc/install_dependencies.sh)"  ## bump1
 
 ## force image rebuild after changing sources by changing comment in line
-RUN mkdir /tissue_miner && git clone https://github.com/mpicbg-scicomp/tissue_miner /tissue_miner ## test7
+RUN mkdir /tissue_miner && git clone https://github.com/mpicbg-scicomp/tissue_miner /tissue_miner ## bump1
 
 ### http://stackoverflow.com/questions/20635472/using-the-run-instruction-in-a-dockerfile-with-source-does-not-work
 ##RUN /bin/bash -c "export TM_HOME='/tissue_miner'; source /tissue_miner/install_tm.sh"

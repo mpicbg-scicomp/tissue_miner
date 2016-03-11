@@ -8,6 +8,10 @@ cd ${TM_HOME}/misc || exit
 docker build -t brandl/tissue_miner .
 mailme "docker build done"
 
+## test
+docker run -it --rm brandl/tissue_miner
+docker run -it --rm brandl/tissue_miner /bin/bash
+
 ## publish the new image
 #docker login
 #docker push brandl/tissue_miner
@@ -94,32 +98,70 @@ docker save brandl/tissue_miner > ~/mnt/mack/project-raphael/tissue_miner.docker
 ## TM docker debugging
 #######################################################
 
-docker run -it ubuntu /bin/bash
 
+export TM_HOME=/home/brandl/mnt/mack/project-raphael/scripts/tissue_miner
+cd ${TM_HOME}/misc || exit
+
+
+docker run -it ubuntu /bin/bash
 
 ## do linux dependencies
 
-docker commit $(docker ps -l | cut -f1 -d' ' | tail -n+2) brandl/test
-docker run -i -t brandl/test /bin/bash
-
 ## do R packages
 
-
-docker commit $(docker ps -l | cut -f1 -d' ' | tail -n+2) brandl/test
-docker run -i -t brandl/test /bin/bash
 ## finalize image
 
+#http://stackoverflow.com/questions/22907231/copying-files-from-host-to-docker-container
+docker cp docker_bash_profile.sh 9e703627f725:/.bash_profile
+docker commit 9e703627f725 brandl/test
 
+
+## snapshoting
 docker commit $(docker ps -l | cut -f1 -d' ' | tail -n+2) brandl/test
 docker run -i -t brandl/test /bin/bash
 
+
 ## test tutorial and examples
+# screen -R test_exdata
+
 mcdir ~/projects/tm_test
 curl https://cloud.mpi-cbg.de/index.php/s/EspCWSQn3k6NKLA/download  | tar -zxvf -
 
-docker run -i -t brandl/test /bin/bash
+docker run --rm -ti -v $(pwd)/example_movies:/movies -w /movies/demo_ForTissueMiner brandl/test /bin/bash --login -c "source /.bash_profile; sm make_db"
+
+
+docker run -ti brandl/test
+
+docker run --rm -ti -v $(pwd)/example_movies:/movies -w /movies/demo_ForTissueMiner brandl/test /bin/bash ${TM_HOME}/tm_test.R
+docker run --rm -ti -v $(pwd)/example_movies:/movies -w /movies/demo_ForTissueMiner brandl/tissue_miner /bin/bash ${TM_HOME}/tm_test.R
 
 ## todo
+
+
+#######################################################
+## ubuntu installation test
+#######################################################
+
+docker run -it --rm ubuntu /bin/bash
+
+apt-get install -y curl git
+
+mkdir my_test
+cd my_test
+
+## Define the directory where to install TissueMiner
+export TM_HOME="~/tissue_miner"
+
+## download this repository
+git clone https://github.com/mpicbg-scicomp/tissue_miner.git ${TM_HOME}
+
+${TM_HOME}/install_tm.sh | tee ${TM_HOME}/installation.log
+
+curl https://cloud.mpi-cbg.de/index.php/s/EspCWSQn3k6NKLA/download  | tar -zxvf -
+
+
+## todo test the installation simple test and example data test
+
 
 #######################################################
 ## Run the workflow via docker
