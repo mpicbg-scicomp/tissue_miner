@@ -7,14 +7,14 @@
 About
 =================
 
-TissueMiner is a framework to perform a multiscale analysis of an entire developing epithelium acquired at cellular resolution over several hours or days. It  includes tools to **(a)** build a database from timelapse movie, **(b)** ready-to-use tools to analyze various aspects of cell morphogenesis, and **(c)** a powerful but yet easy to use R programming interface to allow for the implementation of custom analyses.
+TissueMiner is a framework to perform a multiscale analysis of an entire developing epithelium acquired at cellular resolution over several hours or days. It  includes **(a)** tools to build a database from a timelapse movie, **(b)** ready-to-use tool to analyze various aspects of cell and tissue morphogenesis, and **(c)** a powerful but yet easy to use R programming interface to allow for the implementation of custom analyses.
 
 ### Cell Tracking Data Database
 
 
-First, TissueMiner tracks cells in timelapse image series of tissues and stores the results in a database. To do so, it uses [TissueAnalyzer](MovieProcessing.md#TissueAnalyzer) to segment and track cells in time and space.
+First, TissueMiner tracks cells in timelapse image series of a tissue and stores the results in a database. To do so, it uses [TissueAnalyzer](MovieProcessing.md#TissueAnalyzer) to segment and track cells in time and space.
 
-Next, TissueMiner extracts and organizes information about cell geometry, topology (cell neighbor relationships) and ancestry from the TissueAnalyzer outputs into a database. By using sqlite each movie is essentially converted into a _single_ database file.
+Next, TissueMiner extracts and organizes information about cell geometry, topology (cell neighbor relationships) and ancestry from the TissueAnalyzer outputs into a database. By using sqlite, each movie is essentially converted into a _single_ database file.
 
 
 ### Tools to Analyse Epithelium Morphogenesis
@@ -22,12 +22,12 @@ Next, TissueMiner extracts and organizes information about cell geometry, topolo
 TissueMiner comes along with a great variety of tools to work with the created movie database. These include
 * Lineage Tracking
 * Cell Shear Contribution Analysis
-* Topolgy Anlayses (T1s, polygon classes, etc.)
+* Topology Analyses (cell rearrangements, cell packing, etc.)
 * and some more. See the [Batch Processing Guide](MovieProcessing.md#Tools) for a complete listing
 
 Many of these tools provide tabular results as well as rendered movies to make the complex nature of timelapse more accessible.
 
-TissueMiner also contains a GUI (**todo rapha** really where is it?) to group cells (ROI's) in space, and a lineage browsing algorithm to follow these ROI's backward and forward in time.
+TissueMiner also contains a GUI [here](fiji_macros/draw_n_get_ROIcoord.ijm) to group cells (ROI's) in space, and a lineage browsing algorithm to follow these ROI's backward and forward in time.
 
 
 ### High-Level Programming API
@@ -44,7 +44,7 @@ These data can than be employed to
 * Analyze time and tissue-orientation registrations for comparing multiple movies
 * Synchronize different movies
 * Compare tissue and cell deformations between ROI's and between movies.
-* do statistics (time evolution of the distributions of cell area, anisotropy, packing, ..., bond length, vertex multiplicity, ...)
+* Do statistics (time evolution of the distributions of cell area, anisotropy, packing, ..., bond length, vertex multiplicity, ...)
 * Do multiscale quantification and visualization using both dynamic ROI's (Lagrangian description) and fixed grids (Eulerian description): from individual cells to averages over the entire tissue
 * Visualize of quantified data in graphs or directly on the movie images
 
