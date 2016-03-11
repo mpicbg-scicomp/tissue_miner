@@ -1,4 +1,6 @@
 
+if (!require("devtools")) install.packages("devtools")
+
 ## Source common functions
 devtools::source_url("https://raw.githubusercontent.com/holgerbrandl/datautils/v1.13/R/core_commons.R")
 devtools::source_url("https://raw.githubusercontent.com/holgerbrandl/datautils/v1.13/R/ggplot_commons.R")
