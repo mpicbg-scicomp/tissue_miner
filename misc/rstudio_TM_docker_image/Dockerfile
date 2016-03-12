@@ -87,10 +87,13 @@ COPY userconf.sh /etc/cont-init.d/conf
 # Step 16
 COPY run_rstudio_server.sh /etc/services.d/rstudio/run
 # Step 17
-COPY rocker_Renviron.sh /home/rstudio/.Renviron
-
+COPY rocker_Renviron /home/rstudio/.Renviron
 # Step 18
-EXPOSE 8787
+COPY rocker_Rprofile /home/rstudio/.Rprofile
+
 
 # Step 19
+EXPOSE 8787
+
+# Step 20
 CMD ["/init"]

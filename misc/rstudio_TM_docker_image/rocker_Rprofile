@@ -1,0 +1,5 @@
+## Define where the working directory is located
+setwd("/tissue_miner/")
+
+
+
