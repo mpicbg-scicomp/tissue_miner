@@ -23,7 +23,8 @@ RUN useradd rstudio \
 RUN apt-get update \ 
 	&& apt-get install -y \
 		nano \
-		wget
+		wget \
+		htop
 
 ## Configure default locale, see https://github.com/rocker-org/rocker/issues/19
 # Step 5
