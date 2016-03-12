@@ -48,8 +48,8 @@ RUN apt-get update \
 && apt-get install -y \
 libapparmor1 \
 libcurl4-openssl-dev \
-psmisc #\
-#python-setuptools
+psmisc \
+python-setuptools
 
 # Step 11
 RUN VER=$(wget --no-check-certificate -qO- https://s3.amazonaws.com/rstudio-server/current.ver) \
