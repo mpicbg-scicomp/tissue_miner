@@ -87,7 +87,7 @@ COPY userconf.sh /etc/cont-init.d/conf
 # Step 16
 COPY run_rstudio_server.sh /etc/services.d/rstudio/run
 # Step 17
-COPY rocker_bash_profile.sh /home/rstudio/.bash_profile
+COPY rocker_Renviron.sh /home/rstudio/.Renviron
 
 # Step 18
 EXPOSE 8787
