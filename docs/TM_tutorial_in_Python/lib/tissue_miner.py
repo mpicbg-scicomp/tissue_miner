@@ -18,7 +18,7 @@ import os.path
 
 import time
 
-import lib
+import tissue_miner_tools as tml
 
 class Movie:
     """
@@ -153,7 +153,7 @@ class Movie:
         """
         Shows original (rotated) image of the given frame.
         """
-        im_path= self.DB_path + self.name + '/Segmentation/' + self.name + '_' + lib.fill_zeros(str(frame), 3) + '/original_trafo.png'
+        im_path= self.DB_path + self.name + '/Segmentation/' + self.name + '_' + tml.fill_zeros(str(frame), 3) + '/original_trafo.png'
         im= plt.imread(im_path)
         plt.imshow(im)
                                     
