@@ -92,6 +92,9 @@ COPY rocker_Renviron /home/rstudio/.Renviron
 # Step 18
 COPY rocker_Rprofile /home/rstudio/.Rprofile
 
+# Update tissue_miner
+RUN cd /tissue_miner && git pull origin && cd parser && make clean all
+
 # Step 19
 ## Install additional required R packages
 RUN  /bin/bash -c "export TM_HOME='/tissue_miner'; /tissue_miner/misc/rstudio_TM_docker_image/RstudioSetup.R | tee ${TM_HOME}/.tm_install_rstudio_setup.log"
