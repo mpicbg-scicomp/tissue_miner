@@ -562,7 +562,7 @@ ggplot(avgCellArea, aes(x = time_h, y = area_avg)) +
 
 ```{r Example ggsave2, warning=FALSE, message=FALSE, fig.width=11, cache=TRUE}
 # Save the plot as svg for editing in Inkscape
-ggsave2(width=14, unit="in", outputFormat="svg")
+#ggsave2(width=14, unit="in", outputFormat="svg")
 ```
 
 ***
@@ -1711,7 +1711,7 @@ ggplot(T1Nematics , aes()) +
     panel.grid.minor=element_blank(),
     plot.margin = unit(c(0,0,0,0), "cm")) +
   ggtitle("T1 nematics - avg by roi in frame")
-ggsave2(height=6,unit="in", outputFormat="svg")
+#ggsave2(height=6,unit="in", outputFormat="svg")
 
 ```
 
@@ -1769,7 +1769,7 @@ ggplot(avgIsoDefRateSummary, aes(dev_time, value.avg, color=isoContrib)) +
   # scale_x_continuous(breaks=seq(16,36, 2),limits=c(15,max(ceiling(shearRate$dev_time)))) +
   scale_x_continuous(breaks=seq(16,36, 4),limits=c(16,32)) +
   ylab(expression(paste("rate [",h^-1,"]"))) +
-  geom_hline(color="black", size=0.2) +
+  #geom_hline(color="black", size=0.2) +
   #scale_y_continuous(breaks=seq(-0.2,0.2, 0.1), limit=c(-0.22, 0.22)) +
   scale_color_manual(values=isotropColors) +
   scale_fill_manual(values=isotropColors) +
@@ -1802,7 +1802,7 @@ ggplot(avgIsoDefCum, aes(dev_time, cumsum.avg, color=isoContrib)) +
   xlab("Time [hAPF]")+
   ylab("cumulative sum") +
   scale_x_continuous(breaks=seq(16,36, 4),limits=c(16,32)) +
-  geom_hline(color="black", size=0.2) +
+  #geom_hline(color="black", size=0.2) +
   scale_y_continuous(breaks=seq(-1, 1, 0.4), limit=c(-1, 1)) +
   scale_color_manual(values=isotropColors) +
   scale_fill_manual(values=isotropColors) +
@@ -1927,7 +1927,7 @@ ggplot(shearCumSumSummary, aes(dev_time,xxCumSum.avg, color=tensor)) +
   scale_x_continuous(breaks=seq(16,36, 2),limits=c(16,34)) +#31.3
   # scale_y_continuous(breaks=seq(-0.2,0.3, 0.1), limit=c(-0.2, 0.3)) +
   ylab(expression(paste("cumulative PD shear"))) +
-  geom_hline(color="black", size=0.2) +
+  #geom_hline(color="black", size=0.2) +
   scale_color_manual(values=shearColors) +
   scale_fill_manual(values=shearColors) +
   facet_wrap(~roi) +
