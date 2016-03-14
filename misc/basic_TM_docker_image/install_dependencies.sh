@@ -47,6 +47,9 @@ sudo apt-get install -y libav-tools
 ## install graphviz needed for snakemake graph rendering
 sudo apt-get install -y graphviz
 
+## needed for svg export via sq
+sudo apt-get install -y libcairo2-dev
+
 
 ## sem is disabled for now, since it's not essential to have it.
 ## sem for image conversion (see http://askubuntu.com/questions/12764/where-do-i-get-a-package-for-gnu-parallel)

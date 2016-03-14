@@ -36,6 +36,9 @@ require.auto(rgeos)
 
 require.auto(hash)
 
+## needed for svg export with ggsave2
+require.auto(svglite)
+
 ## force dplyr 0.4.1 since 0.4.2 is buggy
 #if(packageVersion("dplyr") != "0.4-1"){
 #    packageurl = "http://cran.r-project.org/src/contrib/Archive/dplyr/dplyr_0.4.1.tar.gz"
