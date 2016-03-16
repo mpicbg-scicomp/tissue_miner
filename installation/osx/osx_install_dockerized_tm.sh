@@ -7,7 +7,7 @@ NC='\033[0m'
 
 # Display a message for the user
 echo ""
-echo -e ${GREEN}"Welcome to TissueMiner installation procedure"${NC}
+echo -e ${BLUE}"Welcome to the TissueMiner installation procedure"${NC}
 echo ""
 echo "This will install all required dependencies in your account without affecting already existing system tools such as Virtualbox:"
 echo "  - Homebrew"
@@ -27,7 +27,7 @@ SYST_MEM_SIZE=$(sysctl -n hw.memsize)
 
 VM_NAME="crazy-vm"
 DOCKER_IMAGE="etournay/tissue_miner"
-DOCKER_IMAGE="ubuntu"
+# DOCKER_IMAGE="ubuntu" # for DEBUG
 
 VM_NB_CPU=$(echo $(( SYST_NB_CPU/2 )) | bc)
 VM_MEM_SIZE=$(echo $(( SYST_MEM_SIZE/(2*1024*1024) )) | bc)
@@ -52,7 +52,7 @@ if [ -z "$(which docker-machine)" ]; then
 fi
 
 if [ -z "$(which VBoxManage)" ]; then
-  echo "VirtualBox is not installed. Please check if any error occurred earlier during installation."
+  echo "VirtualBox is not found. Please check if any error occurred earlier during installation."
   read -r -p "Press Enter to quit the installer..." key
   exit 1
 fi
