@@ -1,0 +1,14 @@
+
+## ipython/scipystack
+https://github.com/ipython/docker-notebook/blob/master/scipyserver/README.md
+
+
+## Jupyter server with Dockfile
+#https://github.com/m-ueno/scipyserver
+
+## Test
+docker pull mueno/scipyserver
+docker run -d -p 443:8888 -e "PASSWORD=password" mueno/scipyserver
+https://192.168.99.100 in Firefox
+
+
