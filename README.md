@@ -60,9 +60,10 @@ To install it on Ubuntu simply clone this repository and run the installation sc
 
 ```
     ## Define the directory where to install TissueMiner
-    export TM_HOME="~/tissue_miner"
+    export TM_HOME="${HOME}/tissue_miner"
 
     ## download this repository
+	sudo apt-get install git
     git clone https://github.com/mpicbg-scicomp/tissue_miner.git ${TM_HOME}
 
     ${TM_HOME}/installation/ubuntu/install_tm.sh
