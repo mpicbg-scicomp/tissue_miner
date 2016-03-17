@@ -16,6 +16,7 @@ fi
 ## enforce at least R 3.2
 if [ -z "$(R --version | grep '3.2')" ]; then
     echo "R is too old. At least v3.2 is required to run TissueMiner" >&2
+	echo "Please, try to update it by running: sudo apt-get update && apt-get intall -y r-base" >&2
     return 1
 fi
 
