@@ -16,7 +16,7 @@ fi
 ## enforce at least R 3.2
 if [ -z "$(R --version | grep '3.2')" ]; then
     echo "R is too old. At least v3.2 is required to run TissueMiner" >&2
-    exit 1
+    return 1
 fi
 
 ## install snakemake
