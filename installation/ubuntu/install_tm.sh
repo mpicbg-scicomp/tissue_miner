@@ -14,7 +14,7 @@ fi
 
 ## Install all required R packages (or run Setup.R in RStudio)
 echo "Installing required R packages"
-${TM_HOME}/Setup.R | tee ${TM_HOME}/.tm_install_rsetup.log
+sudo ${TM_HOME}/Setup.R | tee ${TM_HOME}/.tm_install_rsetup.log
 
 if [ $? -eq 1 ]; then
   echo "The R setup FAILED, please check ${TM_HOME}/.tm_install_rsetup.log"
