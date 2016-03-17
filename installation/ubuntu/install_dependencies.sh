@@ -25,31 +25,31 @@ sudo apt-get install -y python3-setuptools
 easy_install3 snakemake
 
 ## install curl
-sudo apt-get install -y libcurl4-gnutls-dev
+sudo apt-get--no-install-recommends  install -y libcurl4-gnutls-dev
 
 ## install lixbml
-sudo apt-get install -y libxml2-dev
+sudo apt-get --no-install-recommends install -y libxml2-dev
 
 ## install imagemagick needed for image rotation
-sudo apt-get install -y bc imagemagick
+sudo apt-get--no-install-recommends  install -y bc imagemagick
 
 ## install openssl for git
-sudo apt-get install -y libssl-dev
+sudo apt-get --no-install-recommends install -y libssl-dev
 
 ## install rgeos needed for polygon operations
-sudo apt-get install -y libgeos-dev
+sudo apt-get --no-install-recommends install -y libgeos-dev
 
 ## install sqlite
-sudo apt-get install -y sqlite3 libsqlite3-dev
+sudo apt-get --no-install-recommends install -y sqlite3 libsqlite3-dev
 
 ## install avconv needed movie rendering
-sudo apt-get install -y libav-tools
+sudo apt-get --no-install-recommends install -y libav-tools
 
 ## install graphviz needed for snakemake graph rendering
-sudo apt-get install -y graphviz
+sudo apt-get --no-install-recommends install -y graphviz
 
 ## needed for svg export via sq
-sudo apt-get install -y libcairo2-dev
+sudo apt-get --no-install-recommends install -y libcairo2-dev
 
 
 ## sem is disabled for now, since it's not essential to have it.
@@ -74,9 +74,9 @@ sudo apt-get install -y libcairo2-dev
 # netcds http://askubuntu.com/questions/79418/installing-netcdf
 #sudo apt-get install -y libnetcdf-dev
 # see http://askubuntu.com/questions/382444/qt-headers-and-libraries-not-found
-sudo apt-get install -y qt4-dev-tools libqt4-core
+sudo apt-get --no-install-recommends install -y qt4-dev-tools libqt4-core
 #sudo apt-get install libqt4-dev libqt4-opengl-dev libqtwebkit-dev qt4-linguist-tools qt4-qmake
 
 #
 ### git should be already present for cloning TM from git hub, except if TM was just manually downloaded
-sudo apt-get install -y git
+sudo apt-get --no-install-recommends install -y git
