@@ -78,5 +78,5 @@ sudo apt-get install -y qt4-dev-tools libqt4-core
 #sudo apt-get install libqt4-dev libqt4-opengl-dev libqtwebkit-dev qt4-linguist-tools qt4-qmake
 
 #
-### git (already present when building docker file but is required for direct ubuntu installation)
+### git should be already present for cloning TM from git hub, except if TM was just manually downloaded
 sudo apt-get install -y git
