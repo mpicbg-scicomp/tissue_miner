@@ -22,7 +22,7 @@ RUN /bin/bash -c "source <(curl https://raw.githubusercontent.com/mpicbg-scicomp
 RUN mkdir /tissue_miner && git clone https://github.com/mpicbg-scicomp/tissue_miner /tissue_miner ## bump
 
 ### http://stackoverflow.com/questions/20635472/using-the-run-instruction-in-a-dockerfile-with-source-does-not-work
-##RUN /bin/bash -c "export TM_HOME='/tissue_miner'; source /tissue_miner/install_tm.sh"
+##RUN /bin/bash -c "export TM_HOME='/tissue_miner'; source /tissue_miner/installation/ubuntu/install_tm.sh"
 
 ## Install all required R packages
 RUN  /bin/bash -c "export TM_HOME='/tissue_miner'; /tissue_miner/Setup.R | tee ${TM_HOME}/.tm_install_rsetup.log"

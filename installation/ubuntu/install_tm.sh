@@ -3,7 +3,7 @@
 
 ## install dependencies
 echo "Installing system dependencies..."
-source ${TM_HOME}/misc/basic_TM_docker_image/install_dependencies.sh | tee ${TM_HOME}/.tm_install_deps.log
+source ${TM_HOME}/installation/ubuntu/install_dependencies.sh | tee ${TM_HOME}/.tm_install_deps.log
 
 ## Install all required R packages (or run Setup.R in RStudio)
 echo "Installing required R packages"

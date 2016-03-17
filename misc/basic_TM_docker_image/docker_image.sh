@@ -155,8 +155,8 @@ export TM_HOME="/my_tissue_miner"
 ## download this repository
 git clone https://github.com/mpicbg-scicomp/tissue_miner.git ${TM_HOME}
 
-sudo chmod +x ${TM_HOME}/install_tm.sh
-${TM_HOME}/install_tm.sh | tee ${TM_HOME}/installation.log
+sudo chmod +x ${TM_HOME}/installation/ubuntu/install_tm.sh
+${TM_HOME}/installation/ubuntu/install_tm.sh | tee ${TM_HOME}/installation.log
 
 curl https://cloud.mpi-cbg.de/index.php/s/EspCWSQn3k6NKLA/download  | tar -zxvf -
 
