@@ -3,7 +3,7 @@
 
 ## (optionally) install R 3.2.1 (see http://www.thertrader.com/2014/09/22/installing-rrstudio-on-ubuntu-14-04/)
 if [ -z "$(which R)" ]; then
-sudo echo "deb http://cran.rstudio.com/bin/linux/ubuntu trusty/" >> /etc/apt/sources.list
+sudo echo "deb http://cran.rstudio.com/bin/linux/ubuntu $(lsb_release -sc)/" >> /etc/apt/sources.list
 #sudo  cat /etc/apt/sources.list
 
 # work around permission issues
