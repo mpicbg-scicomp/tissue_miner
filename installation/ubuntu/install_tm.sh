@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+# Make sure to get exit status of last commant before the pipe
+set -o pipefail
+
 
 ## install dependencies
 echo "Installing system dependencies..."
