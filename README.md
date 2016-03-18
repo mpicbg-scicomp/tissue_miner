@@ -69,11 +69,6 @@ To install it on Ubuntu simply clone this repository and run the installation sc
     ${TM_HOME}/installation/ubuntu/install_tm.sh
 ```
 
-To test the installation run
-```
-${TM_HOME}/tm_test.R
-```
-
 ### Other Systems
 
 To install TissueMiner on MacOS, Windows or any non-Ubuntu Linux system we provide a Docker container that bundles TissueMiner and all its dependencies. If not yet present on your system, you need to install the [docker engine](https://docs.docker.com/)
@@ -85,13 +80,7 @@ Next, you can download the TissueMiner application bundled in a docker image cal
 docker pull brandl/tissue_miner
 ```
 
-To test the installation with the following command:
-```
-docker run --rm -ti -v $(pwd)/example_movies:/movies -w /movies/demo_ForTissueMiner brandl/tissue_miner /bin/bash ${TM_HOME}/tm_test.R
-```
-
 For troubleshooting in case of out-of-date operating systems [click here](misc/docker_troubleshooting.md).
-
 
 
 Documentation

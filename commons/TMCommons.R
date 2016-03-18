@@ -8,6 +8,11 @@ devtools::source_url("https://raw.githubusercontent.com/holgerbrandl/datautils/v
 
 require.auto(sqldf)
 
+scriptsDir=Sys.getenv("TM_HOME")
+if(is.na(file.info(scriptsDir)$isdir)){
+    stop(paste("TM_HOME not correctly defined (",scriptsDir ,")"))
+}
+
 source(file.path(scriptsDir, "commons/MovieFunctions.R"))
 source(file.path(scriptsDir, "commons/RoiCommons.R"))
 
