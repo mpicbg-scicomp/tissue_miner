@@ -130,11 +130,8 @@ get_vertex_properties <- function(movieDir){
 
 ## mqf_cg_roi_cell_count ####
 mqf_cg_roi_cell_count <- function(movieDir, rois=c()){
-  
   # Description: count number of cells per frame, in ROIs
-  # Usage: in combination with multi_db_query(), ex: multi_db_query(movieDirs, mqf_cell_count, selectedRois)
-  # Arguments: movieDb = opened DB connection,  movieDir = path to a given movie folder
-  
+
   movieDb <- openMovieDb(movieDir)
   
   queryResult <- dbGetQuery(movieDb, "select cell_id, frame from cells where frame & cell_id!=10000") %>%
@@ -149,6 +146,22 @@ mqf_cg_roi_cell_count <- function(movieDir, rois=c()){
   
   return(cellCount)
 }
+
+
+mqf_cell_count <- function(movieDir){
+  # Basic example to implement multi-query function
+  # Description: count number of cells in a movie
+
+  movieDb <- openMovieDb(movieDir)
+
+  numCells <- dbGetQuery(movieDb, "select * from cell_histories where cell_id!=10000") %>% distinct(cell_id) %>% nrow
+
+  dbDisconnect(movieDb)
+
+  return(data_frame(movie=basename(movieDir), num_cells=numCells))
+}
+
+
 ## Master function to query multiple movies for comparison ####
 multi_db_query <- function(movieDirectories, queryFun=mqf_cell_count, ...){
   ## todo get hash of range and function and cache the results somewhere
