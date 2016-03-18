@@ -2,7 +2,7 @@
 
 argv = commandArgs(TRUE)
 if(length(argv) != 1){
-    stop("Usage: MakeMovies.R  <movie_db_directory>")
+    stop("Usage: DensityMovies.R  <movie_db_directory>")
 }else{
     movieDir=normalizePath(argv[1])
     if(is.na(file.info(movieDir)$isdir)) stop(paste("movie directory does not exist"))
@@ -137,53 +137,6 @@ render_movie(cellsBinned, "cell_density.mp4", list(
     ggtitle("cell density over time")
 ), sampleRate=1)
 
-
-########################################################################################################################
-### Forward tracking of rectangles
-
-
-box_size_x <- box_size_y <- 400
-
-# get cells in first frame
-cells0 <- dbGetQuery(db, "select * from cells where frame=0")
-
-## overlay data with grid
-cells0 <- mutate(cells0,
-    ## create binds
-    xGrid=round_any(center_x, box_size_x, floor)+0.5*box_size_x,
-    yGrid=round_any(center_y, box_size_y, floor)+0.5*box_size_y,
-    ## subset for reduced square regions
-    xGrp=ifelse(abs(xGrid-center_x)>box_size_x*0.3, NA, xGrid),
-    yGrp=ifelse(abs(yGrid-center_y)>box_size_y*0.3, NA, yGrid),
-    isROI=!is.na(xGrp) & !is.na(yGrp)
-)
-#with(cells0, as.data.frame(table(is.na(yGrp)))) $ should be na for inbetween boxes cells
-#with(cells0, as.data.frame(table(isROI)))
-
-blueCells <- subset(cells0, isROI)$cell_id
-
-## load cell shapes for visualization
-cellshapes <- local(get(load(file.path(movieDir, "cellshapes.RData"))))
-
-
-if(F){ #### DEBUG
-
-## subset shapes in first frame
-cellshapesF0ROI <- subset(cellshapes, cell_id %in% blueCells & frame==0)
-cellshapesF0ROI <- arrange(cellshapesF0ROI, cell_id, frame, bond_order)
-render_source_image(0) + geom_polygon(aes(x_pos, y_pos, group=cell_id),  color='blue', alpha=0.5, data=cellshapesF0ROI)
-
-} #### DEBUG end
-
-## trace lineage groups
-cellinfo <- dbGetQuery(db, "select cell_id, lineage_group from cell_histories")
-cells2lg <- with(cellinfo, data.frame(cell_id, lineage_group))
-lgBlue <- subset(cells2lg, cell_id %in% blueCells)
-
-csBlueOnly <- subset(dt.merge(cellshapes, cells2lg, by="cell_id"), lineage_group %in% lgBlue$lineage_group)
-csBlueOnly <- arrange(csBlueOnly, cell_id, frame, bond_order)
-
-render_movie(csBlueOnly, "blue_square_tracking.mp4", geom_polygon(aes(x_pos, y_pos, group=cell_id), color="blue", alpha=0.5, fill=NA), sampleRate=1)
 
 
 quit(save="no")

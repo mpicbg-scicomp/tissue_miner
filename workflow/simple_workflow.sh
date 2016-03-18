@@ -33,5 +33,5 @@ CategorizeTriangles.R $movieDbDir
 ## misc
 AreaMovies.R $movieDbDir
 DbElongationMovie.R $movieDbDir
-MakeMovies.R $movieDbDir
+DensityMovies.R $movieDbDir
 StripeMovies.R $movieDbDir
