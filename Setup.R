@@ -7,7 +7,9 @@ options(repos = r)
 rm(r)
 
 ## needed since igraph will ask for it otherwise
-update.packages(ask=F)
+userLibDirectory=lib=Sys.getenv("R_LIBS_USER")
+dir.create(normalizePath(userLibDirectory), recursive=T, showWarnings=F)
+update.packages(ask=F, lib=userLibDirectory)
 
 if (!require("codetools")) install.packages("codetools")
 if (!require("devtools")) install.packages("devtools")
