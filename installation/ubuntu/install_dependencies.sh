@@ -25,13 +25,13 @@ sudo apt-get install -y python3-setuptools
 easy_install3 snakemake
 
 ## install curl
-sudo apt-get--no-install-recommends  install -y libcurl4-gnutls-dev
+sudo apt-get --no-install-recommends install -y libcurl4-gnutls-dev
 
 ## install lixbml
 sudo apt-get --no-install-recommends install -y libxml2-dev
 
 ## install imagemagick needed for image rotation
-sudo apt-get--no-install-recommends  install -y bc imagemagick
+sudo apt-get --no-install-recommends install -y bc imagemagick
 
 ## install openssl for git
 sudo apt-get --no-install-recommends install -y libssl-dev
