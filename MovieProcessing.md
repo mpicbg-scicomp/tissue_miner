@@ -1,4 +1,4 @@
-How to process a movie with Tissue Miner
+How to process a movie with TissueMiner
 =====================================
 
 
@@ -24,14 +24,15 @@ Once the installation is complete, restart FIJI, open the "Plugins" menu and cli
 For a quick start guide, click [here](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/docs/TAdoc.pdf)
 
 
-Options: label regions of interests (ROI) and orient the tissue along one axis
+Options: delimit regions of interest (ROI's) and orient the tissue along the x or y axis
 =====
 
-Fiji macros can found in your local Tissue Miner installation or [here](https://github.com/mpicbg-scicomp/tissue_miner/tree/master/fiji_macros). Just drad-and-drop the file onto Fiji and click 'run':
+Fiji macros can be found in your local TissueMiner installation or [here](https://github.com/mpicbg-scicomp/tissue_miner/tree/master/fiji_macros). Just drad-and-drop the file onto Fiji and click 'run':
 * draw_n_get_ROIcoord.ijm
 * orient_tissue.ijm
 
-Both macros automatically save a text file (LastFrameRoi.txt and transformation.txt, respectively). If these files are present, Tissue Miner will take them into account for further precessing steps.
+Both macros automatically save a text file (LastFrameRoi.txt and transformation.txt, respectively). If these files are present, TissueMiner will take them into account for further precessing steps.
+
 NB: by default, Tissue Miner will always create two ROI's: 
 * "raw": corresponds to all segmented and tracked cells
 * "whole_tissue": corresponds to cell lineages that remain in the field of view
@@ -72,6 +73,8 @@ export
 ## adjust your path to include all tools for execution
 export PATH=$TM_HOME/db:$TM_HOME/shear:$TM_HOME/roi:$TM_HOME/misc:$TM_HOME/movies:$TM_HOME/shear_contributions:$TM_HOME/topology:$TM_HOME/triangles:$TM_HOME/lineage:$PATH
 export PATH=${TM_HOME}/parser:$PATH
+
+## defines an alias for the snakemake command line
 sm() {
     snakemake --snakefile ${TM_HOME}/workflow/tm.snkmk --keep-going "$@"
 }
@@ -83,16 +86,15 @@ source .bashrc
 
 
 
-To run Tissue Miner over **your own data**
+To run TissueMiner over **your own data**
 =======================
 
-To run TissueMiner entirely over **your own data**, you'll need to go to the source directory containing your movie directories (use the *cd* command + drag and drop the folder corresponding to your **movie repository* folder onto the shell + press enter) and to replace *my_favorite_movie* with your movie directory of interest.
+To run TissueMiner entirely over **your own data**, you'll need to go to the source directory containing your movie directories (use the *cd* command + drag and drop the folder corresponding to your *movie repository* folder onto the shell + press enter) and to replace *my_favorite_movie* with your movie directory of interest.
 
 ```
 ## Example for "my_favorite_movie"
 cd path_to_your_movie_repository
 docker run --rm -ti -v $(pwd):/movies -w /movies/my_favorite_movie brandl/tissue_miner sm all
-
 ```
 
 For a more streamlined analysis, please visit the tutorials [here]()

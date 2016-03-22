@@ -50,11 +50,11 @@ These data can than be employed to
 Installation
 ================
 
-TissueMiner ships with an Ubuntu-Installer and can be used via Docker on other platforms.
+TissueMiner ships with a command-line Ubuntu-Installer and can be used via Docker on other platforms.
 
 ### Ubuntu
 
-To install it on Ubuntu simply clone this repository and run the installation script `install_tm.sh`
+To install it on Ubuntu simply clone this repository and run the installation script `install_tm.sh` in a [terminal](https://help.ubuntu.com/community/UsingTheTerminal)
 
 ```
     ## Define the directory where to install TissueMiner
@@ -72,8 +72,8 @@ To install it on Ubuntu simply clone this repository and run the installation sc
 To install TissueMiner on MacOS, Windows or any non-Ubuntu Linux system we provide a Docker container that bundles TissueMiner and all its dependencies. If not yet present on your system, you need to install the [docker engine](https://docs.docker.com/)
 beforehand.
 
-
 Next, you can download the TissueMiner application bundled in a docker image called _brandl/tissue_miner_
+On Mac or Windows, open a Docker Quick Start Terminal: ![alt tag](https://raw.githubusercontent.com/mpicbg-scicomp/tissue_miner/master/docs/readme_screenshots/docker_toolbox_osx_quickstart_icon_nolabel.png)
 ```
 docker pull brandl/tissue_miner
 ```
