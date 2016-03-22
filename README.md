@@ -7,9 +7,9 @@
 About
 =================
 
-TissueMiner is a framework to perform a multiscale analysis of an entire developing epithelium acquired at cellular resolution over several hours or days. It  includes **(a)** tools to build a database from a timelapse movie, **(b)** ready-to-use tool to analyze various aspects of cell and tissue morphogenesis, and **(c)** a powerful but yet easy to use R programming interface to allow for the implementation of custom analyses.
+TissueMiner is a framework to perform a multiscale analysis of an entire developing epithelium acquired at cellular resolution over several hours or days. It  includes **(a)** tools to build a database from a timelapse movie, **(b)** ready-to-use tools to analyze various aspects of cell and tissue morphogenesis, and **(c)** a powerful but yet easy to use R programming interface to allow for the implementation of custom analyses.
 
-### Cell Tracking Data Database
+### (a) Cell Tracking Data Database
 
 
 First, TissueMiner tracks cells in timelapse image series of a tissue and stores the results in a database. To do so, it uses [TissueAnalyzer](MovieProcessing.md#TissueAnalyzer) to segment and track cells in time and space.
@@ -17,20 +17,18 @@ First, TissueMiner tracks cells in timelapse image series of a tissue and stores
 Next, TissueMiner extracts and organizes information about cell geometry, topology (cell neighbor relationships) and ancestry from the TissueAnalyzer outputs into a database. By using sqlite, each movie is essentially converted into a _single_ database file.
 
 
-### Tools to Analyse Epithelium Morphogenesis
+### (b) Tools to Analyse Epithelium Morphogenesis
 
 TissueMiner comes along with a great variety of tools to work with the created movie database. These include
-* Lineage Tracking
+* Lineage Browsing
 * Cell Shear Contribution Analysis
 * Topology Analyses (cell rearrangements, cell packing, etc.)
-* and some more. See the [Batch Processing Guide](MovieProcessing.md#Tools) for a complete listing
+* and some more. See the [Movie Processing Guide](MovieProcessing.md#Tools) for a complete listing
 
 Many of these tools provide tabular results as well as rendered movies to make the complex nature of timelapse more accessible.
 
-TissueMiner also contains a GUI [here](fiji_macros/draw_n_get_ROIcoord.ijm) to group cells (ROI's) in space, and a lineage browsing algorithm to follow these ROI's backward and forward in time.
 
-
-### High-Level Programming API
+### (c) High-Level Programming API
 
 TissueMiner provides a convenient R progmming interface to query, quantify and visualize cell dynamics during epithelium morphogenesis in [R](https://www.r-project.org/). The first step of a custom workflow is to query the movie database to the extract properties like:
 
@@ -63,7 +61,7 @@ To install it on Ubuntu simply clone this repository and run the installation sc
     export TM_HOME="${HOME}/tissue_miner"
 
     ## download this repository
-	sudo apt-get install git
+	  sudo apt-get install git
     git clone https://github.com/mpicbg-scicomp/tissue_miner.git ${TM_HOME}
 
     ${TM_HOME}/installation/ubuntu/install_tm.sh
