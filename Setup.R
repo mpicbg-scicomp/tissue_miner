@@ -14,7 +14,7 @@ if (!file.exists(userLibDirectory)) {
   print(paste0("Create", userLibDirectory))
   dir.create(userLibDirectory, recursive=T, showWarnings=F)
   # Set default location for packages
-  .libpaths(userLibDirectory)
+  .libPaths(userLibDirectory)
 }
 
 ## Update package list using the local package installation
