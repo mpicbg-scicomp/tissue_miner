@@ -74,7 +74,8 @@ sudo apt-get --no-install-recommends install -y libcairo2-dev
 # netcds http://askubuntu.com/questions/79418/installing-netcdf
 #sudo apt-get install -y libnetcdf-dev
 # see http://askubuntu.com/questions/382444/qt-headers-and-libraries-not-found
-sudo apt-get install -y qt4-dev-tools libqt4-core
+sudo apt-get --no-install-recommends install -y qt4-dev-tools libqt4-dev libqt4-core
+
 #sudo apt-get install libqt4-dev libqt4-opengl-dev libqtwebkit-dev qt4-linguist-tools qt4-qmake
 
 #
