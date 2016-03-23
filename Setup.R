@@ -1,16 +1,26 @@
 #!/usr/bin/env Rscript
 
 ## preselect a cran mirror
-r = getOption("repos") # hard code the UK repo for CRAN 
+r = getOption("repos") # hard code the UK repo for CRAN
+
 r["CRAN"] = "http://ftp5.gwdg.de/pub/misc/cran/"
 options(repos = r)
 rm(r)
 
-## needed since igraph will ask for it otherwise
-userLibDirectory=lib=Sys.getenv("R_LIBS_USER")
-dir.create(normalizePath(userLibDirectory), recursive=T, showWarnings=F)
+## Define a local package installation folder
+userLibDirectory=normalizePath(Sys.getenv("R_LIBS_USER"))
+
+if (!file.exists(userLibDirectory)) {
+  print(paste0("Create", userLibDirectory))
+  dir.create(userLibDirectory, recursive=T, showWarnings=F)
+  # Set default location for packages
+  .libpaths(userLibDirectory)
+}
+
+## Update package list using the local package installation
 update.packages(ask=F, lib=userLibDirectory)
 
+## Install packages locally by default
 if (!require("codetools")) install.packages("codetools")
 if (!require("devtools")) install.packages("devtools")
 
