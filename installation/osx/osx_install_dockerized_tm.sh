@@ -25,7 +25,7 @@ echo ""
 SYST_NB_CPU=$(sysctl -n hw.ncpu)
 SYST_MEM_SIZE=$(sysctl -n hw.memsize)
 
-VM_NAME="crazy-vm"
+VM_NAME="tm-vm"
 DOCKER_IMAGE="etournay/tissue_miner"
 # DOCKER_IMAGE="ubuntu" # for DEBUG
 
@@ -97,38 +97,38 @@ EOF
 echo -e "${BLUE}docker${NC} is configured to use the ${GREEN}${VM_NAME}${NC} machine with IP ${GREEN}$(docker-machine ip ${VM_NAME})${NC}"
 
 # Get the VM state (active or not)
-VM_STATE=$(docker-machine ls | awk '/'${VM_NAME}'/{print $2}')
+#VM_STATE=$(docker-machine ls | awk '/'${VM_NAME}'/{print $2}')
 
 # Pull dockerized TissueMiner according to VM state
   #https://github.com/docker/docker/issues/1888
 
-if [ "${VM_STATE}" != "*" ]; then
-  docker-machine ssh "${VM_NAME}" docker pull ${DOCKER_IMAGE}
-else
-  docker pull ${DOCKER_IMAGE}
-fi
+#if [ "${VM_STATE}" != "*" ]; then
+#  docker-machine ssh "${VM_NAME}" docker pull ${DOCKER_IMAGE}
+#else
+#  docker pull ${DOCKER_IMAGE}
+#fi
 
 # Check if the TissueMiner image is present
-if [ "${VM_STATE}" != "*" ]; then
-  echo ""
-  echo "Your docker environment is not accessible without ssh"
-  echo ""
-  echo -e "Please, make sure that the tissue_miner image is present with the command:"
-  echo "docker-machine ssh ${VM_NAME} docker images"
-  echo ""
-else
-  IMG=$(docker images | awk '/'${DOCKER_IMAGE}'/{print $1}')
-  if [ "${IMG}" != "${DOCKER_IMAGE}" ];then
-    echo ""
-    echo "${DOCKER_IMAGE} not found. The TissueMiner installation failed !"
-    echo "Please, try again..."
-    echo ""
-  else
-    echo ""
-    echo "A dockerized TissueMiner ${DOCKER_IMAGE} has been successfully installed and configured on your computer."
-    echo ""
-  fi
-fi
+#if [ "${VM_STATE}" != "*" ]; then
+#  echo ""
+#  echo "Your docker environment is not accessible without ssh"
+#  echo ""
+#  echo -e "Please, make sure that the tissue_miner image is present with the command:"
+#  echo "docker-machine ssh ${VM_NAME} docker images"
+#  echo ""
+#else
+#  IMG=$(docker images | awk '/'${DOCKER_IMAGE}'/{print $1}')
+#  if [ "${IMG}" != "${DOCKER_IMAGE}" ];then
+#    echo ""
+#    echo "${DOCKER_IMAGE} not found. The TissueMiner installation failed !"
+#    echo "Please, try again..."
+#    echo ""
+#  else
+#    echo ""
+#    echo "A dockerized TissueMiner ${DOCKER_IMAGE} has been successfully installed and configured on your computer."
+#    echo ""
+#  fi
+#fi
 
 read -r -p "Press Enter to quit the installer..." key
 
