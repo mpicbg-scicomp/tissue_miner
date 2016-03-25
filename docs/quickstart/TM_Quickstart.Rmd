@@ -1,23 +1,40 @@
 
 # First Use of TissueMiner from the command line
 
-If you like to try Tissue Miner for the **first time**, please download the Demo sample that contains images of segmented and tracked cells pre-processed in TissueAnalyzer.
-
-## 0. Open a terminal
-
-### 0.1 Mac and Windows: open a "Docker Quick Start Terminal"
-Once you have installed [Docker](https://docs.docker.com/mac/step_one/), open a Finder window, go to the Applications/Docker folder, and click "Docker Quickstart Terminal".
-
-### 0.2 Ubuntu: just open a [terminal](https://help.ubuntu.com/community/UsingTheTerminal)
+You'd like to try Tissue Miner for the **first time** ? Please follow the prodecure below to try it on a small Demo sample that contains images of segmented and tracked cells (pre-processed in TissueAnalyzer).
 
 
-## 1. Download some example data (~100mb)
+## 1. Open a terminal
+
+* Mac and Windows: open a "Docker Quick Start Terminal". 
+Once you have installed the [Docker engine](https://docs.docker.com/), click on "Docker Quickstart Terminal" in your Application folder or ProgramFile menu.
+
+* Ubuntu: just open a [terminal](https://help.ubuntu.com/community/UsingTheTerminal)
+
+
+## 2. Download some example data (~100mb)
+
+Just copy and paste the lines below into your terminal:
 ```
      ## In your terminal, type in the command below to download and extract the Demo data
      curl https://cloud.mpi-cbg.de/index.php/s/EspCWSQn3k6NKLA/download  | tar -zxvf -
 ```
 
-## 2. Example for a cell area analysis
+## 3. Select the analysis you are interested in
+
+* [Cell area]()
+* [Cell elongation]()
+* [Cell packing]()
+* [Cell lineage]()
+* [Cell rearrangements]()
+* [Cell contributions to tissue shear]()
+* [Cell contributions to tissue area changes]()
+
+
+
+
+
+## 3. Example for a cell area analysis
 
 Cell area is stored in the database. It is therefore sufficient to build the databse only.
 
@@ -53,14 +70,6 @@ tissue_miner>docs>quickstart
 For other types of analysis, please visite the [tutorial page]()
 
 ############# TUTO PAGE #######################
-## 3. Select the analysis you are interested in
-
-* [Cell elongation]()
-* [Cell packing]()
-* [Cell lineage]()
-* [Cell rearrangements]()
-* [Cell contributions to tissue shear]()
-* [Cell contributions to tissue area changes]()
 
 ### 3.1 Cell elongation
 
