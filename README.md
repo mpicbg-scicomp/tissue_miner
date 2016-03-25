@@ -99,7 +99,7 @@ Commonly asked questions are answered in the [FAQ section](faq.md).
 Support
 =========
 
-Please use the [github ticket system](https://github.com/mpicbg-scicomp/tissue_miner/issues) to report issues or suggestions. We also welcome pull requests. If
+Please use the [github ticket system](https://github.com/mpicbg-scicomp/tissue_miner/issues) to report issues or suggestions. We also welcome pull requests.
 
 
 

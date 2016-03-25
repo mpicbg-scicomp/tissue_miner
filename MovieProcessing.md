@@ -1,4 +1,4 @@
-How to process a movie with TissueMiner
+How to process a movie with TissueMiner over **your own data**
 =====================================
 
 
@@ -59,6 +59,8 @@ TissueMiner will generate additional folders and files in the \<movie_directory\
 System Preparation
 =======================
 
+## Ubuntu
+
 First, make sure to have TM_HOME shell variable pointing to the root of your TissueMiner installation as TissueMiner requires it to resolve script paths internally (see code chunck below).
 
 Then, tweak the $PATH to include the tools (see code chunck below).
@@ -86,7 +88,7 @@ source .bashrc
 
 
 
-To run TissueMiner over **your own data**
+To run TissueMiner 
 =======================
 
 To run TissueMiner entirely over **your own data**, you'll need to go to the source directory containing your movie directories (use the *cd* command + drag and drop the folder corresponding to your *movie repository* folder onto the shell + press enter) and to replace *my_favorite_movie* with your movie directory of interest.
