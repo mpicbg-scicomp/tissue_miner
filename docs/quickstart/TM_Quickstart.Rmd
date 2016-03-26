@@ -1,20 +1,22 @@
 
 # First Use of TissueMiner from the command line
 
-You'd like to try Tissue Miner for the **first time** ? Please follow the prodecure below to try it on a small Demo sample that contains images of segmented and tracked cells (pre-processed in TissueAnalyzer).
+You'd like to use Tissue Miner for the **first time** ? Please follow the prodecure below to try it on the small Demo sample that contains images of segmented and tracked cells (pre-processed in TissueAnalyzer).
 
 
 ## 1. Open a terminal
 
-* Mac and Windows: open a "Docker Quick Start Terminal". 
+* Ubuntu: just open a [terminal](https://help.ubuntu.com/community/UsingTheTerminal)
+
+* Other systems (Mac and Windows): open a "Docker Quick Start Terminal". 
 Once you have installed the [Docker engine](https://docs.docker.com/), click on "Docker Quickstart Terminal" in your Application folder or ProgramFile menu.
 
-* Ubuntu: just open a [terminal](https://help.ubuntu.com/community/UsingTheTerminal)
+
 
 
 ## 2. Download some example data (~100mb)
 
-Just copy and paste the lines below into your terminal:
+Just copy and paste the lines below into your terminal and press Enter:
 ```
      ## In your terminal, type in the command below to download and extract the Demo data
      curl https://cloud.mpi-cbg.de/index.php/s/EspCWSQn3k6NKLA/download  | tar -zxvf -
