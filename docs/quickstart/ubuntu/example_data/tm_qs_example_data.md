@@ -31,6 +31,11 @@ All scripts used in these above tutorials can handle user-defined regions of int
 
 * [Compare cell area in different ROI's](cell_area_ROI.md) ***Work in progress...***
 
+`library(stringr)
+  ROIlist=unlist(str_split(argv[3], "( *, *| *; *)| +"))
+  if (ROIlist=="") ROIlist=c("raw")
+  print(ROIlist)`
+
 ### 4. Look at the results 
 
 * Where to find the results ? 
