@@ -27,6 +27,10 @@ Here, we propose some streamlined quickstart tutorials.
 * [Cell contributions to tissue shear](cell_contributions_to_tissue_shear.md)
 * [Cell contributions to tissue area changes](cell_contributions_to_tissue_area_changes.md)
 
+All scripts used in these above tutorials can handle user-defined regions of interest (ROI's). Here, we give one example in which multiple ROI's are compared. 
+
+* [Compare cell area in ROI's](cell_area_ROI.md) ***Work in progress...***
+
 ### 4. Look at the results 
 
 * Where to find the results ? 
