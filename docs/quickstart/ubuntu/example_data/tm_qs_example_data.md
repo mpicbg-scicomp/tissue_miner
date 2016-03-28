@@ -17,7 +17,7 @@ Just copy and paste the lines below **into your terminal** and press Enter:
 
 ### 3. Select the analysis you are interested in
 
-Here, we propose some streamlined quickstart tutorials. We systematically use the `sm` command to generate the database (if not yet present), and one dedicated R script, which takes two arguments (input movie folder and output analysis folder), to make videos or to save plots.
+Here, we propose some streamlined quickstart tutorials.
 
 * [Cell area](cell_area.md)
 * [Cell elongation](cell_elongation.md)
@@ -27,4 +27,6 @@ Here, we propose some streamlined quickstart tutorials. We systematically use th
 * [Cell contributions to tissue shear](cell_contributions_to_tissue_shear.md)
 * [Cell contributions to tissue area changes](cell_contributions_to_tissue_area_changes.md)
 
+### 4. Look at the results 
+In your current movie folder, a **new output_analysis folder** has been created, where you'll find plots and videos created by running the tutorials. 
 

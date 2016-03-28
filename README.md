@@ -85,14 +85,13 @@ For troubleshooting in case of out-of-date operating systems [click here](misc/d
 Documentation
 ================
 
-* To get started with TissueMiner we suggest to do the **[Quickstart Tutorials](docs/quickstart/tm_quickstart_landing_page.md)** using the provided **example data**.
+* To get started with TissueMiner we suggest to do the **[Quickstart Tutorials](docs/quickstart/tm_quickstart_landing_page.md)**.
 
-* To learn about how to process your **own movies** see the **[Quickstart Tutorials](docs/quickstart/tm_quickstart_landing_page.md)**.
 
 * We also provide an exhaustive **[TM R User Manual](https://mpicbg-scicomp.github.io/tissue_miner/tm_tutorial/R-tutorial.html)** with lots of examples, background information and API details:
     + learn the necessary basics of the R language for TissueMiner
     + learn the powerful libraries of TissueMiner for epithelium analysis
-    + practice with lots of examples and make you own scripts
+    + benefit from lots of examples to make your own scripts
 
 * For a more general overview consider our [Resource Paper](/link/here/once/published).
 

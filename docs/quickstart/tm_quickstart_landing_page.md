@@ -2,7 +2,7 @@
 
 You'd like to use Tissue Miner for the **first time** ? 
 
-We highly recommend to start with the **example_data** that we provide.
+We highly recommend to start with the **example_data** that we provide. Then, you can run TissueMiner on your own data.
 
 Please click a link below according to your operating system and to the data to be processed. 
 
