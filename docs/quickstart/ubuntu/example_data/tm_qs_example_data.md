@@ -29,7 +29,7 @@ Here, we propose some streamlined quickstart tutorials.
 
 All scripts used in these above tutorials can handle user-defined regions of interest (ROI's). Here, we give one example in which multiple ROI's are compared. 
 
-* [Compare cell area in ROI's](cell_area_ROI.md) ***Work in progress...***
+* [Compare cell area in different ROI's](cell_area_ROI.md) ***Work in progress...***
 
 ### 4. Look at the results 
 
@@ -39,5 +39,5 @@ In the current movie folder, a **new output_analysis folder** has been created, 
 
 * Where to find the current movie folder?
 
-In this tutorial, the example data have been downloaded into your home directory, which may be represented with a "house" icon when using a file browser. In your file browser, go the your home directory, then click on *example_data*, click on *demo_ForTissueMiner*, and finally on *output_analysis*. Here, are your results !
+In this tutorial, the example data have been downloaded into your home directory, which may be represented with a "house" icon when using a file browser. In your file browser, go to your home directory, then click on *example_data*, click on *demo_ForTissueMiner*, and finally on *output_analysis*. Here, are your results !
 
