@@ -57,14 +57,14 @@ TissueMiner ships with a command-line Ubuntu-Installer and can be used via Docke
 To install it on Ubuntu simply clone this repository and run the installation script `install_tm.sh` in a [terminal](https://help.ubuntu.com/community/UsingTheTerminal) as follow:
 
 ```
-    ## Define the directory where to install TissueMiner
-    export TM_HOME="${HOME}/tissue_miner"
+  ## Define the directory where to install TissueMiner
+ export TM_HOME="${HOME}/tissue_miner"
 
-    ## download this repository
-	  sudo apt-get install git
-    git clone https://github.com/mpicbg-scicomp/tissue_miner.git ${TM_HOME}
+ ## download this repository
+ sudo apt-get install git
+ git clone https://github.com/mpicbg-scicomp/tissue_miner.git ${TM_HOME}
 
-    ${TM_HOME}/installation/ubuntu/install_tm.sh
+ ${TM_HOME}/installation/ubuntu/install_tm.sh
 ```
 
 ### Other Systems
@@ -85,15 +85,18 @@ For troubleshooting in case of out-of-date operating systems [click here](misc/d
 Documentation
 ================
 
-To get started with TissueMiner we suggest to do the **[quickstart tutorial](https://mpicbg-scicomp.github.io/tissue_miner/quickstart/TM_Quickstart.html)** using provided example data.
+* To get started with TissueMiner we suggest to do the **[Quickstart Tutorials](docs/quickstart/tm_quickstart_landing_page.md)** using the provided **example data**.
 
-We also provide an exhaustive [TM R User Manual](https://mpicbg-scicomp.github.io/tissue_miner/tm_tutorial/R-tutorial.html) with lots of examples, background information and API details.
+* To learn about how to process your **own movies** see the **[Quickstart Tutorials](docs/quickstart/tm_quickstart_landing_page.md)**.
 
-To learn about how to process your own movies see the [Batch Processing Guide](MovieProcessing.md).
+* We also provide an exhaustive **[TM R User Manual](https://mpicbg-scicomp.github.io/tissue_miner/tm_tutorial/R-tutorial.html)** with lots of examples, background information and API details:
+    + learn the necessary basics of the R language for TissueMiner
+    + learn the powerful libraries of TissueMiner for epithelium analysis
+    + practice with lots of examples and make you own scripts
 
-For a more general overview consider our [Resource Paper](/link/here/once/published).
+* For a more general overview consider our [Resource Paper](/link/here/once/published).
 
-Commonly asked questions are answered in the [FAQ section](faq.md).
+* Commonly asked questions are answered in the [FAQ section](faq.md).
 
 
 Support
