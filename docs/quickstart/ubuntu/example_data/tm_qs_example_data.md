@@ -28,5 +28,12 @@ Here, we propose some streamlined quickstart tutorials.
 * [Cell contributions to tissue area changes](cell_contributions_to_tissue_area_changes.md)
 
 ### 4. Look at the results 
-In your current movie folder, a **new output_analysis folder** has been created, where you'll find plots and videos created by running the tutorials. 
+
+* Where to find the results ? 
+
+In the current movie folder, a **new output_analysis folder** has been created, where you'll find plots and videos created by running the tutorials. 
+
+* Where to find the current movie folder?
+
+In this tutorial, the example data have been downloaded into your home directory, which may be represented with a "house" icon when using a file browser. In your file browser, go the your home directory, then click on *example_data*, click on *demo_ForTissueMiner*, and finally on *output_analysis*. Here, are your results !
 
