@@ -9,7 +9,7 @@ Please click a link below according to your operating system and to the data to 
 ## Select a quickstart protocol:
 
 * **Ubuntu**
-    + [Ubuntu with example_data](ubuntu/tm_qs_example_data.md)
+    + [Ubuntu with example_data](ubuntu/example_data/tm_qs_example_data.md)
     + [Ubuntu with your own data](ubuntu/tm_qs_user_data.md)
 * **Other operating systems**
     + [Other system with example_data](other_os/tm_qs_example_data.md)
