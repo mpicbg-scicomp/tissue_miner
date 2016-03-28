@@ -1,0 +1,74 @@
+---
+output: 
+  html_document: 
+    keep_md: yes
+---
+
+# Cell contributions to tissue area change analysis
+
+Cell contributions to tissue area changes are easily calculated from the database. It is therefore sufficient to build the database only.
+
+
+### 1. Plot the rate of tissue area changes and its cellular contributions
+
+* Copy-paste the following commands in the terminal:
+
+```
+sm make_db
+cell_contributions_to_tissue_area_change_rate.R . output_analysis
+```
+
+```{r cell_contributions_to_tissue_area_changes, warning=FALSE, message=FALSE, fig.width=11, cache=FALSE, eval=TRUE, echo=FALSE, results='hide'}
+movieDir="/Users/retourna/MovieDB/WT_1"
+
+scriptsDir=Sys.getenv("TM_HOME")
+if(is.na(file.info(scriptsDir)$isdir)){
+  stop(paste("TM_HOME not correctly defined (",scriptsDir ,")"))
+}
+
+source(file.path(scriptsDir, "commons/TMCommons.R"))
+source(file.path(scriptsDir, "commons/BaseQueryFunctions.R"))
+source(file.path(scriptsDir, "config/default_config.R"))
+
+# Hardwire isotropic deformation color scheme
+isotropColors <- c("division"="orange",
+                   "extrusion"="turquoise",
+                   "cell_area"="green",
+                   "sumContrib"="blue",
+                   "tissue_area"="darkred")
+
+db <- openMovieDb(movieDir)
+
+deltaT=30 # sampling (30 seconds)
+avgIsoDefRateInterpolated <- mqf_cg_roi_rate_isotropic_contrib(movieDir, "raw") %>%
+  filter(isoContrib!="tissue_area") %>%
+  mutate(min_dev_time=min(dev_time),
+         max_dev_time=max(dev_time)) %>% 
+  group_by(movie, roi, isoContrib) %>%
+  do({
+    # browser()
+    with(., approx(dev_time, value.ma,
+                   xout = seq(min_dev_time[1], max_dev_time[1],
+                              by = deltaT/3600), method = "linear")) %>% as.df()
+  }) %>%
+  rename(dev_time=x, value.ma=y) %>%
+  filter(!is.na(value.ma)) %>%
+  ungroup() 
+
+# Plot average of iso contribution rates in 3 WT and their respective standard deviation
+ggplot(avgIsoDefRateInterpolated, aes(dev_time, value.ma, color=isoContrib)) +
+  geom_line() + 
+  xlab("Time [h]")+
+  ylab(expression(paste("rate [",h^-1,"]"))) +
+  scale_color_manual(values=isotropColors) +
+  facet_wrap(~roi) +
+  ggtitle("averaged rates of isotropic deformation")
+
+```
+
+[Select another analysis](tm_qs_example_data.md)
+
+
+### 2. For further details
+* filter by regions of interest, see [Master Guide](https://mpicbg-scicomp.github.io/tissue_miner/tm_tutorial/R-tutorial.html#plot-the-color-coded-cell-area-pattern-in-the-whole_tissue-roi)
+* compare multiple movies and ROI's, see [Master Guide](https://mpicbg-scicomp.github.io/tissue_miner/tm_tutorial/R-tutorial.html#comparing-averaged-quantities-between-movies-and-rois)
