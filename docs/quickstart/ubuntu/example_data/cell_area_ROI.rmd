@@ -1,0 +1,110 @@
+---
+output: 
+  html_document: 
+    keep_md: yes
+---
+
+# Cell area analysis in multiple ROI's
+
+Cell area is stored in the database, but ROI's are not. ROI's are identified by their name. Here are the available ROI's for the example data: 
+* raw 
+* whole_tissue
+* cell_patch
+
+### 1. Make a movie of cell area pattern plotted on the tissue for the *cell_patch* ROI
+
+* Copy-paste the following commands in the terminal:
+
+```
+sm roi_tracking 
+cell_area_pattern.R . output_analysis "cell_patch"
+```
+
+```{r cell_area_pattern, warning=FALSE, message=FALSE, fig.width=11, cache=FALSE, eval=TRUE, echo=FALSE, results='hide'}
+movieDir="/Users/retourna/MovieDB/WT_1"
+
+scriptsDir=Sys.getenv("TM_HOME")
+if(is.na(file.info(scriptsDir)$isdir)){
+  stop(paste("TM_HOME not correctly defined (",scriptsDir ,")"))
+}
+
+source(file.path(scriptsDir, "commons/TMCommons.R"))
+source(file.path(scriptsDir, "commons/BaseQueryFunctions.R"))
+source(file.path(scriptsDir, "config/default_config.R"))
+
+cellArea <- mqf_fg_cell_area(movieDir, rois = c("raw"), cellContour = T)
+
+db <- openMovieDb(movieDir)
+
+cellArea %>%
+  render_frame(50) + 
+  # we now map cell area values to a color palette: fill=area
+  geom_polygon(aes(x_pos, y_pos, group=cell_id, fill=area), alpha=0.7) + 
+  scale_fill_gradientn(name="area (px)",
+                       colours=c("black", "blue", "green", "yellow", "red"),
+                       limits=c(0,quantile(cellArea$area, probs = 99.9/100)),
+                       na.value = "red") +
+  ggtitle("cell_area_pattern")
+
+
+```
+
+[Select another analysis](tm_qs_example_data.md)
+
+### 2. Plot cell area distrubution and averages in each ROI
+* Copy-paste the following commands in the terminal:
+
+```
+sm make_db 
+cell_area_graphs.R . output_analysis "raw whole_tissue cell_patch"
+```
+
+```{r cell_area_graphs, warning=FALSE, message=FALSE, fig.width=7, cache=FALSE, eval=TRUE, echo=FALSE,results='hide'}
+
+
+movieDir="/Users/retourna/MovieDB/WT_1"
+
+scriptsDir=Sys.getenv("TM_HOME")
+if(is.na(file.info(scriptsDir)$isdir)){
+  stop(paste("TM_HOME not correctly defined (",scriptsDir ,")"))
+}
+
+
+source(file.path(scriptsDir, "commons/TMCommons.R"))
+source(file.path(scriptsDir, "commons/BaseQueryFunctions.R"))
+
+mqf_cg_roi_cell_area(movieDir, rois = c("raw")) %>% 
+  ggplot(aes(dev_time, area.avg, color=movie)) +
+  geom_line() +
+  xlab("Time [h]") +
+  ylab("<Cell area> [px]")  +
+  facet_wrap(~roi) +
+  ggtitle("averaged_cell_area")
+
+mqf_fg_cell_area(movieDir, rois = c("raw")) %>%
+  ggplot(aes(area, fill=movie)) +
+  geom_histogram(color="white") +
+  xlab("Cell area [px]")  +
+  facet_wrap(~roi) +
+  ggtitle("cell_area_distribution")
+
+mqf_fg_cell_area(movieDir, rois = c("raw")) %>%
+  ggplot(aes(movie,area, fill=movie)) +
+  geom_boxplot() +
+  ylab("Cell area [px]")  +
+  facet_wrap(~roi) +
+  ggtitle("cell_area_boxplot")
+
+mqf_fg_cell_area(movieDir, rois = c("raw")) %>%
+  ggplot(aes(movie,area, fill=movie)) +
+  geom_violin() +
+  ylab("Cell area [px]")  +
+  facet_wrap(~roi) +
+  ggtitle("cell_area_violin")
+```
+
+[Select another analysis](tm_qs_example_data.md)
+
+### 3. For further details
+
+* compare multiple movies and ROI's, see [Master Guide](https://mpicbg-scicomp.github.io/tissue_miner/tm_tutorial/R-tutorial.html#comparing-averaged-quantities-between-movies-and-rois)
