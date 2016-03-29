@@ -17,11 +17,11 @@ cell_neighbor_number_pattern.R . output_analysis
 
 [Select another analysis](tm_qs_example_data.md#3-select-the-analysis-you-are-interested-in)
 
-### 2. Plot cell area distrubution and averages
+### 2. Plot cell neighbor count and averages
 * Copy-paste the following commands in the terminal:
 
 ```
-sm make_db 
+sm topo_countt1 
 cell_neighbor_number_graphs.R . output_analysis
 ```
 
