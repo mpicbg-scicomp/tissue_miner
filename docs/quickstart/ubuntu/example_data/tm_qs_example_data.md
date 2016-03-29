@@ -25,7 +25,7 @@ Here, we propose some streamlined quickstart tutorials.
 * [Cell lineage and divisions](cell_lineage_and_divisions.md#cell-lineage-and-division-analysis)
 * [Cell rearrangements](cell_rearrangements.md#cell-rearrangement-analysis)
 * [Cell contributions to tissue shear](cell_contributions_to_tissue_shear.md#cell-contributions-to-tissue-shear-analysis)
-* [Cell contributions to tissue area changes](cell_contributions_to_tissue_area_changes.md#cell-contributions-to-tissue-area-change-analysis
+* [Cell contributions to tissue area changes](cell_contributions_to_tissue_area_changes.md#cell-contributions-to-tissue-area-change-analysis)
 
 Here, we extend the cell area example to compare between different regions of interest.
 
