@@ -22,7 +22,7 @@ fi
 
 ## install snakemake
 sudo apt-get install -y python3-setuptools
-easy_install3 snakemake
+sudo easy_install3 snakemake
 
 ## install curl
 sudo apt-get --no-install-recommends install -y libcurl4-gnutls-dev
