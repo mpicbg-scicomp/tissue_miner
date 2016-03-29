@@ -86,7 +86,7 @@ For troubleshooting in case of out-of-date operating systems [click here](misc/d
 Documentation
 ================
 
-* To get started with TissueMiner we suggest to do the **[Quickstart Tutorials](docs/quickstart/tm_quickstart_landing_page.md)**.
+* To get started with TissueMiner we suggest to do the **[Quickstart Tutorials](docs/quickstart/tm_quickstart_landing_page.md#first-use-of-tissueminer-from-the-command-line)**.
 
 
 * We also provide an exhaustive **[TM R User Manual](https://mpicbg-scicomp.github.io/tissue_miner/tm_tutorial/R-tutorial.html)** with lots of examples, background information and API details:
