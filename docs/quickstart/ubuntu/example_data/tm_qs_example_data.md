@@ -12,7 +12,7 @@ Just copy and paste the lines below **into your terminal** and press Enter:
      curl https://cloud.mpi-cbg.de/index.php/s/EspCWSQn3k6NKLA/download  | tar -zxvf -
      
      ## Go to the movie directory
-     cd example_movie/demo_ForTissueMiner
+     cd example_movies/demo_ForTissueMiner
 ```
 
 ### 3. Select the analysis you are interested in
