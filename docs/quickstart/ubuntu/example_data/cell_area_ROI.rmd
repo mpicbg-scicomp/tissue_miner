@@ -49,7 +49,7 @@ cellArea %>%
 
 ```
 
-[Select another analysis](tm_qs_example_data.md)
+[Select another analysis](tm_qs_example_data.md#3-select-the-analysis-you-are-interested-in)
 
 ### 2. Plot cell area distrubution and averages in each ROI
 * Copy-paste the following commands in the terminal:
@@ -103,8 +103,8 @@ mqf_fg_cell_area(movieDir, rois = c("raw")) %>%
   ggtitle("cell_area_violin")
 ```
 
-[Select another analysis](tm_qs_example_data.md)
+[Select another analysis](tm_qs_example_data.md#3-select-the-analysis-you-are-interested-in)
 
 ### 3. For further details
 
-* compare multiple movies and ROI's, see [Master Guide](https://mpicbg-scicomp.github.io/tissue_miner/tm_tutorial/R-tutorial.html#comparing-averaged-quantities-between-movies-and-rois)
+* compare multiple movies and ROI's, see [TM R User Manual](https://mpicbg-scicomp.github.io/tissue_miner/tm_tutorial/R-tutorial.html#comparing-averaged-quantities-between-movies-and-rois)
