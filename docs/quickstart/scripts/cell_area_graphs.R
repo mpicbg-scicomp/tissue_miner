@@ -30,6 +30,7 @@ ggsave2(mqf_cg_roi_cell_area(movieDir, rois = c("raw")) %>%
           geom_line() +
           xlab("Time [h]") +
           ylab("<Cell area> [px]")  +
+          facet_wrap(~roi) +
           ggtitle("averaged_cell_area"), outputFormat = "pdf")
 
 print("")
@@ -38,6 +39,7 @@ ggsave2(mqf_fg_cell_area(movieDir, rois = c("raw")) %>%
           ggplot(aes(area, fill=movie)) +
           geom_histogram(color="white") +
           xlab("Cell area [px]")  +
+          facet_wrap(~roi) +
           ggtitle("cell_area_distribution"), outputFormat = "pdf")
 
 print("")
@@ -46,6 +48,7 @@ ggsave2(mqf_fg_cell_area(movieDir, rois = c("raw")) %>%
           ggplot(aes(movie,area, fill=movie)) +
           geom_boxplot() +
           ylab("Cell area [px]")  +
+          facet_wrap(~roi) +
           ggtitle("cell_area_boxplot"), outputFormat = "pdf")
 
 print("")
@@ -54,4 +57,5 @@ ggsave2(mqf_fg_cell_area(movieDir, rois = c("raw")) %>%
           ggplot(aes(movie,area, fill=movie)) +
           geom_violin() +
           ylab("Cell area [px]")  +
+          facet_wrap(~roi) +
           ggtitle("cell_area_violin"), outputFormat = "pdf")
