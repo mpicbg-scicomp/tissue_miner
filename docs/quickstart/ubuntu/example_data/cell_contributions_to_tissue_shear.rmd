@@ -82,6 +82,12 @@ Shear pattern videos are better generated in the automated workflow. Just typing
 sm shear_movies
 ```
 
+* Find the videos
+
+Open your file browser and go to the movie directory, in which you should click on the "nematics_movies" folder that contains videos of cell shear contribution pattern.
+
+[Select another analysis](tm_qs_example_data.md#3-select-the-analysis-you-are-interested-in)
+
 
 ### 3. For further details
 
