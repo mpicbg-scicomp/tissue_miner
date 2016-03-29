@@ -19,22 +19,18 @@ Just copy and paste the lines below **into your terminal** and press Enter:
 
 Here, we propose some streamlined quickstart tutorials.
 
-* [Cell area](cell_area.md)
-* [Cell elongation](cell_elongation.md)
-* [Cell packing](cell_packing.md)
-* [Cell lineage and divisions](cell_lineage_and_divisions.md)
-* [Cell rearrangements](cell_rearrangements.md)
-* [Cell contributions to tissue shear](cell_contributions_to_tissue_shear.md)
-* [Cell contributions to tissue area changes](cell_contributions_to_tissue_area_changes.md)
+* [Cell area](cell_area.md#cell-area-analysis)
+* [Cell elongation](cell_elongation.md#cell-elongation-analysis)
+* [Cell packing](cell_packing.md#cell-packing-analysis)
+* [Cell lineage and divisions](cell_lineage_and_divisions.md#cell-lineage-and-division-analysis)
+* [Cell rearrangements](cell_rearrangements.md#cell-rearrangement-analysis)
+* [Cell contributions to tissue shear](cell_contributions_to_tissue_shear.md#cell-contributions-to-tissue-shear-analysis)
+* [Cell contributions to tissue area changes](cell_contributions_to_tissue_area_changes.md#cell-contributions-to-tissue-area-change-analysis
 
-All scripts used in these above tutorials can handle user-defined regions of interest (ROI's). Here, we give one example in which multiple ROI's are compared. 
+Here, we extend the cell area example to compare between different regions of interest.
 
 * [Compare cell area in different ROI's](cell_area_ROI.md) ***Work in progress...***
 
-`library(stringr)
-  ROIlist=unlist(str_split(argv[3], "( *, *| *; *)| +"))
-  if (ROIlist=="") ROIlist=c("raw")
-  print(ROIlist)`
 
 ### 4. Look at the results 
 
