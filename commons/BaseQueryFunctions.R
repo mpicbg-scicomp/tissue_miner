@@ -227,7 +227,8 @@ addRois <-function(data, movieDir, rois=c()){
     if(length(rois)==0) roi_def = all_roi_def else roi_def <- all_roi_def %>% filter(roi %in% rois)
     
   }else{
-    stop(paste0(roiTrackFile," doesn't exit"))
+    warning(paste0(roiTrackFile," doesn't exit, only working with raw data"))
+    roi_def <- data.frame(cell_id=unique(data$cell_id), roi="raw")
   }
   
   
