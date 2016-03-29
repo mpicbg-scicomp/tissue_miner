@@ -1,9 +1,6 @@
-## adjust your path to include the tissue_miner folder
-export TM_HOME="~/tissue_miner"
 
 ## adjust your path to include all tools for execution
-export PATH=$TM_HOME/db:$TM_HOME/shear:$TM_HOME/roi:$TM_HOME/misc:$TM_HOME/movies:$TM_HOME/shear_contributions:$TM_HOME/topology:$TM_HOME/triangles:$TM_HOME/lineage:$PATH
-export PATH=${TM_HOME}/parser:$PATH
+export PATH=$TM_HOME/db:$TM_HOME/shear:$TM_HOME/roi:$TM_HOME/misc:$TM_HOME/movies:$TM_HOME/shear_contributions:$TM_HOME/topology:$TM_HOME/triangles:$TM_HOME/lineage:${TM_HOME}/parser:${TM_HOME}/docs/quickstart/scripts:$PATH
 
 ## defines an alias for the snakemake command line
 sm() {
