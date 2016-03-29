@@ -27,7 +27,7 @@ db <- openMovieDb(movieDir)
 
 print("")
 print("Creating cell_rearrangement_nematics_cg_pattern.mp4...")
-mqf_cg_grid_unit_nematics_T1(movieDir, rois="raw", gridSize = 160, kernSize = 11) %>%
+mqf_cg_grid_unit_nematics_T1(movieDir, rois="raw", gridSize = 90, kernSize = 11) %>%
   render_movie("cell_rearrangement_nematics_cg_pattern.mp4", list(
     geom_segment(aes(x=x1,y=y1,xend=x2,yend=y2),  size=2, alpha=0.7, lineend="round", color="red", na.rm=T)
   ))
