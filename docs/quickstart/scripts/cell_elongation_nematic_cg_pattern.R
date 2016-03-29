@@ -26,7 +26,7 @@ source(file.path(scriptsDir, "config/default_config.R"))
 db <- openMovieDb(movieDir)
 
 
-cellElongNematicsCG <- mqf_cg_grid_nematics_cell_elong(movieDir, gridSize = 96)
+cellElongNematicsCG <- mqf_cg_grid_nematics_cell_elong(movieDir, gridSize = 90)
 print("")
 print("Creating cell_elongation_nematic_cg_pattern.mp4...")
 render_movie(cellElongNematicsCG, "cell_elongation_nematic_cg_pattern.mp4", list(
