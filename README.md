@@ -30,7 +30,7 @@ Many of these tools provide tabular results as well as rendered movies to make t
 
 ### (c) High-Level Programming API
 
-TissueMiner provides a convenient R progmming interface to query, quantify and visualize cell dynamics during epithelium morphogenesis in [R](https://www.r-project.org/). The first step of a custom workflow is to query the movie database to the extract properties like:
+TissueMiner provides a convenient R programming interface to query, quantify and visualize cell dynamics during epithelium morphogenesis in [R](https://www.r-project.org/). The first step of a custom workflow is to query the movie database to the extract properties like:
 
 * Cell state properties (position, area, anisotropy, cell packing geometry, fluorescence intensity)
 * Rates of cellular events (divisions, cell neighbor changes, extrusions, shape changes)
@@ -39,12 +39,13 @@ TissueMiner provides a convenient R progmming interface to query, quantify and v
 * Rates of tissue deformation (area expansion and convergence-extension) contributed by each type of cellular event (tensorial description)
 
 These data can than be employed to
-* Analyze time and tissue-orientation registrations for comparing multiple movies
-* Synchronize different movies
-* Compare tissue and cell deformations between ROI's and between movies.
-* Do statistics (time evolution of the distributions of cell area, anisotropy, packing, ..., bond length, vertex multiplicity, ...)
-* Do multiscale quantification and visualization using both dynamic ROI's (Lagrangian description) and fixed grids (Eulerian description): from individual cells to averages over the entire tissue
+
 * Visualize of quantified data in graphs or directly on the movie images
+* Do statistics (time evolution of the distributions of cell area, anisotropy, packing, ..., bond length, vertex multiplicity, ...)
+* Synchronize different movies in time
+* Comparing values between multiple movies and ROI's
+* Do multiscale quantification and visualization using both tracked ROI's (Lagrangian description) and fixed grids (Eulerian description)
+
 
 
 Installation
