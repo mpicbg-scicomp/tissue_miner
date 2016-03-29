@@ -15,7 +15,7 @@ cell_elongation_magnitude_pattern.R . output_analysis
 
 ![](cell_elongation_files/figure-html/cell_elongation_magnitude_pattern-1.png)
 
-[Select another analysis](tm_qs_example_data.md)
+[Select another analysis](tm_qs_example_data.md#3-select-the-analysis-you-are-interested-in)
 
 
 ### 2. Make a movie of coarse-grained cell elongation nematics plotted on the tissue
@@ -28,7 +28,7 @@ cell_elongation_nematic_cg_pattern.R . output_analysis
 
 ![](cell_elongation_files/figure-html/cg_cell_elongation_nematic_pattern-1.png)
 
-[Select another analysis](tm_qs_example_data.md)
+[Select another analysis](tm_qs_example_data.md#3-select-the-analysis-you-are-interested-in)
 
 ### 3. Plot cell elongation distrubution and averages
 * Copy-paste the following commands in the terminal:
@@ -40,8 +40,8 @@ cell_elongation_graphs.R . output_analysis
 
 ![](cell_elongation_files/figure-html/cell_elongation_graphs-1.png)![](cell_elongation_files/figure-html/cell_elongation_graphs-2.png)![](cell_elongation_files/figure-html/cell_elongation_graphs-3.png)![](cell_elongation_files/figure-html/cell_elongation_graphs-4.png)
 
-[Select another analysis](tm_qs_example_data.md)
+[Select another analysis](tm_qs_example_data.md#3-select-the-analysis-you-are-interested-in)
 
 ### 4. For further details
-* filter by regions of interest, see [Master Guide](https://mpicbg-scicomp.github.io/tissue_miner/tm_tutorial/R-tutorial.html#plot-the-color-coded-cell-area-pattern-in-the-whole_tissue-roi)
-* compare multiple movies and ROI's, see [Master Guide](https://mpicbg-scicomp.github.io/tissue_miner/tm_tutorial/R-tutorial.html#comparing-averaged-quantities-between-movies-and-rois)
+
+* compare multiple movies and ROI's, see [TM R User Manual](https://mpicbg-scicomp.github.io/tissue_miner/tm_tutorial/R-tutorial.html#comparing-averaged-quantities-between-movies-and-rois)
