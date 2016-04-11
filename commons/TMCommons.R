@@ -180,7 +180,7 @@ source(configFile)
 #### Function to open any file from a system command
 open_file <- function(path){
   if (Sys.info()["sysname"]=="Darwin") system(paste0("open ",path))
-  if (Sys.info()["sysname"]=="Linux") system(paste0("xdg-open ",path))
+  if (Sys.info()["sysname"]=="Linux") system(paste0("xdg-open ",path, " > /dev/null 2>&1"))
   if (Sys.info()["sysname"]=="Windows") system(paste0("start ",path))
 }
 
