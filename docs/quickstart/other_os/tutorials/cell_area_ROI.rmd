@@ -16,8 +16,8 @@ Cell area is stored in the database, but ROI's are not. ROI's are identified by 
 * Copy-paste the following commands in the terminal:
 
 ```
-$DOCKER sm roi_tracking 
-$DOCKER cell_area_pattern.R . output_analysis "whole_tissue"
+tm sm roi_tracking 
+tm cell_area_pattern.R . output_analysis "whole_tissue"
 ```
 
 ```{r cell_area_pattern, warning=FALSE, message=FALSE, fig.width=11, cache=FALSE, eval=TRUE, echo=FALSE, results='hide'}
@@ -57,8 +57,8 @@ cellArea %>%
 * Copy-paste the following commands in the terminal:
 
 ```
-$DOCKER sm make_db 
-$DOCKER cell_area_graphs.R . output_analysis "raw whole_tissue cell_patch"
+tm sm make_db 
+tm cell_area_graphs.R . output_analysis "raw whole_tissue cell_patch"
 ```
 
 ```{r cell_area_graphs, warning=FALSE, message=FALSE, fig.width=7, cache=FALSE, eval=TRUE, echo=FALSE,results='hide'}

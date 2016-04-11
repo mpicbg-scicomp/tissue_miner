@@ -9,8 +9,8 @@ Cell contributions to tissue shear (change in aspect-ratio or pure shear) are ca
 * Copy-paste the following commands in the terminal:
 
 ```
-$DOCKER sm shear_calculate
-$DOCKER cell_contributions_to_tissue_shear_rate.R . output_analysis
+tm sm shear_calculate
+tm cell_contributions_to_tissue_shear_rate.R . output_analysis
 ```
 
 ![](cell_contributions_to_tissue_shear_files/figure-html/cell_contributions_to_tissue_shear_rate-1.png)
@@ -27,7 +27,7 @@ Shear pattern videos are better generated in the automated workflow. Just typing
 * Copy-paste the following commands in the terminal:
 
 ```
-$DOCKER sm shear_movies
+tm sm shear_movies
 ```
 
 * Find the videos

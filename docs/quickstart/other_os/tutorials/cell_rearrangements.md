@@ -9,8 +9,8 @@ Cell neighbor changes are calculated from the database using a dedicated routine
 * Copy-paste the following commands in the terminal:
 
 ```
-$DOCKER sm topo_countt1 
-$DOCKER cell_neighbor_change_orientation_pattern.R . output_analysis
+tm sm topo_countt1 
+tm cell_neighbor_change_orientation_pattern.R . output_analysis
 ```
 
 ![](cell_rearrangements_files/figure-html/cell_neighbor_change_orientation_pattern-1.png)
@@ -24,8 +24,8 @@ $DOCKER cell_neighbor_change_orientation_pattern.R . output_analysis
 * Copy-paste the following commands in the terminal:
 
 ```
-$DOCKER sm topo_countt1 
-$DOCKER cell_neighbor_change_rate.R . output_analysis
+tm sm topo_countt1 
+tm cell_neighbor_change_rate.R . output_analysis
 ```
 
 ![](cell_rearrangements_files/figure-html/cell_neighbor_change_rate-1.png)
@@ -38,8 +38,8 @@ $DOCKER cell_neighbor_change_rate.R . output_analysis
 * Copy-paste the following commands in the terminal:
 
 ```
-$DOCKER sm topo_countt1 
-$DOCKER cell_neighbor_change_orientation.R . output_analysis
+tm sm topo_countt1 
+tm cell_neighbor_change_orientation.R . output_analysis
 ```
 
 ![](cell_rearrangements_files/figure-html/cell_neighbor_change_orientation-1.png)

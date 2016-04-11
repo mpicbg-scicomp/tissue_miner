@@ -9,8 +9,8 @@ Cell elongation is stored in the database. It is therefore sufficient to build t
 * Copy-paste the following commands in the terminal:
 
 ```
-$DOCKER sm make_db 
-$DOCKER cell_elongation_magnitude_pattern.R . output_analysis
+tm sm make_db 
+tm cell_elongation_magnitude_pattern.R . output_analysis
 ```
 
 ![](cell_elongation_files/figure-html/cell_elongation_magnitude_pattern-1.png)
@@ -24,8 +24,8 @@ $DOCKER cell_elongation_magnitude_pattern.R . output_analysis
 * Copy-paste the following commands in the terminal:
 
 ```
-$DOCKER sm make_db 
-$DOCKER cell_elongation_nematic_cg_pattern.R . output_analysis
+tm sm make_db 
+tm cell_elongation_nematic_cg_pattern.R . output_analysis
 ```
 
 ![](cell_elongation_files/figure-html/cg_cell_elongation_nematic_pattern-1.png)
@@ -38,8 +38,8 @@ $DOCKER cell_elongation_nematic_cg_pattern.R . output_analysis
 * Copy-paste the following commands in the terminal:
 
 ```
-$DOCKER sm make_db 
-$DOCKER cell_elongation_graphs.R . output_analysis
+tm sm make_db 
+tm cell_elongation_graphs.R . output_analysis
 ```
 
 ![](cell_elongation_files/figure-html/cell_elongation_graphs-1.png)![](cell_elongation_files/figure-html/cell_elongation_graphs-2.png)![](cell_elongation_files/figure-html/cell_elongation_graphs-3.png)![](cell_elongation_files/figure-html/cell_elongation_graphs-4.png)

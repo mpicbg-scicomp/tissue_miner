@@ -14,8 +14,8 @@ Cell lineages and cell divisions are stored in the database. It is therefore suf
 * Copy-paste the following commands in the terminal:
 
 ```
-$DOCKER sm make_db 
-$DOCKER cell_division_generation_pattern.R . output_analysis
+tm sm make_db 
+tm cell_division_generation_pattern.R . output_analysis
 ```
 
 ```{r cumulative_cell_division_pattern, warning=FALSE, message=FALSE, fig.width=11, cache=FALSE, eval=TRUE, echo=FALSE, results='hide'}
@@ -61,8 +61,8 @@ cellsWithLin %>%
 * Copy-paste the following commands in the terminal:
 
 ```
-$DOCKER sm make_db 
-$DOCKER cell_division_orientation_pattern.R . output_analysis
+tm sm make_db 
+tm cell_division_orientation_pattern.R . output_analysis
 ```
 
 ```{r cell_division_nematic_pattern, warning=FALSE, message=FALSE, fig.width=11, cache=FALSE, eval=TRUE, echo=FALSE, results='hide'}
@@ -86,8 +86,8 @@ mqf_cg_grid_unit_nematics_CD(movieDir, gridSize = 160, kernSize = 11) %>%
 * Copy-paste the following commands in the terminal:
 
 ```
-$DOCKER sm make_db 
-$DOCKER cell_division_rate.R . output_analysis
+tm sm make_db 
+tm cell_division_rate.R . output_analysis
 ```
 
 ```{r cell_division_rate, warning=FALSE, message=FALSE, fig.width=7, cache=FALSE, eval=TRUE, echo=FALSE,results='hide'}
@@ -120,8 +120,8 @@ ggplot(CDrateByTimeIntervals, aes(dev_time, avgCDrate, color=movie)) +
 * Copy-paste the following commands in the terminal:
 
 ```
-$DOCKER sm make_db 
-$DOCKER cell_division_orientation.R . output_analysis
+tm sm make_db 
+tm cell_division_orientation.R . output_analysis
 ```
 
 ```{r cell_division_orientation, warning=FALSE, message=FALSE, fig.width=7, cache=FALSE, eval=TRUE, echo=FALSE,results='hide'}

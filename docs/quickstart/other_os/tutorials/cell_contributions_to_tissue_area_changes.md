@@ -9,8 +9,8 @@ Cell contributions to tissue area changes are easily calculated from the databas
 * Copy-paste the following commands in the terminal:
 
 ```
-$DOCKER sm make_db
-$DOCKER cell_contributions_to_tissue_area_change_rate.R . output_analysis
+tm sm make_db
+tm cell_contributions_to_tissue_area_change_rate.R . output_analysis
 ```
 
 ![](cell_contributions_to_tissue_area_changes_files/figure-html/cell_contributions_to_tissue_area_changes-1.png)
