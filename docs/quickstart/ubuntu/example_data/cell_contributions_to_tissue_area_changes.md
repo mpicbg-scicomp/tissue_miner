@@ -15,7 +15,9 @@ cell_contributions_to_tissue_area_change_rate.R . output_analysis
 
 ![](cell_contributions_to_tissue_area_changes_files/figure-html/cell_contributions_to_tissue_area_changes-1.png)
 
-[Select another analysis](tm_qs_example_data.md#3-select-the-analysis-you-are-interested-in)
+[How to look at the results ?](../tm_qs_example_data.md#4-look-at-the-results) **|** 
+[Back to tutorial list](../tm_qs_example_data.md#3-select-the-analysis-you-are-interested-in) **|** 
+[Try with your own data](../tm_qs_user_data.md#first-use-of-tissueminer-with-your-own-data)
 
 
 ### 2. For further details

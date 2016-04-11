@@ -15,7 +15,9 @@ cell_neighbor_change_orientation_pattern.R . output_analysis
 
 ![](cell_rearrangements_files/figure-html/cell_neighbor_change_orientation_pattern-1.png)
 
-[Select another analysis](tm_qs_example_data.md#3-select-the-analysis-you-are-interested-in)
+[How to look at the results ?](../tm_qs_example_data.md#4-look-at-the-results) **|** 
+[Back to tutorial list](../tm_qs_example_data.md#3-select-the-analysis-you-are-interested-in) **|** 
+[Try with your own data](../tm_qs_user_data.md#first-use-of-tissueminer-with-your-own-data)
 
 
 ### 2. Plot cell neighbor change rate
@@ -28,7 +30,9 @@ cell_neighbor_change_rate.R . output_analysis
 
 ![](cell_rearrangements_files/figure-html/cell_neighbor_change_rate-1.png)
 
-[Select another analysis](tm_qs_example_data.md#3-select-the-analysis-you-are-interested-in)
+[How to look at the results ?](../tm_qs_example_data.md#4-look-at-the-results) **|** 
+[Back to tutorial list](../tm_qs_example_data.md#3-select-the-analysis-you-are-interested-in) **|** 
+[Try with your own data](../tm_qs_user_data.md#first-use-of-tissueminer-with-your-own-data)
 
 ### 3. Plot average cell neighbor change orientation as a function of time
 * Copy-paste the following commands in the terminal:
@@ -40,7 +44,9 @@ cell_neighbor_change_orientation.R . output_analysis
 
 ![](cell_rearrangements_files/figure-html/cell_neighbor_change_orientation-1.png)
 
-[Select another analysis](tm_qs_example_data.md#3-select-the-analysis-you-are-interested-in)
+[How to look at the results ?](../tm_qs_example_data.md#4-look-at-the-results) **|** 
+[Back to tutorial list](../tm_qs_example_data.md#3-select-the-analysis-you-are-interested-in) **|** 
+[Try with your own data](../tm_qs_user_data.md#first-use-of-tissueminer-with-your-own-data)
 
 ### 4. For further details
 

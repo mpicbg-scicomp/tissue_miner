@@ -66,7 +66,9 @@ ggplot(avgIsoDefRateInterpolated, aes(dev_time, value.ma, color=isoContrib)) +
 
 ```
 
-[Select another analysis](tm_qs_example_data.md#3-select-the-analysis-you-are-interested-in)
+[How to look at the results ?](../tm_qs_example_data.md#4-look-at-the-results) **|** 
+[Back to tutorial list](../tm_qs_example_data.md#3-select-the-analysis-you-are-interested-in) **|** 
+[Try with your own data](../tm_qs_user_data.md#first-use-of-tissueminer-with-your-own-data)
 
 
 ### 2. For further details

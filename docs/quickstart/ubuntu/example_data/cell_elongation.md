@@ -15,7 +15,9 @@ cell_elongation_magnitude_pattern.R . output_analysis
 
 ![](cell_elongation_files/figure-html/cell_elongation_magnitude_pattern-1.png)
 
-[Select another analysis](tm_qs_example_data.md#3-select-the-analysis-you-are-interested-in)
+[How to look at the results ?](../tm_qs_example_data.md#4-look-at-the-results) **|** 
+[Back to tutorial list](../tm_qs_example_data.md#3-select-the-analysis-you-are-interested-in) **|** 
+[Try with your own data](../tm_qs_user_data.md#first-use-of-tissueminer-with-your-own-data)
 
 
 ### 2. Make a movie of coarse-grained cell elongation nematics plotted on the tissue
@@ -28,7 +30,9 @@ cell_elongation_nematic_cg_pattern.R . output_analysis
 
 ![](cell_elongation_files/figure-html/cg_cell_elongation_nematic_pattern-1.png)
 
-[Select another analysis](tm_qs_example_data.md#3-select-the-analysis-you-are-interested-in)
+[How to look at the results ?](../tm_qs_example_data.md#4-look-at-the-results) **|** 
+[Back to tutorial list](../tm_qs_example_data.md#3-select-the-analysis-you-are-interested-in) **|** 
+[Try with your own data](../tm_qs_user_data.md#first-use-of-tissueminer-with-your-own-data)
 
 ### 3. Plot cell elongation distrubution and averages
 * Copy-paste the following commands in the terminal:
@@ -40,7 +44,9 @@ cell_elongation_graphs.R . output_analysis
 
 ![](cell_elongation_files/figure-html/cell_elongation_graphs-1.png)![](cell_elongation_files/figure-html/cell_elongation_graphs-2.png)![](cell_elongation_files/figure-html/cell_elongation_graphs-3.png)![](cell_elongation_files/figure-html/cell_elongation_graphs-4.png)
 
-[Select another analysis](tm_qs_example_data.md#3-select-the-analysis-you-are-interested-in)
+[How to look at the results ?](../tm_qs_example_data.md#4-look-at-the-results) **|** 
+[Back to tutorial list](../tm_qs_example_data.md#3-select-the-analysis-you-are-interested-in) **|** 
+[Try with your own data](../tm_qs_user_data.md#first-use-of-tissueminer-with-your-own-data)
 
 ### 4. For further details
 

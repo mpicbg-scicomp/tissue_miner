@@ -19,17 +19,17 @@ Just copy and paste the lines below **into your terminal** and press Enter:
 
 Here, we propose some streamlined quickstart tutorials.
 
-* [Cell area](cell_area.md#cell-area-analysis)
-* [Cell elongation](cell_elongation.md#cell-elongation-analysis)
-* [Cell packing](cell_packing.md#cell-packing-analysis)
-* [Cell lineage and divisions](cell_lineage_and_divisions.md#cell-lineage-and-division-analysis)
-* [Cell rearrangements](cell_rearrangements.md#cell-rearrangement-analysis)
-* [Cell contributions to tissue shear](cell_contributions_to_tissue_shear.md#cell-contributions-to-tissue-shear-analysis)
-* [Cell contributions to tissue area changes](cell_contributions_to_tissue_area_changes.md#cell-contributions-to-tissue-area-change-analysis)
+* [Cell area](tutorials/cell_area.md#cell-area-analysis)
+* [Cell elongation](tutorials/cell_elongation.md#cell-elongation-analysis)
+* [Cell packing](tutorials/cell_packing.md#cell-packing-analysis)
+* [Cell lineage and divisions](tutorials/cell_lineage_and_divisions.md#cell-lineage-and-division-analysis)
+* [Cell rearrangements](tutorials/cell_rearrangements.md#cell-rearrangement-analysis)
+* [Cell contributions to tissue shear](tutorials/cell_contributions_to_tissue_shear.md#cell-contributions-to-tissue-shear-analysis)
+* [Cell contributions to tissue area changes](tutorials/cell_contributions_to_tissue_area_changes.md#cell-contributions-to-tissue-area-change-analysis)
 
 Here, we extend the cell area example to compare between different regions of interest.
 
-* [Compare cell area in different ROI's](cell_area_ROI.md) ***Work in progress...***
+* [Compare cell area in different ROI's](tutorials/cell_area_ROI.md) ***Work in progress...***
 
 
 ### 4. Look at the results 
