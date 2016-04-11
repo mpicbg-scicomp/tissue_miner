@@ -69,7 +69,10 @@ Both programs automatically save a text file (LastFrameRoi.txt and transformatio
 
 ### 4. Open a terminal
 
-* If you don't know how to open a terminal, click [here](https://help.ubuntu.com/community/UsingTheTerminal)
+* You'll find it either in your application menu or application folder (depending on your system):
+
+![alt tag](../../readme_screenshots/docker_toolbox_osx_quickstart_icon_nolabel.png)
+
 
 ### 5. Go to the movie directory
 
@@ -79,6 +82,9 @@ Both programs automatically save a text file (LastFrameRoi.txt and transformatio
 
 Summary:
 `cd <path_to_movie_folder>`
+
+* Set up the docker command and store it in a shell variable for simplicity
+`DOCKER="docker run --rm -ti -v $(dirname $PWD):/movies -w /movies/$(basename $PWD) etournay/tissue_miner"`
 
 ### 6. Select the analysis you are interested in
 Here, we propose some streamlined quickstart tutorials.
@@ -93,7 +99,7 @@ Here, we propose some streamlined quickstart tutorials.
 
 Here, we extend the cell area example to compare between different regions of interest.
 
-* [Compare cell area in different ROI's](tutorials/cell_area_ROI.md#cell-area-analysis-in-multiple-rois)
+* [Compare cell area in different ROI's]//(tutorials/cell_area_ROI.md#cell-area-analysis-in-multiple-rois) **Work in progress**
 
 
 ### 7. Look at the results 

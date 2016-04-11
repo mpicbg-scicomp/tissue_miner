@@ -17,7 +17,7 @@ Just copy and paste the lines below **into this Quickstart terminal** and press 
      cd example_data/demo
      
      ## Store the docker command into a shell variable for the sake of simplicity in tutorials
-     DOCKER="docker run --rm -ti -v $(dirname $PWD):/movies -w /movies/demo etournay/tissue_miner"
+     DOCKER="docker run --rm -ti -v $(dirname $PWD):/movies -w /movies/$(basename $PWD) etournay/tissue_miner"
 ```
 
 ### 3. Select the analysis you are interested in
