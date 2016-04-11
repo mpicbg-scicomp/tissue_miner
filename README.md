@@ -91,7 +91,7 @@ For troubleshooting in case of out-of-date operating systems [click here](misc/d
 Documentation
 ================
 
-* To get started with TissueMiner we suggest to do the **[Quickstart Tutorials](docs/quickstart/tm_quickstart_landing_page.md#first-use-of-tissueminer-from-the-command-line)**.
+* To get started with TissueMiner we suggest to do the **[Quickstart Tutorials in R](docs/quickstart/tm_quickstart_landing_page.md#first-use-of-tissueminer-from-the-command-line)**.
 
 
 * We also provide an exhaustive **[TM R User Manual](https://mpicbg-scicomp.github.io/tissue_miner/tm_tutorial/R-tutorial.html)** with lots of examples, background information and API details:
@@ -99,7 +99,7 @@ Documentation
     + learn the powerful libraries of TissueMiner for epithelium analysis
     + benefit from lots of examples to make your own scripts
     
-* You already know Python and you like to use it ? We also provide a **[tutorial in Python](docs/TM_tutorial_in_Python/TissueMiner_pythonTutorial-3WT_Demo.md#tissueminer-python-tutorial)**
+* You already know Python and you like to use it instead ? We also provide a **[tutorial in Python](docs/TM_tutorial_in_Python/TissueMiner_pythonTutorial-3WT_Demo.md#tissueminer-python-tutorial)**
 
 * For a more general overview consider our [Resource Paper](/link/here/once/published).
 
