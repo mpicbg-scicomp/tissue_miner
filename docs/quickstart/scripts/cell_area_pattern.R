@@ -39,7 +39,7 @@ print("")
 print("Creating cell_area_pattern.mp4...")
 
 l_ply(ROIlist, function(current_roi){
-  cellArea %>% filter(roi = current_roi) %>%
+  cellArea %>% filter(roi == current_roi) %>%
     render_movie(paste0("cell_area_pattern_",current_roi,".mp4"), list(
       geom_polygon(aes(x_pos, y_pos, group=cell_id, fill=area)),
       scale_fill_gradientn(name="area (px)",

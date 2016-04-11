@@ -33,7 +33,7 @@ cellElongNematicsCG <- mqf_cg_grid_nematics_cell_elong(movieDir, rois = ROIlist,
 print("")
 print("Creating cell_elongation_nematic_cg_pattern.mp4...")
 l_ply(ROIlist, function(current_roi){
-  cellElongNematicsCG %>% filter(roi = current_roi) %>%
+  cellElongNematicsCG %>% filter(roi == current_roi) %>%
     render_movie(paste0("cell_elongation_nematic_cg_pattern_",current_roi, ".mp4"), list(
       geom_segment(aes(x=x1, y=y1, xend=x2, yend=y2),
                    size=2, lineend="round", color="red", na.rm=T)

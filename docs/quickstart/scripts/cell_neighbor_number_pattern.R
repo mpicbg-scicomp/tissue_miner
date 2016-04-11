@@ -44,7 +44,7 @@ print("")
 print("Creating cell_neighbor_number_pattern.mp4...")
 
 l_ply(ROIlist, function(current_roi){
-  cellPolygonClass %>% filter(roi = current_roi) %>%
+  cellPolygonClass %>% filter(roi == current_roi) %>%
     render_movie(paste0("cell_neighbor_number_pattern_",current_roi,".mp4"), list(
       geom_polygon(aes(x_pos, y_pos, fill=as.character(polygon_class_trimmed),
                        group=cell_id),  alpha=0.7),

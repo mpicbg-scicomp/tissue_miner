@@ -39,7 +39,7 @@ print("Creating cell_rearrangement_nematics_cg_pattern.mp4...")
 data_to_plot <- mqf_cg_grid_unit_nematics_T1(movieDir, rois=ROIlist, gridSize = 90, kernSize = 11) 
   
 l_ply(ROIlist, function(current_roi){
-  data_to_plot %>% filter(roi = current_roi) %>%
+  data_to_plot %>% filter(roi == current_roi) %>%
     render_movie(paste0("cell_rearrangement_nematics_cg_pattern_", current_roi,".mp4"), list(
       geom_segment(aes(x=x1,y=y1,xend=x2,yend=y2),  size=2, alpha=0.7, lineend="round", color="red", na.rm=T)
     ))

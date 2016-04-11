@@ -39,7 +39,7 @@ print("Creating cell_division_orientation_pattern.mp4...")
 data_to_plot <- mqf_cg_grid_unit_nematics_CD(movieDir, rois = ROIlist, gridSize = 90, kernSize = 11) 
 
 l_ply(ROIlist, function(current_roi){
-  data_to_plot %>% filter(roi = current_roi) %>%
+  data_to_plot %>% filter(roi == current_roi) %>%
   render_movie(paste0("cell_division_orientation_pattern_", current_roi, ".mp4"), list(
     geom_segment(aes(x=x1, y=y1, xend=x2, yend=y2),size=2, alpha=0.7, lineend="round", color="orange", na.rm=T)
   ))

@@ -37,7 +37,7 @@ db <- openMovieDb(movieDir)
 print("")
 print("Creating cell_elongation_magnitude_pattern.mp4...")
 l_ply(ROIlist, function(current_roi){
-  cellElongNematics %>% filter(roi = current_roi) %>%
+  cellElongNematics %>% filter(roi == current_roi) %>%
     render_movie(paste0("cell_elongation_magnitude_pattern_", current_roi, ".mp4"), list(
       geom_polygon(aes(x_pos, y_pos, group=cell_id, fill=norm)), 
       scale_fill_gradientn(name="elongation",
