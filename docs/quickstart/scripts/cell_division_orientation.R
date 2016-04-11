@@ -64,4 +64,5 @@ print("")
 print("Your output results are located here:")
 print(outDir)
 
+open_file(outDir)
 

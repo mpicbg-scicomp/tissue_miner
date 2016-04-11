@@ -58,3 +58,5 @@ ggsave2(ggplot(T1rateByTimeIntervals, aes(dev_time, avgT1rate, color=movie)) +
 print("")
 print("Your output results are located here:")
 print(outDir)
+
+open_file(outDir)
