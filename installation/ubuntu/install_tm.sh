@@ -37,43 +37,43 @@ if [ $? -eq 1 ]; then
   exit 1
 fi
 
-## set up .bash_profile
-echo "Set up .bash_profile"
+## set up .tm_profile
+echo "Set up .tm_profile"
 cd $HOME
 
-if [ ! -f .bash_profile ]; then 
-  echo "## TissueMiner configuration:" >> .bash_profile
-  echo "export TM_HOME=${TM_HOME}" >> .bash_profile
+if [ ! -f .tm_profile ]; then 
+  echo "## TissueMiner configuration:" >> .tm_profile
+  echo "export TM_HOME=${TM_HOME}" >> .tm_profile
 else
-  grep -qx "export TM_HOME=${TM_HOME}" .bash_profile
+  grep -qx "export TM_HOME=${TM_HOME}" .tm_profile
   if [ $? -eq 1 ]; then 
-    echo "## TissueMiner configuration:" >> .bash_profile
-    echo "export TM_HOME=${TM_HOME}" >> .bash_profile
+    echo "## TissueMiner configuration:" >> .tm_profile
+    echo "export TM_HOME=${TM_HOME}" >> .tm_profile
   fi
 fi
 
-diff .bash_profile ${TM_HOME}/installation/ubuntu/bash_profile.txt | grep "^>" | sed 's/^> //g' >> .bash_profile
+diff .tm_profile ${TM_HOME}/installation/ubuntu/tm_profile.txt | grep "^>" | sed 's/^> //g' >> .tm_profile
 
 ## set up .bashrc
 echo "Set up .bashrc"
 if [ ! -f .bashrc ]; then
   echo "
-# Source the .bash_profile
-if [ -f ~/.bash_profile ]; then
-   source ~/.bash_profile
+# Source the .tm_profile
+if [ -f ~/.tm_profile ]; then
+   source ~/.tm_profile
 fi
 " > .bashrc
 else
-  grep -qw "if \[ -f ~/.bash_profile \]" .bashrc
+  grep -qw "if \[ -f ~/.tm_profile \]" .bashrc
   if [ $? -eq 1 ]; then 
     echo "
-# Source the .bash_profile
-if [ -f ~/.bash_profile ]; then
-   source ~/.bash_profile
+# Source the .tm_profile
+if [ -f ~/.tm_profile ]; then
+   source ~/.tm_profile
 fi
 " >> .bashrc
   fi
 fi
 
 
-echo "###\n###\nTM installation sucessful\n###\n###"
+echo "###\n###\nTM installation Done\n###\n###"
