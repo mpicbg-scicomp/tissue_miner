@@ -51,7 +51,7 @@ l_ply(ROIlist, function(current_roi){
       scale_fill_manual(name="polygon class", values=polygonClassColors, drop=F)
       
     ))
-}, .inform = T, .progress = T)
+}, .inform = T)
 
 
 

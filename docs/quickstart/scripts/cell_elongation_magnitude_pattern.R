@@ -45,7 +45,7 @@ l_ply(ROIlist, function(current_roi){
                            limits=c(0,1),
                            na.value = "red")
     ))
-}, .inform = T, .progress = T)
+}, .inform = T)
 
 print("")
 print("Your output results are located here:")

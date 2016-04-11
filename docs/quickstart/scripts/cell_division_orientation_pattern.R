@@ -43,7 +43,7 @@ l_ply(ROIlist, function(current_roi){
   render_movie(paste0("cell_division_orientation_pattern_", current_roi, ".mp4"), list(
     geom_segment(aes(x=x1, y=y1, xend=x2, yend=y2),size=2, alpha=0.7, lineend="round", color="orange", na.rm=T)
   ))
-}, .inform = T, .progress = T)
+}, .inform = T)
   
 
 print("")

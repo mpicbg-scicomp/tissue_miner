@@ -38,7 +38,7 @@ l_ply(ROIlist, function(current_roi){
       geom_segment(aes(x=x1, y=y1, xend=x2, yend=y2),
                    size=2, lineend="round", color="red", na.rm=T)
     ))
-}, .inform = T, .progress = T)
+}, .inform = T)
 
 
 
