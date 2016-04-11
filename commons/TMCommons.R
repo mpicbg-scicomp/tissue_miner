@@ -160,7 +160,7 @@ modPiOv2 <- function(x) x - floor(x/(pi/2))*pi/2
 
 
 ########################################################################################################################
-#### Integrete User Configuration
+#### Integrate User Configuration
 
 configFile <- system("echo $TM_CONFIG", intern=T)
 
@@ -175,5 +175,13 @@ if(!file.exists(configFile)){
 
 print(paste("using config file", configFile))
 source(configFile)
+
+#########################################################################################################################
+#### Function to open any file from a system command
+open_file <- function(path){
+  if (Sys.info()["sysname"]=="Darwin") system(paste0("open ",path))
+  if (Sys.info()["sysname"]=="Linux") system(paste0("xdg-open ",path))
+  if (Sys.info()["sysname"]=="Windows") system(paste0("start ",path))
+}
 
 ## todo post-process to create meaningful defaults (like image size dependent grid size)
