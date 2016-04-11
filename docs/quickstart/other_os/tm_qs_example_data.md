@@ -1,18 +1,21 @@
 # First Use of TissueMiner with example data
 
-### 1. Open a terminal
+### 1. Open a Docker Quickstart Terminal
 
-* If you don't know how to open a terminal, click [here](https://help.ubuntu.com/community/UsingTheTerminal)
+* You'll find it either in your application menu or application folder (depending on your system)
 
 ### 2. Download the example data set (~100 Mb)
 
-Just copy and paste the lines below **into your terminal** and press Enter:
+Just copy and paste the lines below **into this Quickstart terminal** and press Enter:
 ```
      ## In your terminal, type in the command below to download and extract the Demo data
      curl https://cloud.mpi-cbg.de/index.php/s/n9hPkstbKrDvggX/download  | tar -zxvf -
      
      ## Go to the movie directory
      cd example_data/demo
+     
+     ## Store the docker command into a shell variable for the sake of simplicity in tutorials
+     DOCKER="docker run --rm -ti -v $(dirname $PWD):/movies -w /movies/demo etournay/tissue_miner"
 ```
 
 ### 3. Select the analysis you are interested in
