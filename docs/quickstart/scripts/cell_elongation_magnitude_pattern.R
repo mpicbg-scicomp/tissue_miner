@@ -1,16 +1,23 @@
 #!/usr/bin/env Rscript
 argv = commandArgs(TRUE)
 
-if(length(argv) != 2){
-  stop("Usage: cell_elongation_magnitude_pattern.R <movie_db_directory> <output_directory>")
+if((length(argv) < 2) | (length(argv) > 3)){
+  stop("Usage: cell_elongation_magnitude_pattern.R <movie_db_directory> <output_directory> <'ROI list in quotes'>")
 }else{
   movieDir=normalizePath(argv[1])
   if(is.na(file.info(movieDir)$isdir)) stop(paste("movie directory does not exist"))
   print(movieDir)
+  
   outDir=normalizePath(argv[2])
   dir.create(outDir)
   setwd(outDir)
   print(outDir)
+  
+  if(is.na(argv[3])) ROIlist=c("raw") else{
+    library(stringr)
+    ROIlist=unlist(str_split(argv[3], "( *, *| *; *)| +"))
+    if (ROIlist[1]=="") ROIlist=c("raw")}
+  print(ROIlist)
 }
 
 scriptsDir=Sys.getenv("TM_HOME")
@@ -23,19 +30,25 @@ source(file.path(scriptsDir, "commons/TMCommons.R"))
 source(file.path(scriptsDir, "commons/BaseQueryFunctions.R"))
 source(file.path(scriptsDir, "config/default_config.R"))
 
-cellElongNematics <- mqf_fg_nematics_cell_elong(movieDir, rois = c("raw"), cellContour = T)
+cellElongNematics <- mqf_fg_nematics_cell_elong(movieDir, rois = ROIlist, cellContour = T)
 
 db <- openMovieDb(movieDir)
 
 print("")
 print("Creating cell_elongation_magnitude_pattern.mp4...")
-render_movie(cellElongNematics, "cell_elongation_magnitude_pattern.mp4", list(
-  geom_polygon(aes(x_pos, y_pos, group=cell_id, fill=norm)), 
-  scale_fill_gradientn(name="elongation",
-                       colours=c("black", "blue", "green", "yellow", "red"),
-                       limits=c(0,1),
-                       na.value = "red")
-))
+l_ply(ROIlist, function(current_roi){
+  cellElongNematics %>% filter(roi = current_roi) %>%
+    render_movie(paste0("cell_elongation_magnitude_pattern_", current_roi, ".mp4"), list(
+      geom_polygon(aes(x_pos, y_pos, group=cell_id, fill=norm)), 
+      scale_fill_gradientn(name="elongation",
+                           colours=c("black", "blue", "green", "yellow", "red"),
+                           limits=c(0,1),
+                           na.value = "red")
+    ))
+}, .inform = T, .progress = T)
 
+print("")
+print("Your output results are located here:")
+print(outDir)
 
 

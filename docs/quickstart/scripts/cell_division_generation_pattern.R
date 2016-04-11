@@ -1,17 +1,26 @@
 #!/usr/bin/env Rscript
 argv = commandArgs(TRUE)
 
-if(length(argv) != 2){
-  stop("Usage: cell_division_generation_pattern.R <movie_db_directory> <output_directory>")
+if((length(argv) < 2) | (length(argv) > 3)){
+  stop("Usage: cell_division_generation_pattern.R <movie_db_directory> <output_directory> <'ROI list in quotes'>")
 }else{
   movieDir=normalizePath(argv[1])
   if(is.na(file.info(movieDir)$isdir)) stop(paste("movie directory does not exist"))
   print(movieDir)
+  
   outDir=normalizePath(argv[2])
   dir.create(outDir)
   setwd(outDir)
   print(outDir)
+  
+  if(is.na(argv[3])) ROIlist=c("raw") else{
+    library(stringr)
+    ROIlist=unlist(str_split(argv[3], "( *, *| *; *)| +"))
+    if (ROIlist[1]=="") ROIlist=c("raw")}
+  print(ROIlist)
 }
+
+
 
 scriptsDir=Sys.getenv("TM_HOME")
 if(is.na(file.info(scriptsDir)$isdir)){
@@ -47,5 +56,8 @@ cellsWithLin %>%
     scale_fill_manual(name="generation", values=genColors) 
   ))
 
+print("")
+print("Your output results are located here:")
+print(outDir)
 
 

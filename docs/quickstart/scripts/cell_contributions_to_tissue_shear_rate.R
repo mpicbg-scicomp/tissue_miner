@@ -1,16 +1,23 @@
 #!/usr/bin/env Rscript
 argv = commandArgs(TRUE)
 
-if(length(argv) != 2){
-  stop("Usage: cell_contributions_to_tissue_shear_rate.R <movie_db_directory> <output_directory>")
+if((length(argv) < 2) | (length(argv) > 3)){
+  stop("Usage: cell_contributions_to_tissue_shear_rate.R <movie_db_directory> <output_directory> <'ROI list in quotes'>")
 }else{
   movieDir=normalizePath(argv[1])
   if(is.na(file.info(movieDir)$isdir)) stop(paste("movie directory does not exist"))
   print(movieDir)
+  
   outDir=normalizePath(argv[2])
   dir.create(outDir)
   setwd(outDir)
   print(outDir)
+  
+  if(is.na(argv[3])) ROIlist=c("raw") else{
+    library(stringr)
+    ROIlist=unlist(str_split(argv[3], "( *, *| *; *)| +"))
+    if (ROIlist[1]=="") ROIlist=c("raw")}
+  print(ROIlist)
 }
 
 scriptsDir=Sys.getenv("TM_HOME")
@@ -29,7 +36,7 @@ db <- openMovieDb(movieDir)
 
 print("")
 print("Querying the DB...")
-shearData <- mqf_cg_roi_rate_shear(movieDir, "raw")
+shearData <- mqf_cg_roi_rate_shear(movieDir, ROIlist)
 
 shearRateSlim <- subset(shearData, (tensor=="CEwithCT" | tensor=="correlationEffects" |
                                       tensor=="nu" | tensor=="ShearT1" | 
@@ -64,4 +71,8 @@ ggsave2(ggplot(shearRateInterpolated, aes(dev_time,XX*100, color=tensor)) +
           scale_color_manual(values=shearColors) +
           facet_wrap(~roi) +
           ggtitle("cell_contributions_to_tissue_shear_rate"), outputFormat = "pdf")
+
+print("")
+print("Your output results are located here:")
+print(outDir)
 

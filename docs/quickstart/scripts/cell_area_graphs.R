@@ -31,7 +31,7 @@ source(file.path(scriptsDir, "config/default_config.R"))
 
 print("")
 print("Save plot: averaged_cell_area.pdf")
-ggsave2(mqf_cg_roi_cell_area(movieDir, rois = c("raw")) %>% 
+ggsave2(mqf_cg_roi_cell_area(movieDir, rois = ROIlist) %>% 
           ggplot(aes(dev_time, area.avg, color=movie)) +
           geom_line() +
           xlab("Time [h]") +
@@ -41,7 +41,7 @@ ggsave2(mqf_cg_roi_cell_area(movieDir, rois = c("raw")) %>%
 
 print("")
 print("Save plot: cell_area_distribution.pdf")
-ggsave2(mqf_fg_cell_area(movieDir, rois = c("raw")) %>% 
+ggsave2(mqf_fg_cell_area(movieDir, rois = ROIlist) %>% 
           ggplot(aes(area, fill=movie)) +
           geom_histogram(color="white") +
           xlab("Cell area [px]")  +
@@ -50,7 +50,7 @@ ggsave2(mqf_fg_cell_area(movieDir, rois = c("raw")) %>%
 
 print("")
 print("Save plot: cell_area_boxplot.pdf")
-ggsave2(mqf_fg_cell_area(movieDir, rois = c("raw")) %>% 
+ggsave2(mqf_fg_cell_area(movieDir, rois = ROIlist) %>% 
           ggplot(aes(movie,area, fill=movie)) +
           geom_boxplot() +
           ylab("Cell area [px]")  +
@@ -59,9 +59,15 @@ ggsave2(mqf_fg_cell_area(movieDir, rois = c("raw")) %>%
 
 print("")
 print("Save plot: cell_area_violin.pdf")
-ggsave2(mqf_fg_cell_area(movieDir, rois = c("raw")) %>% 
+ggsave2(mqf_fg_cell_area(movieDir, rois = ROIlist) %>% 
           ggplot(aes(movie,area, fill=movie)) +
           geom_violin() +
           ylab("Cell area [px]")  +
           facet_wrap(~roi) +
           ggtitle("cell_area_violin"), outputFormat = "pdf")
+
+
+print("")
+print("Your output results are located here:")
+print(outDir)
+

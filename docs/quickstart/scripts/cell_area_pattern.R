@@ -1,17 +1,25 @@
 #!/usr/bin/env Rscript
 argv = commandArgs(TRUE)
 
-if(length(argv) != 2){
-  stop("Usage: cell_area_pattern.R <movie_db_directory> <output_directory>")
+if((length(argv) < 2) | (length(argv) > 3)){
+  stop("Usage: cell_area_pattern.R <movie_db_directory> <output_directory> <'ROI list in quotes'>")
 }else{
   movieDir=normalizePath(argv[1])
   if(is.na(file.info(movieDir)$isdir)) stop(paste("movie directory does not exist"))
   print(movieDir)
+  
   outDir=normalizePath(argv[2])
   dir.create(outDir)
   setwd(outDir)
   print(outDir)
+  
+  if(is.na(argv[3])) ROIlist=c("raw") else{
+    library(stringr)
+    ROIlist=unlist(str_split(argv[3], "( *, *| *; *)| +"))
+    if (ROIlist[1]=="") ROIlist=c("raw")}
+  print(ROIlist)
 }
+
 
 scriptsDir=Sys.getenv("TM_HOME")
 if(is.na(file.info(scriptsDir)$isdir)){
@@ -25,16 +33,26 @@ source(file.path(scriptsDir, "config/default_config.R"))
 
 db <- openMovieDb(movieDir)
 
-cellArea <- mqf_fg_cell_area(movieDir, rois = c("raw"), cellContour = T)
+cellArea <- mqf_fg_cell_area(movieDir, rois = ROIlist, cellContour = T)
 
 print("")
 print("Creating cell_area_pattern.mp4...")
-render_movie(cellArea, "cell_area_pattern.mp4", list(
-  geom_polygon(aes(x_pos, y_pos, group=cell_id, fill=area)),
-  scale_fill_gradientn(name="area (px)",
-                       colours=c("black", "blue", "green", "yellow", "red"),
-                       limits=c(0,quantile(cellArea$area, probs = 99.9/100)),
-                       na.value = "red")
-))
+
+l_ply(ROIlist, function(current_roi){
+  cellArea %>% filter(roi = current_roi) %>%
+    render_movie(paste0("cell_area_pattern_",current_roi,".mp4"), list(
+      geom_polygon(aes(x_pos, y_pos, group=cell_id, fill=area)),
+      scale_fill_gradientn(name="area (px)",
+                           colours=c("black", "blue", "green", "yellow", "red"),
+                           limits=c(0,quantile(cellArea$area, probs = 99.9/100)),
+                           na.value = "red")
+    ))
+}, .inform = T, .progress = T)
+
+
+
+print("")
+print("Your output results are located here:")
+print(outDir)
 
 

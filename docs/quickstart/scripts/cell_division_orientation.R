@@ -1,16 +1,23 @@
 #!/usr/bin/env Rscript
 argv = commandArgs(TRUE)
 
-if(length(argv) != 2){
-  stop("Usage: cell_division_orientation.R <movie_db_directory> <output_directory>")
+if((length(argv) < 2) | (length(argv) > 3)){
+  stop("Usage: cell_division_orientation.R <movie_db_directory> <output_directory> <'ROI list in quotes'>")
 }else{
   movieDir=normalizePath(argv[1])
   if(is.na(file.info(movieDir)$isdir)) stop(paste("movie directory does not exist"))
   print(movieDir)
+  
   outDir=normalizePath(argv[2])
   dir.create(outDir)
   setwd(outDir)
   print(outDir)
+  
+  if(is.na(argv[3])) ROIlist=c("raw") else{
+    library(stringr)
+    ROIlist=unlist(str_split(argv[3], "( *, *| *; *)| +"))
+    if (ROIlist[1]=="") ROIlist=c("raw")}
+  print(ROIlist)
 }
 
 scriptsDir=Sys.getenv("TM_HOME")
@@ -27,7 +34,7 @@ db <- openMovieDb(movieDir)
 
 print("")
 print("Querying the DB...")
-CDNematics <- mqf_cg_roi_unit_nematics_CD(movieDir, rois = "raw") %>% 
+CDNematics <- mqf_cg_roi_unit_nematics_CD(movieDir, rois = ROIlist) %>% 
   group_by(movie) %>%
   mutate(maxnormByMovie=max(norm,na.rm=T)) %>% 
   group_by(movie,roi) %>%
@@ -52,5 +59,9 @@ ggsave2(ggplot(CDNematics , aes()) +
           ylab("CD nematic norm") +
           facet_wrap(~roi) +
           ggtitle("avg_CD_nematics"), outputFormat = "pdf")
+
+print("")
+print("Your output results are located here:")
+print(outDir)
 
 

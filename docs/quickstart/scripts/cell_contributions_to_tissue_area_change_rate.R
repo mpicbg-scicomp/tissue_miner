@@ -1,16 +1,23 @@
 #!/usr/bin/env Rscript
 argv = commandArgs(TRUE)
 
-if(length(argv) != 2){
-  stop("Usage: cell_contributions_to_tissue_area_change_rate.R <movie_db_directory> <output_directory>")
+if((length(argv) < 2) | (length(argv) > 3)){
+  stop("Usage: cell_contributions_to_tissue_area_change_rate.R <movie_db_directory> <output_directory> <'ROI list in quotes'>")
 }else{
   movieDir=normalizePath(argv[1])
   if(is.na(file.info(movieDir)$isdir)) stop(paste("movie directory does not exist"))
   print(movieDir)
+  
   outDir=normalizePath(argv[2])
   dir.create(outDir)
   setwd(outDir)
   print(outDir)
+  
+  if(is.na(argv[3])) ROIlist=c("raw") else{
+    library(stringr)
+    ROIlist=unlist(str_split(argv[3], "( *, *| *; *)| +"))
+    if (ROIlist[1]=="") ROIlist=c("raw")}
+  print(ROIlist)
 }
 
 scriptsDir=Sys.getenv("TM_HOME")
@@ -37,7 +44,7 @@ db <- openMovieDb(movieDir)
 print("")
 print("Querying the DB...")
 deltaT=30 # sampling (30 seconds)
-avgIsoDefRateInterpolated <- mqf_cg_roi_rate_isotropic_contrib(movieDir, "raw") %>%
+avgIsoDefRateInterpolated <- mqf_cg_roi_rate_isotropic_contrib(movieDir, ROIlist) %>%
   filter(isoContrib!="tissue_area") %>%
   mutate(min_dev_time=min(dev_time),
          max_dev_time=max(dev_time)) %>% 
@@ -61,4 +68,8 @@ ggsave2(ggplot(avgIsoDefRateInterpolated, aes(dev_time, value.ma, color=isoContr
   scale_color_manual(values=isotropColors) +
   facet_wrap(~roi) +
   ggtitle("averaged_rates_of_isotropic_deformation"), outputFormat = "pdf")
+
+print("")
+print("Your output results are located here:")
+print(outDir)
 

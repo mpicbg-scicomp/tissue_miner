@@ -1,16 +1,23 @@
 #!/usr/bin/env Rscript
 argv = commandArgs(TRUE)
 
-if(length(argv) != 2){
-  stop("Usage: cell_neighbor_number_graphs.R <movie_db_directory> <output_directory>")
+if((length(argv) < 2) | (length(argv) > 3)){
+  stop("Usage: cell_neighbor_number_graphs.R <movie_db_directory> <output_directory> <'ROI list in quotes'>")
 }else{
   movieDir=normalizePath(argv[1])
   if(is.na(file.info(movieDir)$isdir)) stop(paste("movie directory does not exist"))
   print(movieDir)
+  
   outDir=normalizePath(argv[2])
   dir.create(outDir)
   setwd(outDir)
   print(outDir)
+  
+  if(is.na(argv[3])) ROIlist=c("raw") else{
+    library(stringr)
+    ROIlist=unlist(str_split(argv[3], "( *, *| *; *)| +"))
+    if (ROIlist[1]=="") ROIlist=c("raw")}
+  print(ROIlist)
 }
 
 scriptsDir=Sys.getenv("TM_HOME")
@@ -27,7 +34,7 @@ db <- openMovieDb(movieDir)
 
 print("")
 print("Save plot: averaged_cell_neighbor_number.pdf")
-ggsave2(mqf_cg_roi_cell_neighbor_count(movieDir, rois = c("raw")) %>%
+ggsave2(mqf_cg_roi_cell_neighbor_count(movieDir, rois = ROIlist) %>%
           ggplot(aes(dev_time, avg_num_neighbors, color=movie)) +
           geom_line() + geom_smooth(color="blue") +
           xlab("Time [h]") +
@@ -37,11 +44,16 @@ ggsave2(mqf_cg_roi_cell_neighbor_count(movieDir, rois = c("raw")) %>%
 
 print("")
 print("Save plot: cell_neighbor_number_distribution.pdf")
-ggsave2(mqf_fg_cell_neighbor_count(movieDir, rois = c("raw"), polygon_class_limit=c(3,9)) %>%
+ggsave2(mqf_fg_cell_neighbor_count(movieDir, rois = ROIlist, polygon_class_limit=c(3,9)) %>%
           ggplot(aes(ac(polygon_class_trimmed), fill=as.factor(polygon_class_trimmed))) +
           geom_bar(color="white") +
           scale_fill_manual(values=c("3"="black", "4"="green", "5"="yellow", "6"="grey", "7"="blue", "8"="red","9"="purple"), name="polygon class") + 
           xlab("Cell neighbor number")  +
           facet_wrap(~roi) +
           ggtitle("cell_neighbor_number_distribution"),outputFormat = "pdf")
+
+print("")
+print("Your output results are located here:")
+print(outDir)
+
 

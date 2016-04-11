@@ -1,16 +1,23 @@
 #!/usr/bin/env Rscript
 argv = commandArgs(TRUE)
 
-if(length(argv) != 2){
-  stop("Usage: cell_neighbor_change_rate.R <movie_db_directory> <output_directory>")
+if((length(argv) < 2) | (length(argv) > 3)){
+  stop("Usage: cell_neighbor_change_rate.R <movie_db_directory> <output_directory> <'ROI list in quotes'>")
 }else{
   movieDir=normalizePath(argv[1])
   if(is.na(file.info(movieDir)$isdir)) stop(paste("movie directory does not exist"))
   print(movieDir)
+  
   outDir=normalizePath(argv[2])
   dir.create(outDir)
   setwd(outDir)
   print(outDir)
+  
+  if(is.na(argv[3])) ROIlist=c("raw") else{
+    library(stringr)
+    ROIlist=unlist(str_split(argv[3], "( *, *| *; *)| +"))
+    if (ROIlist[1]=="") ROIlist=c("raw")}
+  print(ROIlist)
 }
 
 scriptsDir=Sys.getenv("TM_HOME")
@@ -28,7 +35,7 @@ db <- openMovieDb(movieDir)
 
 print("")
 print("Querying the DB...")
-T1rateByTimeIntervals <- mqf_cg_roi_rate_T1(movieDir, rois = "raw") %>%
+T1rateByTimeIntervals <- mqf_cg_roi_rate_T1(movieDir, rois = ROIlist) %>%
   chunk_time_into_intervals(deltaT = 3600) %>%
   group_by(movie, roi,interval_mid) %>%
   summarise(avgT1rate=mean(cell_topo_rate),
@@ -47,3 +54,7 @@ ggsave2(ggplot(T1rateByTimeIntervals, aes(dev_time, avgT1rate, color=movie)) +
           ylim(c(0.2,2.3)) +
           facet_wrap(~roi) +
           ggtitle("cell_neighbor_change_rate"),outputFormat = "pdf")
+
+print("")
+print("Your output results are located here:")
+print(outDir)
