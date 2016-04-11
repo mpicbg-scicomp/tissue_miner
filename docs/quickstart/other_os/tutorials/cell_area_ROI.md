@@ -12,7 +12,7 @@ Cell area is stored in the database, but ROI's are not. ROI's are identified by 
 
 ```
 $DOCKER sm roi_tracking 
-$DOCKER cell_area_pattern.R . output_analysis "cell_patch"
+$DOCKER cell_area_pattern.R . output_analysis "whole_tissue"
 ```
 
 ![](cell_area_ROI_files/figure-html/cell_area_pattern-1.png)
