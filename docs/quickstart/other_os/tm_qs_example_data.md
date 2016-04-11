@@ -4,7 +4,7 @@
 
 * You'll find it either in your application menu or application folder (depending on your system):
 
-![alt tag](docs/readme_screenshots/docker_toolbox_osx_quickstart_icon_nolabel.png)
+![alt tag](../../readme_screenshots/docker_toolbox_osx_quickstart_icon_nolabel.png)
 
 ### 2. Download the example data set (~100 Mb)
 
