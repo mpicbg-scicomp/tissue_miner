@@ -47,7 +47,7 @@ l_ply(ROIlist, function(current_roi){
                            limits=c(0,quantile(cellArea$area, probs = 99.9/100)),
                            na.value = "red")
     ))
-}, .inform = T, .progress = T)
+}, .inform = T)
 
 
 
