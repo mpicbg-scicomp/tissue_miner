@@ -80,7 +80,7 @@ beforehand.
 
 Next, you can download the TissueMiner application bundled in a docker image called _brandl/tissue_miner_.
 
-On Mac or Windows, open a Docker Quick Start Terminal: ![alt tag](https://raw.githubusercontent.com/mpicbg-scicomp/tissue_miner/master/docs/readme_screenshots/docker_toolbox_osx_quickstart_icon_nolabel.png)
+On Mac or Windows, open a Docker Quick Start Terminal: ![alt tag](docs/readme_screenshots/docker_toolbox_osx_quickstart_icon_nolabel.png)
 ```
 docker pull brandl/tissue_miner
 ```
