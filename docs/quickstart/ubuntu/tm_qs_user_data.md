@@ -93,7 +93,7 @@ Here, we propose some streamlined quickstart tutorials.
 
 Here, we extend the cell area example to compare between different regions of interest.
 
-* [Compare cell area in different ROI's](tutorials/cell_area_ROI.md) ***Work in progress...***
+* [Compare cell area in different ROI's](tutorials/cell_area_ROI.md)
 
 
 ### 7. Look at the results 
