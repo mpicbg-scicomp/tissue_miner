@@ -72,6 +72,7 @@ if(isDebug){ #### DEBUG
 
 
 
+#render_movie(csArea %>% filter(frame <5), paste0(db_name, "_cell_area.mp4"), list(
 render_movie(csArea, paste0(db_name, "_cell_area.mp4"), list(
   geom_polygon(aes(x_pos, y_pos, group=cell_id, fill=pmin(area, areaMaxRange)),  alpha=0.5),
   scale_fill_gradient(name="area", low="green", high="darkred", limits=c(0,areaMaxRange))

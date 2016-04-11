@@ -28,3 +28,7 @@ time_unit_label="h"
 
 ## todo document me
 noOverlappingRoi <- function(x) subset(x)
+
+## Dimension for movie rendering. Enable and adjust the setting if you need another output format.
+## Note: The final movie will be always downscaled to a 700px width while maintaining just the aspect ratio.
+#movie_render_dim <- list(width=8, height=8)

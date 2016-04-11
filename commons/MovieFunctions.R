@@ -101,7 +101,11 @@ render_frame <- function(overlayData, frameOI=overlayData$frame[1], ...){
 }
 
 
-render_movie <- function(celldata, fileName, cellLayers, sampleRate=1, createZip=F, createSvgZip=F, ...){
+
+render_movie <- function(celldata, fileName, cellLayers, sampleRate=1, createZip=F, createSvgZip=F,
+            # specify rendering dimensions of movies either by using config variable or by using default
+            out_width=ifelse(exists("movie_render_dim"), movie_render_dim$width, 12),
+            out_height=ifelse(exists("movie_render_dim"), movie_render_dim$height, 5), ...){
 
     if(file.exists(fileName) & str_length(system("echo $SKIP_EXISTING_MOVIES", intern=T))>0){
         echo("Skipping existing movie:", fileName)
@@ -156,12 +160,12 @@ render_movie <- function(celldata, fileName, cellLayers, sampleRate=1, createZip
         }
 
         outputFile=paste0(filePrefix, sprintf("%03d.png", curFrame)) # outputFile="test.png"
-        ggsave(outputFile, gg, width=12, height=5)
+        ggsave(outputFile, gg, width=out_width, height=out_height)
 
 
         if(createSvgZip){
             svgFile=paste0(filePrefix, sprintf("%03d.svg", curFrame)) # outputFile="test.png"
-            ggsave(svgFile, gg, width=12, height=5)
+            ggsave(svgFile, gg, width=out_width, height=out_height)
         }
 
 #        outputFile
