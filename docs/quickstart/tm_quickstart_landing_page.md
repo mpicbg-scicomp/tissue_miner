@@ -12,5 +12,5 @@ Please click a link below according to your operating system and to the data to 
     + [Ubuntu with example_data](ubuntu/tm_qs_example_data.md#first-use-of-tissueminer-with-example-data)
     + [Ubuntu with your own data](ubuntu/tm_qs_user_data.md#first-use-of-tissueminer-with-your-own-data)
 * **Other operating systems**
-    + [Other system with example_data](other_os/tm_qs_example_data.md)
-    + [Other system with your own data](other_os/tm_qs_user_data.md)
+    + [Other system with example_data](other_os/tm_qs_example_data.md#first-use-of-tissueminer-with-example-data)
+    + [Other system with your own data] (other_os/tm_qs_user_data.md#first-use-of-tissueminer-with-your-own-data)
