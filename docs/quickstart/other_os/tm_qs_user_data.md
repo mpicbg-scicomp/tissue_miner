@@ -85,8 +85,7 @@ Summary:
 
 * Set up the docker command and store it in a shell variable for simplicity
 
-
-`DOCKER="docker run --rm -ti -v $(dirname $PWD):/movies -w /movies/$(basename $PWD) etournay/tissue_miner"`
+`alias tm='docker run --rm -ti -v $(dirname $PWD):/movies -w /movies/$(basename $PWD) etournay/tissue_miner'`
 
 ### 6. Select the analysis you are interested in
 Here, we propose some streamlined quickstart tutorials.
