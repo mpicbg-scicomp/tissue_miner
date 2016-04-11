@@ -98,6 +98,8 @@ Documentation
     + learn the necessary basics of the R language for TissueMiner
     + learn the powerful libraries of TissueMiner for epithelium analysis
     + benefit from lots of examples to make your own scripts
+    
+* You already know Python and you like to use it ? We also provide a **[tutorial in Python](docs/TM_tutorial_in_Python/TissueMiner_pythonTutorial-3WT_Demo.md#tissueminer-python-tutorial)**
 
 * For a more general overview consider our [Resource Paper](/link/here/once/published).
 
