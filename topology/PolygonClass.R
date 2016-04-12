@@ -111,10 +111,10 @@ csWithPoly <- arrange(csWithPoly, frame, cell_id, bond_order) ## .. because merg
 
 
 ## using gradien scale
-render_movie(csWithPoly, "polygon_class.mp4", list(
-    geom_polygon(aes(x_pos, y_pos, fill=polygon_class_trimmed, group=cell_id),  alpha=0.7),
-    scale_fill_gradientn(name="polygon class", colours=c("green", "black", "red"))
-))
+# render_movie(csWithPoly, "polygon_class.mp4", list(
+#     geom_polygon(aes(x_pos, y_pos, fill=polygon_class_trimmed, group=cell_id),  alpha=0.7),
+#     scale_fill_gradientn(name="polygon class", colours=c("green", "black", "red"))
+# ))
 
 ## render a second version with a discrete color scale
 #polyClassColors =c("2" = "yellow", "3"="lightblue", "4"="red", "5"="darkgreen", "6"="darkblue");
@@ -144,11 +144,11 @@ pcChangeCounts <- group_by(pgClass, cell_id)  %>% summarise(num_pc_changes=sum(d
 ggsave2(ggplot(pcChangeCounts, aes(num_pc_changes)) + geom_histogram())
 
 ## add in oris
-rois <- simplifyRois(local(get(load("../roi_bt/lgRoiSmoothed.RData"))))
-someRois <- subset(rois, roi %in% c("vein", "hinge", "intervein", "blade"))
-pcChangeByRoi <- dt.merge(pcChangeCounts, someRois, allow.cartesian=T)
-
-ggsave2(ggplot(pcChangeByRoi, aes(num_pc_changes)) + geom_histogram() + facet_wrap(~roi) + ggtitle("num_pc_changes vs count by roi"))
+# rois <- simplifyRois(local(get(load("../roi_bt/lgRoiSmoothed.RData"))))
+# someRois <- subset(rois, roi %in% c("vein", "hinge", "intervein", "blade"))
+# pcChangeByRoi <- dt.merge(pcChangeCounts, someRois, allow.cartesian=T)
+# 
+# ggsave2(ggplot(pcChangeByRoi, aes(num_pc_changes)) + geom_histogram() + facet_wrap(~roi) + ggtitle("num_pc_changes vs count by roi"))
 
 
 
