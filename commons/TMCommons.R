@@ -1,21 +1,31 @@
 
-if (!require("devtools")) install.packages("devtools")
+## make sure that TM_HOME is defined and points to a directory
+scriptsDir=Sys.getenv("TM_HOME")
+if(is.na(file.info(scriptsDir)$isdir)){
+    stop(paste("TM_HOME not correctly defined (",scriptsDir ,")"))
+}
+
+
+## silence all the package loading
+# (see http://stackoverflow.com/questions/2723034/suppress-one-commands-output-in-r)
+sink(file=file("/dev/null", "w"), type="message")
 
 ## Source common functions
+
+if (!require("devtools")) install.packages("devtools")
+
 devtools::source_url("https://raw.githubusercontent.com/holgerbrandl/datautils/v1.13/R/core_commons.R")
 devtools::source_url("https://raw.githubusercontent.com/holgerbrandl/datautils/v1.13/R/ggplot_commons.R")
 devtools::source_url("https://raw.githubusercontent.com/holgerbrandl/datautils/v1.13/R/datatable_commons.R")
 
 require.auto(sqldf)
 
-scriptsDir=Sys.getenv("TM_HOME")
-if(is.na(file.info(scriptsDir)$isdir)){
-    stop(paste("TM_HOME not correctly defined (",scriptsDir ,")"))
-}
 
 source(file.path(scriptsDir, "commons/MovieFunctions.R"))
 source(file.path(scriptsDir, "commons/RoiCommons.R"))
 
+## restore R output
+sink()
 
 # disabled for now because not needed for main workflow
 #source(file.path(scriptsDir, "commons/MultipleQueriesFunctions.R"))
