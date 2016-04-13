@@ -39,5 +39,5 @@ cd  ${TM_HOME} && git pull origin && cd parser && make clean all
 
 On other systems (MacOs, Windows) simply pull latest image again with
 ```
-docker pull brandl/tissue_miner
+docker pull etournay/tissue_miner
 ```
