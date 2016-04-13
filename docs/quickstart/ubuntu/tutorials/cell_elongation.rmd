@@ -19,7 +19,7 @@ cell_elongation_magnitude_pattern.R . output_analysis
 ```
 
 ```{r cell_elongation_magnitude_pattern, warning=FALSE, message=FALSE, fig.width=11, cache=FALSE, eval=TRUE, echo=FALSE, results='hide'}
-movieDir="/Users/retourna/MovieDB/WT_1"
+movieDir="/Users/retourna/MovieDB/demo"
 
 scriptsDir=Sys.getenv("TM_HOME")
 if(is.na(file.info(scriptsDir)$isdir)){
@@ -35,7 +35,7 @@ cellElongNematics <- mqf_fg_nematics_cell_elong(movieDir, rois = c("raw"), cellC
 db <- openMovieDb(movieDir)
 
 cellElongNematics %>%
-  render_frame(70) +
+  render_frame(10) +
   # we now map cell elongation values to a color palette: fill=elongNorm
   geom_polygon(aes(x_pos, y_pos, group=cell_id, fill=norm)) + 
   scale_fill_gradientn(name="elongation",

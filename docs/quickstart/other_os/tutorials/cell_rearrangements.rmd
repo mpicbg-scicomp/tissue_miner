@@ -19,7 +19,7 @@ tm cell_neighbor_change_orientation_pattern.R . output_analysis
 ```
 
 ```{r cell_neighbor_change_orientation_pattern, warning=FALSE, message=FALSE, fig.width=11, cache=FALSE, eval=TRUE, echo=FALSE, results='hide'}
-movieDir="/Users/retourna/MovieDB/WT_1"
+movieDir="/Users/retourna/MovieDB/demo"
 
 scriptsDir=Sys.getenv("TM_HOME")
 if(is.na(file.info(scriptsDir)$isdir)){
@@ -32,7 +32,7 @@ source(file.path(scriptsDir, "config/default_config.R"))
 
 db <- openMovieDb(movieDir)
 
-mqf_cg_grid_unit_nematics_T1(movieDir, rois="raw", gridSize = 160, kernSize = 11) %>%
+mqf_cg_grid_unit_nematics_T1(movieDir, rois="raw", gridSize = 90, kernSize = 11) %>%
   render_frame(50) + 
   geom_segment(aes(x=x1,y=y1,xend=x2,yend=y2),
                size=2, alpha=0.7, lineend="round", color="red", na.rm=T) +

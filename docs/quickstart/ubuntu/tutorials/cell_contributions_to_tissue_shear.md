@@ -34,8 +34,8 @@ sm shear_movies
 
 Open your file browser and go to the movie directory, in which you should click on the "nematics_movies" folder that contains videos of cell shear contribution pattern.
 
-[Back to tutorial list](../tm_qs_example_data.md#3-select-the-analysis-you-are-interested-in)  
-[Try with your own data](../tm_qs_user_data.md#first-use-of-tissueminer-with-your-own-data)  
+[Back to tutorial list](../tm_qs_example_data.md#3-select-the-analysis-you-are-interested-in) **|**
+[Try with your own data](../tm_qs_user_data.md#first-use-of-tissueminer-with-your-own-data)
 
 
 ### 3. For further details

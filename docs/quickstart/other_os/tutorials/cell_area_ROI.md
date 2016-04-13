@@ -2,17 +2,18 @@
 # Cell area analysis in multiple ROI's
 
 Cell area is stored in the database, but ROI's are not. ROI's are identified by their name. Here are the available ROI's for the example data: 
+
 * raw 
 * whole_tissue
 * cell_patch
 
-### 1. Make a movie of cell area pattern plotted on the tissue for the *whole_tissue* ROI
+### 1. Make a movie of cell area pattern plotted on the tissue for the *cell_patch* ROI
 
 * Copy-paste the following commands in the terminal:
 
 ```
 tm sm roi_tracking 
-tm cell_area_pattern.R . output_analysis "whole_tissue"
+tm cell_area_pattern.R . output_analysis "cell_patch"
 ```
 
 ![](cell_area_ROI_files/figure-html/cell_area_pattern-1.png)

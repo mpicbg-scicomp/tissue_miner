@@ -19,7 +19,7 @@ cell_division_generation_pattern.R . output_analysis
 ```
 
 ```{r cumulative_cell_division_pattern, warning=FALSE, message=FALSE, fig.width=11, cache=FALSE, eval=TRUE, echo=FALSE, results='hide'}
-movieDir="/Users/retourna/MovieDB/WT_1"
+movieDir="/Users/retourna/MovieDB/demo"
 
 scriptsDir=Sys.getenv("TM_HOME")
 if(is.na(file.info(scriptsDir)$isdir)){
@@ -45,7 +45,7 @@ cellsWithLin <- dbGetQuery(db, "select cell_id, lineage_group, generation
   arrange(frame, cell_id, bond_order) %>% print_head()
 
 cellsWithLin %>%
-  render_frame(120) + 
+  render_frame(70) + 
   geom_polygon(aes(x_pos, y_pos, fill=as.factor(generation_cutoff), group=cell_id), alpha=0.5) +
   scale_fill_manual(name="generation", values=genColors) +
   ggtitle("Cell_division_generation")
@@ -67,9 +67,9 @@ cell_division_orientation_pattern.R . output_analysis
 
 ```{r cell_division_nematic_pattern, warning=FALSE, message=FALSE, fig.width=11, cache=FALSE, eval=TRUE, echo=FALSE, results='hide'}
 
-mqf_cg_grid_unit_nematics_CD(movieDir, gridSize = 160, kernSize = 11) %>%
+mqf_cg_grid_unit_nematics_CD(movieDir, gridSize = 90, kernSize = 5) %>%
   ## Plot CD nematics on image #55
-  render_frame(55) + 
+  render_frame(7) + 
   geom_segment(aes(x=x1, y=y1, xend=x2, yend=y2),
                size=2, alpha=0.7, lineend="round", color="orange", na.rm=T) +
   ggtitle("Coarse-grained cell division nemtatics")

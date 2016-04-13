@@ -19,7 +19,7 @@ tm cell_contributions_to_tissue_area_change_rate.R . output_analysis
 ```
 
 ```{r cell_contributions_to_tissue_area_changes, warning=FALSE, message=FALSE, fig.width=11, cache=FALSE, eval=TRUE, echo=FALSE, results='hide'}
-movieDir="/Users/retourna/MovieDB/WT_1"
+movieDir="/Users/retourna/MovieDB/demo"
 
 scriptsDir=Sys.getenv("TM_HOME")
 if(is.na(file.info(scriptsDir)$isdir)){

@@ -19,7 +19,7 @@ tm cell_neighbor_number_pattern.R . output_analysis
 ```
 
 ```{r cell_neighbor_number_pattern, warning=FALSE, message=FALSE, fig.width=11, cache=FALSE, eval=TRUE, echo=FALSE, results='hide'}
-movieDir="/Users/retourna/MovieDB/WT_1"
+movieDir="/Users/retourna/MovieDB/demo"
 
 scriptsDir=Sys.getenv("TM_HOME")
 if(is.na(file.info(scriptsDir)$isdir)){
@@ -40,7 +40,7 @@ polygonClassColors <- c("2"="white","3"="black", "4"="green",
                         "8"="red", "9"="purple", ">9"="black")
 
 cellPolygonClass %>%
-  render_frame(70) +
+  render_frame(68) +
   geom_polygon(aes(x_pos, y_pos, fill=as.character(polygon_class_trimmed),
                    group=cell_id),  alpha=0.7) +
   scale_fill_manual(name="polygon class", values=polygonClassColors, drop=F) +
