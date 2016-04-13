@@ -108,6 +108,11 @@ Documentation
 
 * Commonly asked questions are answered in the [FAQ section](faq.md).
 
+Datasets
+================
+We provide four datasets:
+* 1 demo sample (~150 Mb) to run [Quickstart R Tutorials](docs/quickstart/tm_quickstart_landing_page.md#first-use-of-tissueminer-from-the-command-line)
+* 3 big datasets (>2Gb each) to explore more advanced capabilities of TissueMiner described in the [TM R User Manual](https://mpicbg-scicomp.github.io/tissue_miner/tm_tutorial/R-tutorial.html)
 
 Support
 =========
