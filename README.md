@@ -58,10 +58,10 @@ TissueMiner ships with a command-line Ubuntu-Installer and can be used via Docke
 
 ### Ubuntu
 
-To install it on Ubuntu simply clone this repository and run the installation script `install_tm.sh` in a [terminal](https://help.ubuntu.com/community/UsingTheTerminal) as follow:
+* To install it on Ubuntu simply clone this repository and run the installation script `install_tm.sh` in a [terminal](https://help.ubuntu.com/community/UsingTheTerminal) as follow:
 
 ```
-  ## Define the directory where to install TissueMiner
+ ## Define the directory where to install TissueMiner
  export TM_HOME="${HOME}/tissue_miner"
 
  ## Download TissueMiner repository
@@ -73,20 +73,23 @@ To install it on Ubuntu simply clone this repository and run the installation sc
  source ~/.bashrc
 ```
 
+* To update it on Ubuntu, click [here](faq.md#how-to-update-my-tissueminer-installation)
+
 ### Other Systems
 
-To install TissueMiner on MacOS, Windows or any non-Ubuntu Linux system we provide a Docker container that bundles TissueMiner and all its dependencies. If not yet present on your system, you need to install the [docker engine](https://docs.docker.com/)
+* To install TissueMiner on MacOS, Windows or any non-Ubuntu Linux system we provide a Docker container that bundles TissueMiner and all its dependencies. If not yet present on your system, you need to install the [docker engine](https://docs.docker.com/)
 beforehand.
 
-Next, you can download the TissueMiner application bundled in a docker image called _brandl/tissue_miner_.
+* Next, you can download the TissueMiner application bundled in a docker image called _etournay/tissue_miner_.
 
-On Mac or Windows, open a Docker Quick Start Terminal: ![alt tag](docs/readme_screenshots/docker_toolbox_osx_quickstart_icon_nolabel.png)
+* On Mac or Windows, open a Docker Quick Start Terminal: ![alt tag](docs/readme_screenshots/docker_toolbox_osx_quickstart_icon_nolabel.png)
 ```
-docker pull brandl/tissue_miner
+docker pull etournay/tissue_miner
 ```
 
-For troubleshooting in case of out-of-date operating systems [click here](misc/docker_troubleshooting.md).
+* For troubleshooting in case of out-of-date operating systems [click here](misc/docker_troubleshooting.md).
 
+* To update it, click [here](faq.md#how-to-update-my-tissueminer-installation)
 
 Documentation
 ================
