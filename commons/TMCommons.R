@@ -25,7 +25,7 @@ source(file.path(scriptsDir, "commons/MovieFunctions.R"))
 source(file.path(scriptsDir, "commons/RoiCommons.R"))
 
 ## restore R output
-sink()
+sink(file=NULL, type="message")
 
 # disabled for now because not needed for main workflow
 #source(file.path(scriptsDir, "commons/MultipleQueriesFunctions.R"))
