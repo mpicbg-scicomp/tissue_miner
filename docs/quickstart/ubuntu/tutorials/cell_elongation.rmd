@@ -47,7 +47,7 @@ cellElongNematics %>%
 
 ```
 
-[How to look at the results ?](../tm_qs_example_data.md#4-look-at-the-results) **|** 
+[Where to find the results ?](../tm_qs_example_data.md#4-look-at-the-results) **|** 
 [Back to tutorial list](../tm_qs_example_data.md#3-select-the-analysis-you-are-interested-in)
 
 
@@ -67,7 +67,7 @@ render_frame(cellElongNematicsCG, 1) +
 
 ```
 
-[How to look at the results ?](../tm_qs_example_data.md#4-look-at-the-results) **|** 
+[Where to find the results ?](../tm_qs_example_data.md#4-look-at-the-results) **|** 
 [Back to tutorial list](../tm_qs_example_data.md#3-select-the-analysis-you-are-interested-in)
 
 ### 3. Plot cell elongation distrubution and averages
@@ -110,7 +110,7 @@ mqf_fg_nematics_cell_elong(movieDir, rois = c("raw")) %>%
   ggtitle("cell_elongation_violin")
 ```
 
-[How to look at the results ?](../tm_qs_example_data.md#4-look-at-the-results) **|** 
+[Where to find the results ?](../tm_qs_example_data.md#4-look-at-the-results) **|** 
 [Back to tutorial list](../tm_qs_example_data.md#3-select-the-analysis-you-are-interested-in)
 
 ### 4. For further details

@@ -15,7 +15,7 @@ cell_contributions_to_tissue_area_change_rate.R . output_analysis
 
 ![](cell_contributions_to_tissue_area_changes_files/figure-html/cell_contributions_to_tissue_area_changes-1.png)
 
-[How to look at the results ?](../tm_qs_example_data.md#4-look-at-the-results) **|** 
+[Where to find the results ?](../tm_qs_example_data.md#4-look-at-the-results) **|** 
 [Back to tutorial list](../tm_qs_example_data.md#3-select-the-analysis-you-are-interested-in)
 
 

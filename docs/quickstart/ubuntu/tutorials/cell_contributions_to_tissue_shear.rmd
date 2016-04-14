@@ -69,7 +69,7 @@ ggplot(shearRateInterpolated, aes(dev_time,XX*100, color=tensor)) +
 
 ```
 
-[How to look at the results ?](../tm_qs_example_data.md#4-look-at-the-results) **|** 
+[Where to find the results ?](../tm_qs_example_data.md#4-look-at-the-results) **|** 
 [Back to tutorial list](../tm_qs_example_data.md#3-select-the-analysis-you-are-interested-in)
 
 

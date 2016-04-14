@@ -52,7 +52,7 @@ cellsWithLin %>%
 
 ```
 
-[How to look at the results ?](../tm_qs_example_data.md#4-look-at-the-results) **|** 
+[Where to find the results ?](../tm_qs_example_data.md#4-look-at-the-results) **|** 
 [Back to tutorial list](../tm_qs_example_data.md#3-select-the-analysis-you-are-interested-in)
 
 ### 2. Make a video of coarse-grained cell division nematics plotted on the tissue
@@ -76,7 +76,7 @@ mqf_cg_grid_unit_nematics_CD(movieDir, gridSize = 90, kernSize = 5) %>%
 
 ```
 
-[How to look at the results ?](../tm_qs_example_data.md#4-look-at-the-results) **|** 
+[Where to find the results ?](../tm_qs_example_data.md#4-look-at-the-results) **|** 
 [Back to tutorial list](../tm_qs_example_data.md#3-select-the-analysis-you-are-interested-in)
 
 
@@ -110,7 +110,7 @@ ggplot(CDrateByTimeIntervals, aes(dev_time, avgCDrate, color=movie)) +
 
 ```
 
-[How to look at the results ?](../tm_qs_example_data.md#4-look-at-the-results) **|** 
+[Where to find the results ?](../tm_qs_example_data.md#4-look-at-the-results) **|** 
 [Back to tutorial list](../tm_qs_example_data.md#3-select-the-analysis-you-are-interested-in)
 
 ### 4. Plot average cell division orientation as a function of time
@@ -148,7 +148,7 @@ ggplot(CDNematics , aes()) +
 
 ```
 
-[How to look at the results ?](../tm_qs_example_data.md#4-look-at-the-results) **|** 
+[Where to find the results ?](../tm_qs_example_data.md#4-look-at-the-results) **|** 
 [Back to tutorial list](../tm_qs_example_data.md#3-select-the-analysis-you-are-interested-in)
 
 ### 5. For further details

@@ -15,7 +15,7 @@ tm cell_elongation_magnitude_pattern.R . output_analysis
 
 ![](cell_elongation_files/figure-html/cell_elongation_magnitude_pattern-1.png)
 
-[How to look at the results ?](../tm_qs_example_data.md#4-look-at-the-results) **|** 
+[Where to find the results ?](../tm_qs_example_data.md#4-look-at-the-results) **|** 
 [Back to tutorial list](../tm_qs_example_data.md#3-select-the-analysis-you-are-interested-in)
 
 
@@ -29,7 +29,7 @@ tm cell_elongation_nematic_cg_pattern.R . output_analysis
 
 ![](cell_elongation_files/figure-html/cg_cell_elongation_nematic_pattern-1.png)
 
-[How to look at the results ?](../tm_qs_example_data.md#4-look-at-the-results) **|** 
+[Where to find the results ?](../tm_qs_example_data.md#4-look-at-the-results) **|** 
 [Back to tutorial list](../tm_qs_example_data.md#3-select-the-analysis-you-are-interested-in)
 
 ### 3. Plot cell elongation distrubution and averages
@@ -42,7 +42,7 @@ tm cell_elongation_graphs.R . output_analysis
 
 ![](cell_elongation_files/figure-html/cell_elongation_graphs-1.png)![](cell_elongation_files/figure-html/cell_elongation_graphs-2.png)![](cell_elongation_files/figure-html/cell_elongation_graphs-3.png)![](cell_elongation_files/figure-html/cell_elongation_graphs-4.png)
 
-[How to look at the results ?](../tm_qs_example_data.md#4-look-at-the-results) **|** 
+[Where to find the results ?](../tm_qs_example_data.md#4-look-at-the-results) **|** 
 [Back to tutorial list](../tm_qs_example_data.md#3-select-the-analysis-you-are-interested-in)
 
 ### 4. For further details
