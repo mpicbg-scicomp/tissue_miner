@@ -16,8 +16,7 @@ cell_neighbor_number_pattern.R . output_analysis
 ![](cell_packing_files/figure-html/cell_neighbor_number_pattern-1.png)
 
 [How to look at the results ?](../tm_qs_example_data.md#4-look-at-the-results) **|** 
-[Back to tutorial list](../tm_qs_example_data.md#3-select-the-analysis-you-are-interested-in) **|** 
-[Try with your own data](../tm_qs_user_data.md#first-use-of-tissueminer-with-your-own-data)
+[Back to tutorial list](../tm_qs_example_data.md#3-select-the-analysis-you-are-interested-in)
 
 ### 2. Plot cell neighbor count and averages
 * Copy-paste the following commands in the terminal:
@@ -30,8 +29,7 @@ cell_neighbor_number_graphs.R . output_analysis
 ![](cell_packing_files/figure-html/cell_neighbor_number_graphs-1.png)![](cell_packing_files/figure-html/cell_neighbor_number_graphs-2.png)
 
 [How to look at the results ?](../tm_qs_example_data.md#4-look-at-the-results) **|** 
-[Back to tutorial list](../tm_qs_example_data.md#3-select-the-analysis-you-are-interested-in) **|** 
-[Try with your own data](../tm_qs_user_data.md#first-use-of-tissueminer-with-your-own-data)
+[Back to tutorial list](../tm_qs_example_data.md#3-select-the-analysis-you-are-interested-in)
 
 ### 3. For further details
 

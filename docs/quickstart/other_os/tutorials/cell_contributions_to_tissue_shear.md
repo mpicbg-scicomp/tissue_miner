@@ -16,8 +16,7 @@ tm cell_contributions_to_tissue_shear_rate.R . output_analysis
 ![](cell_contributions_to_tissue_shear_files/figure-html/cell_contributions_to_tissue_shear_rate-1.png)
 
 [How to look at the results ?](../tm_qs_example_data.md#4-look-at-the-results) **|** 
-[Back to tutorial list](../tm_qs_example_data.md#3-select-the-analysis-you-are-interested-in) **|** 
-[Try with your own data](../tm_qs_user_data.md#first-use-of-tissueminer-with-your-own-data)
+[Back to tutorial list](../tm_qs_example_data.md#3-select-the-analysis-you-are-interested-in)
 
 
 ### 2. Make videos of shear patterns
@@ -34,8 +33,7 @@ tm sm shear_movies
 
 Open your file browser and go to the movie directory, in which you should click on the "nematics_movies" folder that contains videos of cell shear contribution pattern.
 
-[Back to tutorial list](../tm_qs_example_data.md#3-select-the-analysis-you-are-interested-in) **|**
-[Try with your own data](../tm_qs_user_data.md#first-use-of-tissueminer-with-your-own-data)
+[Back to tutorial list](../tm_qs_example_data.md#3-select-the-analysis-you-are-interested-in)
 
 
 ### 3. For further details

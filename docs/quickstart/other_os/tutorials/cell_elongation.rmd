@@ -48,8 +48,7 @@ cellElongNematics %>%
 ```
 
 [How to look at the results ?](../tm_qs_example_data.md#4-look-at-the-results) **|** 
-[Back to tutorial list](../tm_qs_example_data.md#3-select-the-analysis-you-are-interested-in) **|** 
-[Try with your own data](../tm_qs_user_data.md#first-use-of-tissueminer-with-your-own-data)
+[Back to tutorial list](../tm_qs_example_data.md#3-select-the-analysis-you-are-interested-in)
 
 
 ### 2. Make a movie of coarse-grained cell elongation nematics plotted on the tissue
@@ -69,8 +68,7 @@ render_frame(cellElongNematicsCG, 10) +
 ```
 
 [How to look at the results ?](../tm_qs_example_data.md#4-look-at-the-results) **|** 
-[Back to tutorial list](../tm_qs_example_data.md#3-select-the-analysis-you-are-interested-in) **|** 
-[Try with your own data](../tm_qs_user_data.md#first-use-of-tissueminer-with-your-own-data)
+[Back to tutorial list](../tm_qs_example_data.md#3-select-the-analysis-you-are-interested-in)
 
 ### 3. Plot cell elongation distrubution and averages
 * Copy-paste the following commands in the terminal:
@@ -113,8 +111,7 @@ mqf_fg_nematics_cell_elong(movieDir, rois = c("raw")) %>%
 ```
 
 [How to look at the results ?](../tm_qs_example_data.md#4-look-at-the-results) **|** 
-[Back to tutorial list](../tm_qs_example_data.md#3-select-the-analysis-you-are-interested-in) **|** 
-[Try with your own data](../tm_qs_user_data.md#first-use-of-tissueminer-with-your-own-data)
+[Back to tutorial list](../tm_qs_example_data.md#3-select-the-analysis-you-are-interested-in)
 
 ### 4. For further details
 
