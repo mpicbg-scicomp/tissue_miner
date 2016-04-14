@@ -86,7 +86,7 @@ Here, we propose some streamlined quickstart tutorials.
 * [Cell area](tutorials/cell_area.md#cell-area-analysis)
 * [Cell elongation](tutorials/cell_elongation.md#cell-elongation-analysis)
 * [Cell packing](tutorials/cell_packing.md#cell-packing-analysis)
-* [Cell lineage and divisions](tutorials/ell_lineage_and_divisions.md#cell-lineage-and-division-analysis)
+* [Cell lineage and divisions](tutorials/cell_lineage_and_divisions.md#cell-lineage-and-division-analysis)
 * [Cell rearrangements](tutorials/cell_rearrangements.md#cell-rearrangement-analysis)
 * [Cell contributions to tissue shear](tutorials/cell_contributions_to_tissue_shear.md#cell-contributions-to-tissue-shear-analysis)
 * [Cell contributions to tissue area changes](tutorials/cell_contributions_to_tissue_area_changes.md#cell-contributions-to-tissue-area-change-analysis)
