@@ -29,9 +29,11 @@ if(is.na(file.info(scriptsDir)$isdir)){
 source(file.path(scriptsDir, "commons/TMCommons.R"))
 
 ## additional dependencies
-require.auto(sp)
-require.auto(igraph)
-require.auto(rgeos)
+sink(file=file("/dev/null", "w"), type="message")
+  require.auto(sp)
+  require.auto(igraph)
+  require.auto(rgeos)
+sink(file=NULL, type="message")
 
 db <- openMovieDb(movieDir)
 
@@ -142,22 +144,22 @@ cellsInROI <- rbind(cellsInROI, data.frame(roi="whole_tissue", cell_id=unique(ce
 
 
 ## Build new ROIs from existing adjacent ones
-add_merged_adjacent_rois <- function(roiDF, newRoi, roiName){
-    if (!(all(newRoi %in% roiDF$roi))){
-        warning("Cannot build ROI due to missing ROI(s), skipping...");
-        return(roiDF)
-    }
-
-    newRoicells <- transform(subset(roiDF, roi %in% newRoi), roi=roiName)
-    newRoicellsNoDup <- subset(newRoicells, !duplicated(cell_id))
-    rbind(roiDF, newRoicellsNoDup)
-}
-
-
-# define a ROI for anterior blade
-cellsInROI <- add_merged_adjacent_rois(cellsInROI, c("L3", "interL2-L3", "L2", "interL1-L2"), "antL3")
-# define a ROI for posterior blade
-cellsInROI <- add_merged_adjacent_rois(cellsInROI, c("L4","proxInterL4-L5", "distInterL4-L5", "postCV", "L5", "postL5"), "postL4")
+# add_merged_adjacent_rois <- function(roiDF, newRoi, roiName){
+#     if (!(all(newRoi %in% roiDF$roi))){
+#         warning("Cannot build ROI due to missing ROI(s), skipping...");
+#         return(roiDF)
+#     }
+# 
+#     newRoicells <- transform(subset(roiDF, roi %in% newRoi), roi=roiName)
+#     newRoicellsNoDup <- subset(newRoicells, !duplicated(cell_id))
+#     rbind(roiDF, newRoicellsNoDup)
+# }
+# 
+# 
+# # define a ROI for anterior blade
+# cellsInROI <- add_merged_adjacent_rois(cellsInROI, c("L3", "interL2-L3", "L2", "interL1-L2"), "antL3")
+# # define a ROI for posterior blade
+# cellsInROI <- add_merged_adjacent_rois(cellsInROI, c("L4","proxInterL4-L5", "distInterL4-L5", "postCV", "L5", "postL5"), "postL4")
 
 
 cellsInROI %>% filter(!str_detect(roi, "[0-9]+_")) %>% ggplot(aes(roi)) + geom_bar() + ggtitle("cell counts by all rois") + coord_flip()
@@ -353,7 +355,7 @@ fixRoiInFrame <- function(curRoi, neighborsFilt){
 ## loop over frames and rois to speed up processing
 bhFix <- ddply(dbonds, .(frame), function(dbondsFrame){
     # DEBUG dbondsFrame <- subset(dbonds, frame==72)
-    echo("fixing black holes in frame", dbondsFrame$frame[1])
+    echo("fixing missing inner ROI cells in frame", dbondsFrame$frame[1])
 
     neighbors <- dbondsFrame %>%
       transmute(dbond_id, neighbor_cell_id=cell_id) %>%
@@ -400,7 +402,9 @@ cellsWithRoi <- dt.merge(cells, lgRoiSmoothed, by="cell_id", allow.cartesian=TRU
 
 
 ## use more cores (should be done in a minute anyway)
+sink(file=file("/dev/null", "w"), type="message")
 require.auto(foreach); require.auto(doMC); registerDoMC(cores=12)
+sink(file=NULL, type="message")
 
 #roiHulls <- ddply(bhFix, .(frame, roi), function(roiInFrame){
 roiHulls <- ddply(cellsWithRoi, .(roi, frame), function(roiCellPos){
@@ -454,8 +458,8 @@ save(roiHulls, file="roiHulls.RData")
 
 ########################################################################################################################
 ### Correct for dead cells
-
-echo("dying analysis disabled, because no longer needed when using black hole fix")
+echo("ROI tracking done !")
+# echo("dying analysis disabled, because no longer needed when using black hole fix")
 #stop("dying analysis disabled, because no longer needed when using black hole fix")
 #return() # not working since it's not a function
 q(save="no")
