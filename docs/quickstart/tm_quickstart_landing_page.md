@@ -1,4 +1,4 @@
-# First Use of TissueMiner from the command line
+# First Use of TissueMiner
 
 You'd like to use Tissue Miner for the **first time** ? 
 
