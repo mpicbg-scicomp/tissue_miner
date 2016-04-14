@@ -58,22 +58,19 @@ TissueMiner ships with a command-line Ubuntu-Installer and can be used via Docke
 
 ### Ubuntu
 
-* To install it on Ubuntu simply clone this repository and run the installation script `install_tm.sh` in a [terminal](https://help.ubuntu.com/community/UsingTheTerminal) as follow:
-
+* To install TissueMiner on Ubuntu simply copy-paste the commands in the box below into a [terminal](https://help.ubuntu.com/community/UsingTheTerminal) to perform the following steps:
+    + Define the directory where to install TissueMiner
+    + Download TissueMiner repository
+    + Install TM
 ```
- ## Define the directory where to install TissueMiner
- export TM_HOME="${HOME}/tissue_miner"
-
- ## Download TissueMiner repository
- sudo apt-get install git
- git clone https://github.com/mpicbg-scicomp/tissue_miner.git ${TM_HOME}
- 
- ## Install TM
- ${TM_HOME}/installation/ubuntu/install_tm.sh
- source ~/.bashrc
+export TM_HOME="${HOME}/tissue_miner"
+sudo apt-get install git
+git clone https://github.com/mpicbg-scicomp/tissue_miner.git ${TM_HOME}
+${TM_HOME}/installation/ubuntu/install_tm.sh
+source ~/.bashrc
 ```
 
-* To update it on Ubuntu, click [here](faq.md#how-to-update-my-tissueminer-installation)
+* To update TissueMiner on Ubuntu, click [here](faq.md#how-to-update-my-tissueminer-installation)
 
 ### Other Systems
 
@@ -89,7 +86,7 @@ docker pull etournay/tissue_miner
 
 * For troubleshooting in case of out-of-date operating systems [click here](misc/docker_troubleshooting.md).
 
-* To update it, click [here](faq.md#how-to-update-my-tissueminer-installation)
+* To update TissueMiner, click [here](faq.md#how-to-update-my-tissueminer-installation)
 
 Documentation
 ================
