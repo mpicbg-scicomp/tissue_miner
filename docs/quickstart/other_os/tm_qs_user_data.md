@@ -14,6 +14,8 @@ The data organization is summarized as follow:
 
 where %03d represents a frame number padded with 3 digits. The number of digits can be modified, see [FAQ](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/faq.md).
 
+![alt tag](https://raw.githubusercontent.com/mpicbg-scicomp/tissue_miner/master/docs/readme_screenshots/data_organization.png)
+
 * The image type should be **8-bit** or **RGB**.
 * The image format should be **png** or **tiff**
 
