@@ -80,11 +80,14 @@ Both programs automatically save a text file (LastFrameRoi.txt and transformatio
 ### 5. Go to the movie directory
 
 * Browse your data to find the **movie folder**
-* **In your terminal** type in ***cd*** and a **space**
+* **In your terminal** type in ***cd*** and press **space**
 * and drag-and-drop the **movie folder** into the terminal
 
 Summary:
 `cd <path_to_movie_folder>`
+
+Example:
+`cd /home/tissueminer/movie_repository/movie_1` 
 
 ### 6. Select the analysis you are interested in
 Here, we propose some streamlined quickstart tutorials.
