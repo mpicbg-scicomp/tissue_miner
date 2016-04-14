@@ -33,6 +33,7 @@ bundled with **TissueMiner** and not alone.
 You can install the latest version of Tissue Analyzer (formerly known
 as Packing Analyzer) within FIJI (http://fiji.sc/Fiji). To do so:
 
+* get a fresh FIJI installation (including JDK8)
 * launch FIJI
 * open the "Help" menu
 * click on "Update..."
