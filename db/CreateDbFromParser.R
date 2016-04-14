@@ -27,8 +27,11 @@ source(file.path(scriptsDir, "db/movie_rotation/RotationFunctions.R"))
 ## disabled because rotation is not supported for now
 #source(file.path(scriptsDir, "db/movie_rotation/RotationFunctions.R"))
 
+sink(file=file("/dev/null", "w"), type="message")
 require.auto(zoo) # for na.locf
 options(device="png")
+sink(file=NULL, type="message")
+
 
 ## set the working directory to the movieDir
 setwd(file.path(movieDir, "dbTablesFromParser"))
@@ -74,8 +77,8 @@ if (buggyParser){
 #3 -> Apoptosis
 #4 -> MovesOutOfMask
 #5 -> SegmentationErrorDisappearance
-with(cells, as.data.frame(table(as.factor(trans_before))))
-with(cells, as.data.frame(table(as.factor(trans_after))))
+# with(cells, as.data.frame(table(as.factor(trans_before))))
+# with(cells, as.data.frame(table(as.factor(trans_after))))
 ## DEBUG END
 
 dbonds <- as.df(fread("directedBond_in_frame.dat"))
@@ -114,7 +117,7 @@ print("Fixing cell IDs...")
 
 ## fix the problem that background id and no-division-indicator are the same value
 cells <- transform(cells, daughter_id=ifelse(daughter_id==0, NA, daughter_id))
-with(cells, as.data.frame(table(daughter_id>0)))
+# with(cells, as.data.frame(table(daughter_id>0)))
 #with(cells, as.data.frame(table(is.na(daughter_id))))
 
 
@@ -144,8 +147,10 @@ firstOccOrDiv <- subset(arrange(cells, frame, tissue_analyzer_group_id), !duplic
 #}
 
 ## reimplementation using http://opendatagroup.wordpress.com/2009/07/26/hash-package-for-r/
-
+sink(file=file("/dev/null", "w"), type="message")
 require.auto(hash)
+sink(file=NULL, type="message")
+
 
 ## define function to map id using dynamically growing lookup table (tracking_group --> new cell id)
 idCounter <<- 10000;
@@ -237,10 +242,10 @@ cellsDB <- subset(cells2, select=c(frame, cell_id,center_x, center_y,area, elong
 ## do we really wan to keep the background as a cell? We will have to filter it inalmost all analyses -->YES
 
 ## Fix NaN elongation
-with(cellsDB, as.data.frame(table(is.na(elong_xx))))
+# with(cellsDB, as.data.frame(table(is.na(elong_xx))))
 #with(cells, as.data.frame(table(is.na(elong_xx))))
 #write.delim(subset(cells, is.na(elong_xx)), file="elong_na.txt")
-summary(cellsDB) ## just to make sure to fix just elongation columns
+# summary(cellsDB) ## just to make sure to fix just elongation columns
 ## http://stackoverflow.com/questions/7031127/data-frames-and-is-nan
 cellsDB[apply(cellsDB,2,is.nan)] <- 0
 
@@ -321,10 +326,10 @@ gainLoss <- as.df(data.table(cells2)[, list(appears_by=gainDict[[ac(trans_before
 cellinfo <- merge(cellinfo, gainLoss, by="cell_id", all.x=T)
 
 ## plot some debug graphs  todo  --> move to db report script
-ggplot(cellinfo, aes(first_occ, fill=appears_by)) + geom_bar(binwidth=1) + ggtitle("cell gain status by time")
-ggsave2()
-ggplot(cellinfo, aes(last_occ, fill=factor(disappears_by))) + geom_bar(binwidth=1) + ggtitle("cell loss status by time")
-ggsave2()
+# ggplot(cellinfo, aes(first_occ, fill=appears_by)) + geom_bar(binwidth=1) + ggtitle("cell gain status by time")
+# ggsave2()
+# ggplot(cellinfo, aes(last_occ, fill=factor(disappears_by))) + geom_bar(binwidth=1) + ggtitle("cell loss status by time")
+# ggsave2()
 
 
 #plot(cellinfo$cell_id) ## should be a straigt line
@@ -474,7 +479,7 @@ db <- dbConnect(SQLite(), dbname=dbfile)
 
 ## todo install sqlite3 binary on eatonpc and create shema with one system call
 ## todo use unique ids for bonds and remove frame from primary key --> talk to matthias
-
+echo("Create 'frames' table")
 dbGetQuery(db, "
 CREATE TABLE frames
 (
@@ -482,6 +487,8 @@ CREATE TABLE frames
     time_sec INTEGER NOT NULL,
     CONSTRAINT pk_frames PRIMARY KEY (frame)
 );")
+
+echo("Create 'cell_histories' table")
 dbGetQuery(db, "
 CREATE TABLE cell_histories
 (
@@ -501,6 +508,8 @@ CREATE TABLE cell_histories
     FOREIGN KEY(first_occ) REFERENCES frames(frame),
     FOREIGN KEY(last_occ) REFERENCES frames(frame)
 );")
+
+echo("Create 'cells' table")
 dbGetQuery(db, "
 CREATE TABLE cells
 (
@@ -524,6 +533,8 @@ CREATE TABLE cells
     FOREIGN KEY(cell_id) REFERENCES cell_histories(cell_id),
     FOREIGN KEY(frame) REFERENCES frames(frame)
 );")
+
+echo("Create 'bonds' table")
 dbGetQuery(db, "
 CREATE TABLE bonds
 (
@@ -533,6 +544,8 @@ CREATE TABLE bonds
     CONSTRAINT pk_bonds PRIMARY KEY (bond_id),
     FOREIGN KEY(frame) REFERENCES frames(frame)
 );")
+
+echo("Create 'vertices' table")
 dbGetQuery(db, "
 CREATE TABLE vertices
 (
@@ -543,6 +556,8 @@ CREATE TABLE vertices
     CONSTRAINT pk_vertices PRIMARY KEY (vertex_id),
     FOREIGN KEY(frame) REFERENCES frames(frame)
 );")
+
+echo("Create 'directed_bonds' table")
 dbGetQuery(db, "
 CREATE TABLE directed_bonds
 (
@@ -562,12 +577,22 @@ CREATE TABLE directed_bonds
     FOREIGN KEY(vertex_id) REFERENCES vertices(vertex_id)
 );")
 
-
+echo("Fill in 'frames' table with data...")
 dbWriteTable(db, "frames", frames, row.names=F, append=TRUE)
+
+echo("Fill in 'cell_histories' table with data...")
 dbWriteTable(db, "cell_histories", cellinfoDB, row.names=F, append=TRUE)
+
+echo("Fill in 'cells' table with data...")
 dbWriteTable(db, "cells", cellsDB, row.names=F, append=TRUE)
+
+echo("Fill in 'bonds' table with data...")
 dbWriteTable(db, "bonds", ubonds, row.names=F, append=TRUE)
+
+echo("Fill in 'vertices' table with data...")
 dbWriteTable(db, "vertices", vertices, row.names=F, append=TRUE)
+
+echo("Fill in 'directed_bonds' table with data...")
 dbWriteTable(db, "directed_bonds", dbondsDB, row.names=F, append=TRUE)
 
 
@@ -577,8 +602,8 @@ dbWriteTable(db, "directed_bonds", dbondsDB, row.names=F, append=TRUE)
 #dbListTables(db)              # The tables in the database
 #dbListFields(db, "cells")    # The columns in a table
 #head(dbReadTable(db, "dbReadTable"))
-someCells <- dbGetQuery(db, "select * from cells where frame > 50 and frame <60")
-head(someCells)
+# someCells <- dbGetQuery(db, "select * from cells where frame > 50 and frame <60")
+# head(someCells)
 
 dbDisconnect(db)
 
@@ -609,6 +634,7 @@ dbDisconnect(db)
 ## Index creation http://www.w3schools.com/sql/sql_create_index.asp
 #CREATE INDEX idx_cells_cell_id ON pk_cells (cell_id)
 # Create explicit index for table primary keys
+echo("Create explicit index for table primary keys...")
 system(paste("sqlite3", dbfile, "'
 CREATE INDEX idx_cells_frame ON cells (frame);
 CREATE INDEX idx_cells_cell_id ON cells (cell_id);
@@ -644,12 +670,12 @@ db <- dbConnect(SQLite(), dbname=dbfile)
 setwd(movieDir)
 
 ## prepare polygon data for plotting
-print("Preparing shape information...")
+print("Preparing cell contour information...")
 source(file.path(scriptsDir, "db/PreparePolygons.R"))
 
 
 ## wait a bit to make sure that the file handle as release (to avoid provlems when copying it) ## todo neccessary?
-Sys.sleep(15)
+Sys.sleep(5)
 
 ## migrate db to project space
 finalDbFile = file.path(movieDir, paste0(db_name, ".sqlite"))

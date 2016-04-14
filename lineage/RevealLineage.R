@@ -4,10 +4,12 @@
 
 #source("http://dl.dropbox.com/u/113630701/rlibs/base-commons.R")
 
-require.auto(graph)
-require.auto(zoo)
+sink(file=file("/dev/null", "w"), type="message")
+  require.auto(graph)
+  require.auto(zoo)
+  require.auto(igraph)
+sink(file=NULL, type="message")
 
-require.auto(igraph)
 
 #######################################################################################################################
 ### Build the graph and determine division groups
@@ -119,9 +121,9 @@ cytoWithGrpDeg <- merge(divTreesDF, inDegreesDF, by="cell_id", all=T)
 #}, .progress="text")
 
 rootCounts <- as.df(group_by(cytoWithGrpDeg, lineage_group) %>% filter(in_degree==0) %>% summarise(root_count=n()))
-with(rootCounts, as.data.frame(table(root_count)))
+# with(rootCounts, as.data.frame(table(root_count)))
 
-ggsave2(ggplot(rootCounts, aes(as.factor(root_count))) + geom_bar() + ggtitle("root count distribution"))
+# ggsave2(ggplot(rootCounts, aes(as.factor(root_count))) + geom_bar() + ggtitle("root count distribution"))
 
 ## fix missing ids for no-further dividing cells
 cytoWithGrpDeg  <- transform(cytoWithGrpDeg, in_degree=ifelse(is.na(in_degree), 0, in_degree))
@@ -165,7 +167,7 @@ numLGs <<-unlen(cytoWithGrpDeg$lineage_group)
 
 calcGenerationForSubtreeNEW <- function(cell_id_ST, in_degree_ST){
 #    echo("processing", paste(cell_id_ST, collapse=","))
-    if(procLG%%100==0) echo("percont done ", procLG/numLGs)
+    if(procLG%%100==0) echo(round(procLG/numLGs*100), "%")
     procLG <<- procLG+1
 
     if(length(cell_id_ST)==1) return(0) ##  just speedup for single node lineage_groups
@@ -206,7 +208,7 @@ cytoWithGeneration <- group_by(cytoWithGrpDeg, lineage_group) %>%
 
 # TO SKIP GENERATION ANALYSIS: cytoWithGeneration <- cytoWithGrpDeg; cytoWithGeneration$generation <- -1
 
-ggsave2(ggplot(cytoWithGeneration, aes(as.factor(generation))) + geom_bar())
+# ggsave2(ggplot(cytoWithGeneration, aes(as.factor(generation))) + geom_bar())
 cytoWithGeneration$in_degree <- NULL
 
 save(cytoWithGeneration, file="cytoWithGeneration.RData")
