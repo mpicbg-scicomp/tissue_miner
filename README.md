@@ -96,11 +96,11 @@ Documentation
 
 * To get started with TissueMiner we suggest to do **Quickstart Tutorials:**
     + **[Quickstart R Tutorials](docs/quickstart/ubuntu/tm_qs_example_data.md#first-use-of-tissueminer-with-example-data)** (Ubuntu).
-    + **[Quickstart docker-R Tutorials](docs/quickstart/other_os/tm_qs_example_data.md#first-use-of-tissueminer-with-example-data)** (any systems).
+    + **[Quickstart docker-R Tutorials](docs/quickstart/other_os/tm_qs_example_data.md#first-use-of-tissueminer-with-example-data)** (Mac, Windows, Linux).
 
 * To get started with your own data analysis:
     + **[R Tutorials](docs/quickstart/ubuntu/tm_qs_user_data.md#first-use-of-tissueminer-with-your-own-data)** (Ubuntu).
-    + **[docker-R Tutorials](docs/quickstart/other_os/tm_qs_user_data.md#first-use-of-tissueminer-with-your-own-data)** (any systems).
+    + **[docker-R Tutorials](docs/quickstart/other_os/tm_qs_user_data.md#first-use-of-tissueminer-with-your-own-data)** (Mac, Windows, Linux).
 
 * We also provide an exhaustive **[TM R User Manual](https://mpicbg-scicomp.github.io/tissue_miner/tm_tutorial/R-tutorial.html)** with lots of examples, background information and API details:
     + learn the necessary basics of the R language for TissueMiner
