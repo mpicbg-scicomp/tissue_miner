@@ -86,9 +86,6 @@ Both programs automatically save a text file (LastFrameRoi.txt and transformatio
 * **In your terminal** type in ***cd*** and press **space**
 * and drag-and-drop the **movie folder** into the terminal
 
-Summary:
-`cd <path_to_movie_folder>`
-
 Example:
 `cd /home/tissueminer/movie_repository/movie_1` 
 
