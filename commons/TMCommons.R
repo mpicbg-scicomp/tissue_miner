@@ -34,7 +34,10 @@ sink(file=NULL, type="message")
 ## Set up main parameters
 
 # enable plyr parallelization
-require.auto(doMC);
+sink(file=file("/dev/null", "w"), type="message")
+  require.auto(doMC);
+sink(file=NULL, type="message")
+
 
 ## todo should go into config
 isCluster=Sys.getenv("LSF_SERVERDIR")!=""
@@ -172,7 +175,7 @@ modPiOv2 <- function(x) x - floor(x/(pi/2))*pi/2
 ########################################################################################################################
 #### Integrate User Configuration
 
-configFile <- system("echo $TM_CONFIG", intern=T)
+configFile <- Sys.getenv("TM_CONFIG")
 
 ## or fall back to defaults if not defined
 if(configFile==""){

@@ -65,7 +65,7 @@ cellshapesWithLineage <- inner_join(cellshapes, noOverlappingRoi(roiCellsBT), by
 cellshapesWithLineage <- arrange(cellshapesWithLineage, frame, cell_id, bond_order) ## .. because merge messed up the ordering
 
 
-render_movie(subset(cellshapesWithLineage), "roi_backtracking_by_lineage.mp4", geom_polygon(aes(x_pos, y_pos, fill=roi, group=cell_id),  alpha=0.5), sampleRate=1)
+# render_movie(subset(cellshapesWithLineage), "roi_backtracking_by_lineage.mp4", geom_polygon(aes(x_pos, y_pos, fill=roi, group=cell_id),  alpha=0.5), sampleRate=1)
 
 if(F){ #### DEBUG
 roisTracked <- dt.merge(cellshapes, subset(roiCellsBT, roi=="whole_tissue"), by="cell_id")

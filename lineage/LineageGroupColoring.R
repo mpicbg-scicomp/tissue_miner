@@ -28,14 +28,15 @@ db <- openMovieDb(movieDir)
 mcdir(file.path(movieDir, "lg_color_optimization"))
 
 # source("http://bioconductor.org/biocLite.R"); biocLite("RBGL")
-require.auto(RBGL)
-require.auto(graph)
-
+sink(file=file("/dev/null", "w"), type="message")
+  require.auto(RBGL)
+  require.auto(graph)
+sink(file=NULL, type="message")
 
 ########################################################################################################################
 ### Optimize colors for division groups
 ########################################################################################################################
-
+echo('Optimize colors for division groups...')
 dbonds <- dbGetQuery(db, "select cell_id, dbond_id, conj_dbond_id from directed_bonds")
 #dbondsSlim <- with(dbonds, data.frame(frame, cell_id=cell_id, dbond_id))
 

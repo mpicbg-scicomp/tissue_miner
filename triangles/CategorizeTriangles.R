@@ -31,7 +31,7 @@ db <- openMovieDb(movieDir)
 mcdir(file.path(movieDir, "tri_categories"))
 
 ########################################################################################################################
-print("Running triangle categorization.R .....")
+echo("Running triangle categorization.R .....")
 
 
 ## load data from t1 count analysis
@@ -102,12 +102,12 @@ triList <- local(get(load(file.path(movieDir, "shear_contrib","triList.RData")))
 ## merge with trianguation...
 eventTriangles <- catCellPairs %>%
     mutate(pair_id=1:n()) %>%
-    melt(id.vars=c("type", "frame", "pair_id"), value.name="cell_id") %>% print_head() %>%
+    melt(id.vars=c("type", "frame", "pair_id"), value.name="cell_id") %>% #print_head() %>%
     select(-variable) %>%
 
     ## merge in the triangles
     dt.merge(triList, by=c("cell_id", "frame"), allow.cartesian=T) %>%
-    arrange(type, tri_id, pair_id) %>% print_head() # just needed for debugging
+    arrange(type, tri_id, pair_id) #%>% print_head() # just needed for debugging
 
 
 ## ... and just keep triangles in each category where both cells are part of ...

@@ -126,7 +126,7 @@ render_movie <- function(celldata, fileName, cellLayers, sampleRate=1, createZip
 #        .e <- environment()
         curFrame <<- unique(csFrame$frame)[1]
 
-        echo("processing ", curFrame, "...")
+        echo("creating video", fileName, ": frame",curFrame, "...")
 
 #        locData <- csFrame ## note this would work as well, but require the argument layer to specify data=locData
 

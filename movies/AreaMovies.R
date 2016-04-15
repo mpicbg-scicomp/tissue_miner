@@ -73,10 +73,10 @@ if(isDebug){ #### DEBUG
 
 
 #render_movie(csArea %>% filter(frame <5), paste0(db_name, "_cell_area.mp4"), list(
-render_movie(csArea, paste0(db_name, "_cell_area.mp4"), list(
-  geom_polygon(aes(x_pos, y_pos, group=cell_id, fill=pmin(area, areaMaxRange)),  alpha=0.5),
-  scale_fill_gradient(name="area", low="green", high="darkred", limits=c(0,areaMaxRange))
-))
+# render_movie(csArea, paste0(db_name, "_cell_area.mp4"), list(
+#   geom_polygon(aes(x_pos, y_pos, group=cell_id, fill=pmin(area, areaMaxRange)),  alpha=0.5),
+#   scale_fill_gradient(name="area", low="green", high="darkred", limits=c(0,areaMaxRange))
+# ))
 
 
 areaRange=c(0,1000)
@@ -172,11 +172,11 @@ if(isDebug){ #### DEBUG
 
 
 #csAreaChange <-subset(csAreaChange, frame <10)
-render_movie(csAreaChange, paste0(db_name, "_cell_area_change.mp4"), list(
-  geom_polygon(aes(x_pos, y_pos, group=cell_id, fill=ac_in_range, alpha=abs(ac_in_range))),
-  scale_fill_gradientn(name="area change", colours=c("green", "black", "red"), limits=changeRange),
-  guides(alpha=FALSE)
-), createZip=F)
+# render_movie(csAreaChange, paste0(db_name, "_cell_area_change.mp4"), list(
+#   geom_polygon(aes(x_pos, y_pos, group=cell_id, fill=ac_in_range, alpha=abs(ac_in_range))),
+#   scale_fill_gradientn(name="area change", colours=c("green", "black", "red"), limits=changeRange),
+#   guides(alpha=FALSE)
+# ), createZip=F)
 
 
 
@@ -212,12 +212,12 @@ if(F){ #### DEBUG
 
 
 ## render heatmap movie without smoothing
-render_movie(areaSummary, paste0(db_name, "_avg_area_change.mp4"), list(
-  geom_tile(aes(xGrid, yGrid, fill=mac_in_range, alpha=abs(mac_in_range))),
-  scale_fill_gradientn(name="area change", colours=c("green", "black", "red"), limits=medChangeRange),
-  scale_alpha(range=c(0.2,0.9)),
-  guides(alpha=FALSE)
-))
+# render_movie(areaSummary, paste0(db_name, "_avg_area_change.mp4"), list(
+#   geom_tile(aes(xGrid, yGrid, fill=mac_in_range, alpha=abs(mac_in_range))),
+#   scale_fill_gradientn(name="area change", colours=c("green", "black", "red"), limits=medChangeRange),
+#   scale_alpha(range=c(0.2,0.9)),
+#   guides(alpha=FALSE)
+# ))
 
 
 ## do time smoothing
@@ -227,12 +227,12 @@ areaSummarySmooth <- smooth_tissue(areaSummary, median_area_change, kernel_size=
 areaSummarySmooth <- transform(areaSummarySmooth, macs_in_range=limitRange(median_area_change_smooth, medChangeRange))
 
 #subset(areaSummarySmooth, frame <20)
-render_movie(subset(areaSummarySmooth, frame <20000), paste0(db_name, "_avg_area_change_smooth.mp4"), list(
-  geom_tile(aes(xGrid, yGrid, fill=macs_in_range, alpha=abs(macs_in_range))),
-  scale_fill_gradientn(name="smoothed area change", colours=c("green", "black", "red"), limits=medChangeRange),
-  scale_alpha(range=c(0.1,0.9), na.value = 0),
-  guides(alpha=FALSE)
-))
+# render_movie(subset(areaSummarySmooth, frame <20000), paste0(db_name, "_avg_area_change_smooth.mp4"), list(
+#   geom_tile(aes(xGrid, yGrid, fill=macs_in_range, alpha=abs(macs_in_range))),
+#   scale_fill_gradientn(name="smoothed area change", colours=c("green", "black", "red"), limits=medChangeRange),
+#   scale_alpha(range=c(0.1,0.9), na.value = 0),
+#   guides(alpha=FALSE)
+# ))
 
 print("rate movie rendering done")
 

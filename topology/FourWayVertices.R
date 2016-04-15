@@ -80,6 +80,7 @@ not3Vertices <- transform(not3Vertices, multiplicity=as.factor(multiplicity))
 #with(not3Vertices, as.data.frame(table(multiplicity)))
 #multColors <- create_palette(not3Vertices$multiplicity)
 
+echo('Make a video of N-way vertices, N>3')
 render_movie(not3Vertices, "not3_vertices.mp4", list(
     geom_point(aes(x_pos, y_pos, color=multiplicity), alpha=0.4, size=10),
     scale_color_manual(values=multColors, drop = FALSE)

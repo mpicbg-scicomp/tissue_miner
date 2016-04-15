@@ -111,12 +111,12 @@ makeTrackGrid <- function(ref_frame=0){
 gridLayers <- geom_polygon(aes(x_pos, y_pos, group=cell_id), color="yellow", fill="yellow", alpha=0.9)
 
 ## do a movie for frame 0
-grid0 <- makeTrackGrid(0) # %>% render_frame(100) + gridLayers
-render_movie(grid0, "grid_stripes_0.mp4", gridLayers)
+# grid0 <- makeTrackGrid(0) # %>% render_frame(100) + gridLayers
+# render_movie(grid0, "grid_stripes_0.mp4", gridLayers)
 
 ## and also for the last and frame100 (for fun only)
-makeTrackGrid(100) %>% render_movie("grid_stripes_100.mp4", gridLayers)
-max(dbGetQuery(db, "select frame from cells")) %>% makeTrackGrid() %>% render_movie("grid_stripes_last.mp4", gridLayers)
+# makeTrackGrid(100) %>% render_movie("grid_stripes_100.mp4", gridLayers)
+# max(dbGetQuery(db, "select frame from cells")) %>% makeTrackGrid() %>% render_movie("grid_stripes_last.mp4", gridLayers)
 
 ########################################################################################################################
 ### ROI Striping: divide frame 0 cell into stripe rois and track them over time
@@ -149,7 +149,7 @@ frameOI=10
 render_source_image(frameOI) + geom_polygon(aes(x_pos, y_pos, group=cell_id, fill=as.factor(stripe)), alpha=0.5, data=subset(csStripes, frame==frameOI))
 } #### DEBUG end
 
-render_movie(csStripes, "roi_stripe_tracking.mp4", geom_polygon(aes(x_pos, y_pos, group=cell_id, fill=as.factor(stripe)), alpha=0.5))
+# render_movie(csStripes, "roi_stripe_tracking.mp4", geom_polygon(aes(x_pos, y_pos, group=cell_id, fill=as.factor(stripe)), alpha=0.5))
 
 ########################################################################################################################
 ### Fixed Striping
@@ -176,7 +176,7 @@ render_source_image(frameOI) + geom_polygon(aes(x_pos, y_pos, group=cell_id, fil
 
 ## trace lineage groups
 ## note movie not really insteresting, just done to illustrate the concept
-render_movie(csWithStripe, "static_stripes.mp4", geom_polygon(aes(x_pos, y_pos, group=cell_id, fill=as.factor(stripe)), alpha=0.5))
+# render_movie(csWithStripe, "static_stripes.mp4", geom_polygon(aes(x_pos, y_pos, group=cell_id, fill=as.factor(stripe)), alpha=0.5))
 
 
 ########################################################################################################################

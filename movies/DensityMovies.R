@@ -130,13 +130,13 @@ cellsBinned <- as.df(data.table(cells)[, list(
 ggplot(cellsBinned, aes(num_cells)) + geom_histogram()
 
 ## do cell intensity movie
-render_movie(cellsBinned, "cell_density.mp4", list(
-    geom_tile(aes(xGrpTrimmed, -yGrpTrimmed, fill=num_cells), alpha=0.7),
-#    scale_fill_gradient(name="cell number", low="green", high="darkred", limits=c(20, 100), trans=log),
-    scale_fill_gradient(name="cell number", low="green", high="darkred", limits=range(cellsBinned$num_cells), trans="sqrt"),
-    ggtitle("cell density over time")
-), sampleRate=1)
-
+# render_movie(cellsBinned, "cell_density.mp4", list(
+#     geom_tile(aes(xGrpTrimmed, -yGrpTrimmed, fill=num_cells), alpha=0.7),
+# #    scale_fill_gradient(name="cell number", low="green", high="darkred", limits=c(20, 100), trans=log),
+#     scale_fill_gradient(name="cell number", low="green", high="darkred", limits=range(cellsBinned$num_cells), trans="sqrt"),
+#     ggtitle("cell density over time")
+# ), sampleRate=1)
+# 
 
 
 quit(save="no")

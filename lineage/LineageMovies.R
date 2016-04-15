@@ -40,7 +40,8 @@ gained_cells <- transform(gained_cells,  appears_by=as.factor(appears_by))
 
 ## plot gain status codes
 #render_movie(cell_divisions, "cell_divisions.mp4", geom_point(aes(center_x, center_y),  alpha=0.5, color='red'))
-render_movie(gained_cells, "cell_gain.mp4", list(geom_point(aes(center_x, center_y, color=appears_by),  alpha=0.5), scale_color_discrete(drop=F)))
+
+# render_movie(gained_cells, "cell_gain.mp4", list(geom_point(aes(center_x, center_y, color=appears_by),  alpha=0.5), scale_color_discrete(drop=F)))
 
 
 rm(gained_cells) ## clean up
@@ -86,14 +87,14 @@ cdSummarySmooth <- subset(cdSummarySmooth, frame <25)
 }
 
 
-render_movie(cdSummarySmooth, "cd_rates_smoothed.mp4", list(
-geom_tile(aes(xGrid, yGrid, fill=cd_rate_trimmed, alpha=cd_rate_trimmed)),
- scale_fill_gradient(name="cd/min", low="black", high="blue", limits=cdSmoothRange) ,
- scale_alpha(range=c(0.1,0.8), na.value=0),
- guides(alpha=FALSE)
-))
-
-print("rate cd rate rendering done")
+# render_movie(cdSummarySmooth, "cd_rates_smoothed.mp4", list(
+# geom_tile(aes(xGrid, yGrid, fill=cd_rate_trimmed, alpha=cd_rate_trimmed)),
+#  scale_fill_gradient(name="cd/min", low="black", high="blue", limits=cdSmoothRange) ,
+#  scale_alpha(range=c(0.1,0.8), na.value=0),
+#  guides(alpha=FALSE)
+# ))
+# 
+# print("rate cd rate rendering done")
 
 
 ########################################################################################################################
@@ -105,7 +106,8 @@ lost_cells <- transform(lost_cells,  disappears_by=as.factor(disappears_by)) ## 
 
 ## plot gain status codes
 #render_movie(cell_divisions, "cell_divisions.mp4", geom_point(aes(center_x, center_y),  alpha=0.5, color='red'))
-render_movie(lost_cells, "cell_loss.mp4", list(geom_point(aes(center_x, center_y, color=disappears_by), alpha=0.5), scale_color_discrete(drop=F)))
+
+# render_movie(lost_cells, "cell_loss.mp4", list(geom_point(aes(center_x, center_y, color=disappears_by), alpha=0.5), scale_color_discrete(drop=F)))
 
 
 ### do the same again but now fade in divisions to get locally integrated division intensities
@@ -155,10 +157,10 @@ cell_age <- cellinfo %>%
 #csFrame <- subset(cell_age, frame==curFrame)
 #render_source_image(curFrame) + geom_polygon(aes(x_pos, y_pos, fill=frame-first_occ, group=cell_id), csFrame,  alpha=0.5)  + scale_fill_gradient(name="age", low="green", high="darkred")
 
-render_movie(cell_age, "cell_age.mp4", list(
-geom_polygon(aes(x_pos, y_pos, fill=frame-first_occ, group=cell_id),  alpha=0.5),
-scale_fill_gradient(name="age", low="green", high="darkred", limits=c(0,200))
-))
+# render_movie(cell_age, "cell_age.mp4", list(
+# geom_polygon(aes(x_pos, y_pos, fill=frame-first_occ, group=cell_id),  alpha=0.5),
+# scale_fill_gradient(name="age", low="green", high="darkred", limits=c(0,200))
+# ))
 
 
 
@@ -173,10 +175,10 @@ scale_fill_gradient(name="age", low="green", high="darkred", limits=c(0,200))
 ## fixme hardwired constant
 maxPossibleCDhAPF <- 25
 
-render_movie(cell_age, "cell_first_occ.mp4", list(
-    geom_polygon(aes(x_pos, y_pos, fill=time_of_first_occ, group=cell_id),  alpha=0.9),
-    scale_fill_gradientn(name="first occurence (hAPF)", colours=c("blue", "green", "yellow", "red"), limits=c(15, maxPossibleCDhAPF))
-))
+# render_movie(cell_age, "cell_first_occ.mp4", list(
+#     geom_polygon(aes(x_pos, y_pos, fill=time_of_first_occ, group=cell_id),  alpha=0.9),
+#     scale_fill_gradientn(name="first occurence (hAPF)", colours=c("blue", "green", "yellow", "red"), limits=c(15, maxPossibleCDhAPF))
+# ))
 
 
 if(F){ #### DEBUG
@@ -235,11 +237,11 @@ render_movie(cellsWithLin, "lineage_groups_col_optimized.mp4", list(geom_polygon
 
 ## add offset to allow for log scale
 ## todo use correct range and fix log-scale
-cellsWithLin %>%
-    render_movie( "generation.mp4", list(
-geom_polygon(aes(x_pos, y_pos, fill=generation+1, group=cell_id), alpha=0.5),
-scale_fill_gradient(name="generation", low="green", high="darkred", limits=range(cellsWithLin$generation)+1, trans = "log")
-))
+# cellsWithLin %>%
+#     render_movie( "generation.mp4", list(
+# geom_polygon(aes(x_pos, y_pos, fill=generation+1, group=cell_id), alpha=0.5),
+# scale_fill_gradient(name="generation", low="green", high="darkred", limits=range(cellsWithLin$generation)+1, trans = "log")
+# ))
 
 
 

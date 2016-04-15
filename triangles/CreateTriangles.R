@@ -48,7 +48,7 @@ mcdir(shearContribDir)
 #source(file.path(scriptsDir, "shear_contributions/TrackTriangles.R"), local=new.env())
 
 
-print("building triangulation model...")
+echo("building triangulation model...")
 
 ## create left-oriented 3-cell tuples
 dbonds <- dbGetQuery(db, "select cell_id, frame, dbond_id, conj_dbond_id, left_dbond_id from directed_bonds") %>%
@@ -85,7 +85,7 @@ uniqueTriangles <- triangleCells %>%  mutate(
 #    arrange(-cell_a) %>%
     distinct(frame, max_cell, med_cell, min_cell) %>%
     # discard the columns
-    select(-matches("_cell")) %>% print_head
+    select(-matches("_cell")) #%>% print_head
 
 ## remove background and add ID
 triangles <- uniqueTriangles %>%
