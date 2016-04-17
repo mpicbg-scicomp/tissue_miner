@@ -101,7 +101,7 @@ Documentation
     
 * We provide the streamlined [R scripts](docs/quickstart/scripts) that are used in the tutorials to perform a simple analysis of a single movie
 
-* We also provide an exhaustive **[TM R User Manual](https://mpicbg-scicomp.github.io/tissue_miner/tm_tutorial/R-tutorial.html)** with lots of examples, background information and API details:
+* We also provide an exhaustive **[TM R User Manual](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/docs/TM_tutorial_in_R/TM_R-UserManual.md#tissueminer-an-r-tutorial-to-visualize-cell-dynamics-in-2d-tissues)** with lots of examples, background information and API details:
     + learn the necessary basics of the R language for TissueMiner
     + learn the powerful libraries of TissueMiner for epithelium analysis
     + benefit from lots of examples to make your own scripts
