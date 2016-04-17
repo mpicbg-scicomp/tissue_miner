@@ -20,6 +20,19 @@ algnModel <- c(
 ) %>%
   vec2df() %>% set_names("movie","time_shift")
 
+# Hardwire isotropic deformation color scheme
+isotropColors <- c("division"="orange",
+                   "extrusion"="turquoise",
+                   "cell_area"="green",
+                   "sumContrib"="blue",
+                   "tissue_area"="darkred")
+
+# hardwire the movie color scheme
+movieColors <- c("WT_1"="blue",
+                 "WT_2"="darkgreen",
+                 "WT_3"="red"
+)
+
 
 # Define a time offset in seconds to ajust the reference time (REF movie) to the developmental time
 get_movie_time_shift <- function(movieNames){
@@ -33,4 +46,14 @@ time_unit_label="hAPF" # hour After Puparium Formation
 
 # Define the non-overlapping ROIs for nicer display
 noOverlappingRoi <- function(x) subset(x, roi %in% c("distInterL2-L3","distL3","distInterL3-L4","distL4","distInterL4-L5"))
+
+
+# Set general theme for graphs: more specific tuning must be done for each graph
+theme_set(theme_bw())
+theme_update(panel.grid.major=element_line(linetype= "dotted", color="black", size=0.2),
+             panel.border = element_rect(size=0.3,color="black",fill=NA),
+             axis.ticks=element_line(size=0.2),
+             axis.ticks.length=unit(0.1,"cm"),
+             legend.key = element_blank()
+)
 
