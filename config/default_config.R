@@ -12,7 +12,7 @@ defaultROI<-"whole_tissue"
 ################################################
 
 ## todo set to NULL to use 1/10 of the height and width to define grid elements
-movie_grid_size<-64
+movie_grid_size<-80
 remove_margin_rois<-F
 
 ## todo continue implementation
@@ -32,3 +32,41 @@ noOverlappingRoi <- function(x) subset(x)
 ## Dimension for movie rendering. Enable and adjust the setting if you need another output format.
 ## Note: The final movie will be always downscaled to a 700px width while maintaining just the aspect ratio.
 #movie_render_dim <- list(width=8, height=8)
+
+
+
+########################################################################################################################
+## Define Default Color Schemes
+
+# Hardwire isotropic deformation color scheme
+isotropColors <- c("division"="orange",
+                   "extrusion"="turquoise",
+                   "cell_area"="green",
+                   "sumContrib"="blue",
+                   "tissue_area"="darkred")
+
+
+## Shear
+shearColors <- c(
+  "total_shear"="blue",
+  "cell_elongation_change"="darkgreen",
+  "T1"="red",
+  "T2"="turquoise",
+  "cell_division"="orange",
+  "correlation_effects"="magenta",
+  "sum_contrib"="salmon",
+  "check"="yellow")
+
+
+## polygon class
+polygonClassColors=c(
+  "2"="black",
+  "3"="darkgrey",
+  "4"="green",
+  "5"="yellow",
+  "6"="grey",
+  "7"="blue",
+  "8"="red",
+  "9"="purple",
+  ">9"="black")
+

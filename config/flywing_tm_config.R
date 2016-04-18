@@ -33,6 +33,35 @@ movieColors <- c("WT_1"="blue",
                  "WT_3"="red"
 )
 
+########################################################################################################################
+## Define Default Color Schemes
+
+
+## Shear
+## Shear
+shearColors <- c(
+  "total_shear"="blue",
+  "cell_elongation_change"="darkgreen",
+  "T1"="red",
+  "T2"="turquoise",
+  "cell_division"="orange",
+  "correlation_effects"="magenta",
+  "sum_contrib"="salmon",
+  "check"="yellow")
+
+## polygon class
+polygonClassColors=c(
+  "2"="black",
+  "3"="darkgrey",
+  "4"="green",
+  "5"="yellow",
+  "6"="grey",
+  "7"="blue",
+  "8"="red",
+  "9"="purple",
+  ">9"="black")
+
+
 
 # Define a time offset in seconds to ajust the reference time (REF movie) to the developmental time
 get_movie_time_shift <- function(movieNames){
