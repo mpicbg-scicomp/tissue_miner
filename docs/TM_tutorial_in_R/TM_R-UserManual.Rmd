@@ -1012,6 +1012,7 @@ rm(cgT1nematics)
 ```{r Comparing patterns between movies new Setup IN/OUT, warning=FALSE, message=FALSE, echo=T,results='hide'}
 # Define path to all processed movies: TO BE EDITED BY THE USER
 movieDbBaseDir="/media/project_raphael@fileserver/TissueMiner_DB"
+movieDbBaseDir="/Users/retourna/movieDB"
 
 # Define a working directory where to save the analysis: TO BE EDITED BY THE USER
 outDataBaseDir=file.path(movieDbBaseDir, "output_analysis")
