@@ -40,7 +40,7 @@ TissueMiner provides a convenient R programming interface to query, quantify and
 This API can then be employed to
 
 * Visualize quantified data in graphs or directly on the movie images
-* Do statistics (distribution of cell area, anisotropy, packing, ..., bond length, vertex multiplicity, ...)
+* Do statistics (distribution of cell area, anisotropy, packing, bond length, vertex multiplicity, ...)
 * Synchronize different movies in time
 * Compare values between multiple movies and ROI's
 * Do multiscale quantification and visualization using both tracked ROI's (Lagrangian description) and fixed grids (Eulerian description)
