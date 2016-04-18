@@ -7,7 +7,7 @@ export TUTORIAL_DATA=/projects/project-raphael/tutorial/MovieRepository_DB
 echo '
 require("rmarkdown")
 
-render(file.path(Sys.getenv("TM_HOME"), "docs/TM_tutorial_in_R/R-tutorial.Rmd"), "html_document")
+render(file.path(Sys.getenv("TM_HOME"), "docs/TM_tutorial_in_R/TM_R-UserManual.Rmd"), "html_document")
 ' | R -q --vanilla
 
 
