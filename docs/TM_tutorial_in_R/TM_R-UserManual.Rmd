@@ -30,7 +30,7 @@ options(width=60)
 
 * **We provide one demo dataset and three processed time-lapses** corresponding to the distal part of 3 wild-type *Drosophila* pupal wings: WT_1, WT_2 and WT_3.
 
-* **No programming skill required:** the tutorial [Learning_the_R_basics_for_TissueMiner](Learning_the_R_basics_for_TissueMiner.md) will guide the user, without any previous knowledge in programming, through the main aspects of data manipulation and visualization using the R language. 
+* **No programming skill required:** the tutorial [Learning_the_R_basics_for_TissueMiner](Learning_the_R_basics_for_TissueMiner.html) will guide the user, without any previous knowledge in programming, through the main aspects of data manipulation and visualization using the R language. 
 
 * **The power of an existing grammar** to manipulate and to visualize data. The open-source R language now provides very efficient and simple ways to handle important amount of tabular data, using a so called "grammar" of data manipulation (*dplyr* package) and visualization (*ggplot2* package) (ref Wickham). We found R to be ideal for querying our relational databases (*RSQLite* package), and to perform subsequent calculations and analyses for understanding tissue morphogenesis. Thus, the user keeps control of his data by learning a few verbs and the simple syntax of the grammar. This gives the advantage of full autonomy on the data that can manipulated without restriction. 
 
