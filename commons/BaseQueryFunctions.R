@@ -432,7 +432,7 @@ mqf_fg_unit_nematics_T1 <- function(movieDir, rois=c(), cellContour = F, display
     T1Nematics %<>%
       melt(measure.vars = c("cell_id","neighbor_cell_id"), value.name="cell_id") %>% 
       dt.merge(topoChangeSummary, by = c("frame","cell_id"), allow.cartesian=TRUE) %>%
-      arrange(frame, roi, cell_id, bond_order) %>% print_head()
+      arrange(frame, roi, cell_id, bond_order)
   }
   
   dbDisconnect(movieDb)
