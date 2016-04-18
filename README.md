@@ -14,39 +14,35 @@ TissueMiner is a framework to perform a multiscale analysis of an entire develop
 
 ### (a) Cell Tracking Data Database
 
-
 First, TissueMiner tracks cells in timelapse image series of a tissue and stores the results in a database. To do so, it uses [TissueAnalyzer](MovieProcessing.md#TissueAnalyzer) to segment and track cells in time and space.
 
-Next, TissueMiner extracts and organizes information about cell geometry, topology (cell neighbor relationships) and ancestry from the TissueAnalyzer outputs into a database. By using sqlite, each movie is essentially converted into a _single_ database file.
+Next, TissueMiner extracts and organizes information about cell geometry, topology (cell neighbor relationships) and ancestry from the TissueAnalyzer outputs into a database. By using sqlite, each movie is converted into a _single_ database file.
 
 
 ### (b) Tools to Analyse Epithelium Morphogenesis
 
-TissueMiner comes along with a great variety of tools to work with the created movie database. These include
-* Lineage Browsing
-* Cell Shear Contribution Analysis
-* Topology Analyses (cell rearrangements, cell packing, etc.)
-* and some more. See the [Movie Processing Guide](MovieProcessing.md#Tools) for a complete listing
+TissueMiner comes along with a great variety of tools to work with the created movie database. These tools include
+* Cell geometry analysis
+* Cell topology analysis
+* Cell lineage browsing
+* Cell contributions to tissue deformation
 
 Many of these tools provide tabular results as well as rendered movies to make the complex nature of timelapse more accessible.
 
+### (c) High-Level Application Programming Interface (API)
 
-### (c) High-Level Programming API
-
-TissueMiner provides a convenient R programming interface to query, quantify and visualize cell dynamics during epithelium morphogenesis in [R](https://www.r-project.org/). The first step of a custom workflow is to query the movie database to the extract properties like:
+TissueMiner provides a convenient R programming interface to query, quantify and visualize cell dynamics during epithelium morphogenesis in [R](https://www.r-project.org/). The functions provided with the TissueMiner API allow one to query the movie database for extracting quantities like:
 
 * Cell state properties (position, area, anisotropy, cell packing geometry, fluorescence intensity)
-* Rates of cellular events (divisions, cell neighbor changes, extrusions, shape changes)
-* Orientation of cellular events (unit nematic description)
-* Rates of deformations of each type of cellular event (tensorial description)
+* Rates and orientation of cellular events (divisions, cell neighbor changes, extrusions, shape changes)
 * Rates of tissue deformation (area expansion and convergence-extension) contributed by each type of cellular event (tensorial description)
 
-These data can than be employed to
+This API can then be employed to
 
-* Visualize of quantified data in graphs or directly on the movie images
-* Do statistics (time evolution of the distributions of cell area, anisotropy, packing, ..., bond length, vertex multiplicity, ...)
+* Visualize quantified data in graphs or directly on the movie images
+* Do statistics (distribution of cell area, anisotropy, packing, ..., bond length, vertex multiplicity, ...)
 * Synchronize different movies in time
-* Comparing values between multiple movies and ROI's
+* Compare values between multiple movies and ROI's
 * Do multiscale quantification and visualization using both tracked ROI's (Lagrangian description) and fixed grids (Eulerian description)
 
 
@@ -67,15 +63,15 @@ export TM_HOME="${HOME}/tissue_miner"
 sudo apt-get install git
 git clone https://github.com/mpicbg-scicomp/tissue_miner.git ${TM_HOME}
 ${TM_HOME}/installation/ubuntu/install_tm.sh
-source ~/.bashrc
+source ${HOME}/.bashrc
 ```
 
 * To update TissueMiner on Ubuntu, click [here](faq.md#how-to-update-my-tissueminer-installation)
 
 ### Other Systems
 
-* To install TissueMiner on MacOS, Windows or any non-Ubuntu Linux system we provide a Docker container that bundles TissueMiner and all its dependencies. If not yet present on your system, you need to install the [docker engine](https://docs.docker.com/)
-beforehand.
+* To install TissueMiner on a MacOS or a Windows system, we provide a Docker container that bundles TissueMiner and all its dependencies. If not yet present on your system, you need to install the [docker toolbox](https://www.docker.com/products/docker-toolbox)
+beforehand. On any non-Ubuntu Linux, please install the [docker engine](https://docs.docker.com/).
 
 * Next, you can download the TissueMiner application bundled in a docker image called _etournay/tissue_miner_.
 
