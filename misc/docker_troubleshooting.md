@@ -23,7 +23,7 @@ See installation procedure [here](https://docs.docker.com/engine/installation/wi
 This may happen on older MacOS installation prior to Yosemite.
 We recommend to follow the following procedure:
 
-     ##  In the shell launched by Docker Quickstart Terminal, liste available virtual machines 
+     ##  In the shell launched by Docker Quickstart Terminal, list available virtual machines 
      docker-machines ls
     
      ## If the list is empty then create a default else go to the next step  
