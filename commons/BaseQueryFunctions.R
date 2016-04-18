@@ -574,9 +574,9 @@ mqf_fg_cell_neighbor_count <- function(movieDir, rois=c(), polygon_class_limit=c
     addRois(movieDir,rois) %>%
     addTimeFunc(movieDb, .) %>% 
     mutate(movie=basename(movieDir)) %>% add_dev_time()
-  
+  browser()
   if (cellContour) {
-    neighborNumber %<>% dt.merge(locload(file.path(movieDir, "cellshapes.RData")), by=c("cell_id","frame")) %>%
+    neighborNumber %<>% dt.merge(locload(file.path(movieDir, "cellshapes.RData")), by=c("cell_id","frame"), allow.cartesian=TRUE) %>%
       arrange(frame, cell_id, bond_order)
   }
   
