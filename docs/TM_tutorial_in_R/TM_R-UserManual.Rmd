@@ -1027,13 +1027,33 @@ rm(cgT1nematics)
 
 * Then you need to define the path to this datasets
 
-```{r New Setup IN/OUT, warning=FALSE, message=FALSE, echo=T,results='hide'}
+```{r Comparing patterns between movies new Setup IN/OUT, warning=FALSE, message=FALSE, echo=T,results='hide'}
 # Define path to all processed movies: TO BE EDITED BY THE USER
 movieDbBaseDir="/Users/retourna/movieDB/"
+movieDbBaseDir="/media/project_raphael@fileserver/movieSegmentation"
+
+
+# Define a working directory where to save the analysis: TO BE EDITED BY THE USER
+outDataBaseDir="/tmp/output"
 ```
 
 
 * The configuration file remains flywing_tm_config.R
+
+```{r Configure the script, warning=FALSE, message=FALSE, echo=T,results='hide'}
+
+scriptsDir=Sys.getenv("TM_HOME")
+
+# Load TissueMiner libraries
+source(file.path(scriptsDir, "commons/TMCommons.R"))
+source(file.path(scriptsDir, "commons/BaseQueryFunctions.R"))
+source(file.path(scriptsDir, "commons/TimeFunctions.R"))
+source(file.path(scriptsDir, "config/flywing_tm_config.R"))
+
+# Set up working directory
+mcdir(outDataBaseDir)
+```
+
 
 ### Movie frame synchronization
 ```{r synchro dev time to frame, warning=FALSE, message=FALSE, fig.width=11, cache=TRUE, cache.lazy=FALSE, eval=TRUE}
@@ -1448,6 +1468,7 @@ rm(avgIsoDefCum)
 
 
 ```{r MultiDB-query Triangulation of the cell network get data, warning=FALSE, message=FALSE, cache=T, cache.lazy=FALSE,eval=TRUE}
+movieDir <- file.path(movieDbBaseDir, c("WT_1"))
 triProperties <- mqf_fg_triangle_properties(movieDir, "raw", triContour = T) %>%
   print_head()
 
@@ -1456,6 +1477,7 @@ triProperties <- mqf_fg_triangle_properties(movieDir, "raw", triContour = T) %>%
 ***
 
 ```{r MultiDB-query Triangulation of the cell network plot, warning=FALSE, message=FALSE, fig.width=11, cache=T, eval=TRUE}
+db <- openMovieDb(movieDir)
 triProperties %>%
   render_frame(40) +
   geom_polygon(aes(x_pos, y_pos, group=tri_id),
