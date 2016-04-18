@@ -169,7 +169,7 @@ echo "TM_CONFIG=path_to_my_config_file" >> ~/.Renviron
 
 ```{r Setup IN/OUT, warning=FALSE, message=FALSE, echo=T,results='hide'}
 # Define path to all processed movies: TO BE EDITED BY THE USER
-movieDbBaseDir="/Users/retourna/example_data/"
+movieDbBaseDir="/media/project_raphael@fileserver/TissueMiner_DB"
 
 # Define a working directory where to save the analysis: TO BE EDITED BY THE USER
 outDataBaseDir=file.path(movieDbBaseDir, "output_analysis")
@@ -1011,10 +1011,10 @@ rm(cgT1nematics)
 
 ```{r Comparing patterns between movies new Setup IN/OUT, warning=FALSE, message=FALSE, echo=T,results='hide'}
 # Define path to all processed movies: TO BE EDITED BY THE USER
-movieDbBaseDir="/Users/retourna/movieDB/"
+movieDbBaseDir="/media/project_raphael@fileserver/TissueMiner_DB"
 
 # Define a working directory where to save the analysis: TO BE EDITED BY THE USER
-outDataBaseDir="/tmp/output"
+outDataBaseDir=file.path(movieDbBaseDir, "output_analysis")
 ```
 
 
