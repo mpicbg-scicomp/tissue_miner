@@ -21,6 +21,11 @@ Just copy and paste the lines below **into this Quickstart terminal** and press 
      
 ```
 
+**A tip !** Just copy this line in your .bashrc of .bash_profile to make this command permanent.
+```
+alias tm='docker run --rm -ti -v $(dirname $PWD):/movies -w /movies/$(basename $PWD) etournay/tissue_miner'
+```
+
 ### 3. Select the analysis you are interested in
 
 Here, we propose some streamlined quickstart tutorials.
