@@ -17,7 +17,7 @@ where %03d represents a frame number padded with 3 digits. The number of digits 
 
 Here, is an example: movieSegmentation/demo/Segmentation/demo_000.png
 
-![alt tag](https://raw.githubusercontent.com/mpicbg-scicomp/tissue_miner/master/docs/readme_screenshots/data_organization.png)
+![alt tag](https://github.com/mpicbg-scicomp/tissue_miner/blob/gh-pages/readme_screenshots/data_organization.png)
 
 * The image type should be **8-bit** or **RGB**.
 * The image format should be **png** or **tiff**
