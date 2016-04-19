@@ -1,6 +1,6 @@
 # TissueMiner: an R-tutorial to visualize cell dynamics in 2D tissues
 Raphael Etournay  
-April 15th 2016  
+April 19th 2016  
 
 
 
@@ -166,11 +166,14 @@ echo "TM_CONFIG=path_to_my_config_file" >> ~/.Renviron
 
 
 ```r
-# Define path to all processed movies: TO BE EDITED BY THE USER
-movieDbBaseDir="/Users/retourna/movieDB"
+# Define path to all processed movies: MUST BE EDITED BY THE USER
+movieDbBaseDir="/Users/retourna/example_data"
 
-# Define a working directory where to save the analysis: TO BE EDITED BY THE USER
-outDataBaseDir=file.path(movieDbBaseDir, "output_analysis")
+# Define path a particular time-lapse called "demo"
+movieDir <- file.path(movieDbBaseDir, c("demo"))
+
+# Define a working directory where to save the analysis
+outDataBaseDir=file.path(movieDir, "output_analysis")
 ```
 
 ***
@@ -224,9 +227,6 @@ The mqf functions constitute an important part of the TissueMiner API. They will
 
 
 ```r
-# Define path a particular time-lapse called "demo"
-movieDir <- file.path(movieDbBaseDir, c("demo"))
-
 # Connection to the DB stored in the "db" variable
 db <- openMovieDb(movieDir)
 ```
@@ -1114,21 +1114,6 @@ t1nematics <- mqf_fg_unit_nematics_T1(movieDir, "raw", cellContour = T) %>% prin
 ## 5       15  cell_id    loss   510   251          5
 ## 6       15  cell_id    loss   486   255          6
 ## [1] 30557
-##   frame cell_id movie type roi unit_T1xx   unit_T1xy      phi center_x center_y       x1       y1       x2       y2 time_sec timeInt_sec time_shift
-## 1     0   10014  demo loss raw 0.9998438 -0.01767349 6.274348  491.324 259.1675 479.2067 259.2746 503.4413 259.0604        0         291      54000
-## 2     0   10014  demo loss raw 0.9998438 -0.01767349 6.274348  491.324 259.1675 479.2067 259.2746 503.4413 259.0604        0         291      54000
-## 3     0   10014  demo loss raw 0.9998438 -0.01767349 6.274348  491.324 259.1675 479.2067 259.2746 503.4413 259.0604        0         291      54000
-## 4     0   10014  demo loss raw 0.9998438 -0.01767349 6.274348  491.324 259.1675 479.2067 259.2746 503.4413 259.0604        0         291      54000
-## 5     0   10014  demo loss raw 0.9998438 -0.01767349 6.274348  491.324 259.1675 479.2067 259.2746 503.4413 259.0604        0         291      54000
-## 6     0   10014  demo loss raw 0.9998438 -0.01767349 6.274348  491.324 259.1675 479.2067 259.2746 503.4413 259.0604        0         291      54000
-##   dev_time variable t1_type x_pos y_pos bond_order
-## 1       15  cell_id    loss   500   263          1
-## 2       15  cell_id    loss   524   269          2
-## 3       15  cell_id    loss   530   263          3
-## 4       15  cell_id    loss   517   253          4
-## 5       15  cell_id    loss   510   251          5
-## 6       15  cell_id    loss   486   255          6
-## [1] 30557
 ```
 
 ***
@@ -1214,21 +1199,44 @@ render_movie(cgT1nematics, "cgT1nematics.mp4", list(
 
 ***
 
+# Comparing averaged quantities between movies and ROIs
+
+## General principles:
+
+**CAUTION**: Tissue orientation matters for nematic components. Indeed, nematic tensors are symmetric traceless tensors that are characterized by 2 components projected onto the x and y axis of the Cartesian system. In order to compare nematics amongst different time-lapses one has to make sure that the tissues have a similar orientation with respect to the x and y axes. In the workflow, one has the possibility to rotate the images along with the data [see Fiji macro](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/fiji_macros/orient_tissue.ijm) to obtain visually comparable time-lapses. 
+
+**CAUTION**: Cumulative quantities are strongly influenced by the developmental time. Therefore, movies must be aligned in time prior to comparison between movies. We have aligned the three WT wing movies in time by aligning the peaks of their respective average cell elongation curves as a function of time. One movie is used as a reference and time shifts are applied to other movies. These time shifts must be stored in a configuration file containing the *algnModel* table as defined [here](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/config/flywing_tm_config.R).
+
+***
+
 ## Comparing patterns between movies
 
-* You first need to download the 3 large datasets WT_1, WT_2 and WT_3
+* You first need to download the 3 large processed datasets WT_1, WT_2 and WT_3
 
-**HOWTO**
+
+```bash
+# In your terminal, type in:
+
+# Dataset WT_1 (~800Mb)
+curl https://cloud.mpi-cbg.de/index.php/s/SgxxQk5CkIpTLPW/download  | tar -zxvf -
+
+# Dataset WT_2 (~800Mb)
+curl https://cloud.mpi-cbg.de/index.php/s/Z6ZR1b0sGWnC8Cj/download  | tar -zxvf -
+
+# Dataset WT_3 (~600Mb)
+curl https://cloud.mpi-cbg.de/index.php/s/4BJiyxnCS7HFyKB/download  | tar -zxvf -
+```
 
 * Then you need to define the path to this datasets
 
 
 ```r
+# These datasets are automatically extracted in the example_data folder where the demo was also downloaded.
 # Define path to all processed movies: TO BE EDITED BY THE USER
-movieDbBaseDir="/Users/retourna/movieDB"
+movieDbBaseDir="/Users/retourna/example_data"
 
 # Define a working directory where to save the analysis: TO BE EDITED BY THE USER
-outDataBaseDir=file.path(movieDbBaseDir, "output_analysis")
+outDataBaseDir=file.path(movieDbBaseDir, "multi-movie_analysis")
 ```
 
 
@@ -1336,15 +1344,6 @@ dbDisconnect(db)
 
 ***
 
-# Comparing averaged quantities between movies and ROIs
-
-## General principles:
-
-**CAUTION**: Tissue orientation matters for nematic components. Indeed, nematic tensors are symmetric traceless tensors that are characterized by 2 components projected onto the x and y axis of the Cartesian system. In order to compare nematics amongst different time-lapses one has to make sure that the tissues have a similar orientation with respect to the x and y axes. In the workflow, one has the possibility to rotate the images along with the data [see Fiji macro](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/fiji_macros/orient_tissue.ijm) to obtain visually comparable time-lapses. 
-
-**CAUTION**: Cumulative quantities are strongly influenced by the developmental time. Therefore, movies must be aligned in time prior to comparison between movies. We have aligned the three WT wing movies in time by aligning the peaks of their respective average cell elongation curves as a function of time. One movie is used as a reference and time shifts are applied to other movies. These time shifts must be stored in a configuration file containing the *algnModel* table as defined [here](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/config/flywing_tm_config.R).
-
-***
 
 ### Description of the multi_db_query() function:
 
