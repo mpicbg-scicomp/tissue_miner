@@ -43,7 +43,7 @@ as Packing Analyzer) within FIJI (http://fiji.sc/Fiji). To do so:
 
 Once the installation is complete, restart FIJI, open the "Plugins" menu and click on "Tissue Analyzer"
 
-For a quick start guide, click [here](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/docs/TAdoc.pdf)
+For a quick start guide, click [here](https://github.com/mpicbg-scicomp/tissue_miner/blob/gh-pages/tm_tutorial/TAdoc.pdf)
 
 
 ### 3. Optionally, define regions of interest (ROI's) and orient the tissue along the x or y axis
