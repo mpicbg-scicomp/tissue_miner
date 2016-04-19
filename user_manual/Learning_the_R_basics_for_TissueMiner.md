@@ -1,18 +1,15 @@
----
-title: "Learning the R basics for TissueMiner"
-output:
-  html_document:
-    fig_caption: yes
-    keep_md: yes
-    number_sections: yes
-    toc: yes
----
+# Learning the R basics for TissueMiner
 
 **Tutorial layout**: the code is encapsulated in shaded grey boxes that delimit **code chunks**. The **results** are displayed immediately below in an open box in which all lines start with the ## sign. Within code chunks, **comments** are visible in green and are prefixed with at least a # sign. The comments indicate what the following code does. Here is an example:
 
-```{r layout example, warning=FALSE, message=FALSE, echo=T}
+
+```r
 # This is a comment: the code below will print "Welcome to TissueMiner"
 print("Welcome to TissueMiner")
+```
+
+```
+## [1] "Welcome to TissueMiner"
 ```
 
 # R: the basics
@@ -38,30 +35,60 @@ We recommend of few references that have been useful to us:
 
 ## Variable assignment and simple instructions
 
-```{r The basics 1, warning=FALSE, message=FALSE, echo=TRUE, cache=TRUE}
+
+```r
 # assign a number to the variables x and y
 x <- 2
 y <- 3
 # display the result of x + y
 x + y
+```
 
+```
+## [1] 5
+```
+
+```r
 # is x equal y?
 x==y
+```
 
+```
+## [1] FALSE
+```
+
+```r
 # is x different from y?
 x!=y
+```
 
+```
+## [1] TRUE
+```
+
+```r
 # is x superior to y? 
 x>y
+```
 
+```
+## [1] FALSE
+```
+
+```r
 # is x inferior to y?
 x<y
+```
+
+```
+## [1] TRUE
 ```
 
 ***
 
 ## A vector is a series of values. 
-```{r The basics 2, warning=FALSE, message=FALSE, echo=TRUE, cache=TRUE}
+
+```r
 # assign a vector to x and to y:
 x <- c(4,3,2)
 y <- c(1,2,3)
@@ -69,36 +96,86 @@ y <- c(1,2,3)
 z <- c(TRUE,FALSE,TRUE)
 # display the result of x + y (element-wise addition):
 x + y
+```
+
+```
+## [1] 5 5 5
+```
+
+```r
 # display the result of x + y + z (z is automatically coerced to integers)
 x + y + z
+```
+
+```
+## [1] 6 5 6
 ```
 
 ***
 
 ## Named vectors
 In some cases, it is convenient to name each element of the vector. Such a vector is useful to store configuration parameters.
-```{r The basics 3, warning=FALSE, message=FALSE, echo=TRUE, cache=TRUE}
+
+```r
 # assign a named vector to x:
 x <- c("movie1"="red", "movie2"="blue", "movie3"="green")
 # display the content of x
 x
 ```
 
+```
+##  movie1  movie2  movie3 
+##   "red"  "blue" "green"
+```
+
 ***
 
 ## Tabular data: dataframe
 Tabular data that we obtain from the relational database are stored in a table refereed to as *dataframe* in the R language. This tutorial essentially shows how to manipulate dataframes in order to perform calculations and prepare the data for plotting. A dataframe is composed of columns that correspond to vectors of identical length.
-```{r The basics 4, warning=FALSE, message=FALSE, echo=TRUE, cache=TRUE}
+
+```r
 # Assign a data frame to x:
 x <- data.frame(frame=c(1,2,3), cell_area=c(20,22,24))
 # display the content of x:
 x
+```
+
+```
+##   frame cell_area
+## 1     1        20
+## 2     2        22
+## 3     3        24
+```
+
+```r
 # display the number of lines in x:
 nrow(x)
+```
+
+```
+## [1] 3
+```
+
+```r
 # display the 2 first rows of x:
 head(x, n=2)
+```
+
+```
+##   frame cell_area
+## 1     1        20
+## 2     2        22
+```
+
+```r
 # display the 2 last rows of x:
 tail(x, n=2)
+```
+
+```
+##   frame cell_area
+## 2     2        22
+## 3     3        24
 ```
 
 ***
@@ -109,7 +186,8 @@ tail(x, n=2)
 * A SQL query results in a table or dataframe that we assign to a variable in the R language
 * More complicated SQL queries are possible, but we will instead use the grammar of data manipulation provided in R to manipulate the dataframes in the computer memory.
 
-```{r Simple SQL query, warning=FALSE, message=FALSE, echo=TRUE, cache=T, cache.lazy=FALSE}
+
+```r
 library(RSQLite)
 
 # open a connection to the database of the demo movie (example data)
@@ -127,7 +205,19 @@ cellProperties <- dbGetQuery(db, "select cell_id, frame, area from cells")
 
 # show first lines of the table
 head(cellProperties)
+```
 
+```
+##   cell_id frame area
+## 1   10000     0    0
+## 2   10000     1    0
+## 3   10000     2    0
+## 4   10000     3    0
+## 5   10000     4    0
+## 6   10000     5    0
+```
+
+```r
 # Filter out the margin cell (id 10000) around the tissue
 cellProperties <- dbGetQuery(db, "select cell_id, frame, area from cells
                                   where cell_id!=10000") 
@@ -165,7 +255,8 @@ Functions | Description | Package
 
 If you haven't yet downloaded the example dataset in your home folder, please run the command below in a terminal
 
-```{bash download example dataser, warning=FALSE, message=FALSE, echo=T, eval=F}
+
+```bash
 curl https://cloud.mpi-cbg.de/index.php/s/COYw9ugcG9BJQnf/download  | tar -zxvf -
 ```
 
@@ -178,7 +269,8 @@ curl https://cloud.mpi-cbg.de/index.php/s/COYw9ugcG9BJQnf/download  | tar -zxvf 
 * manipulate the input dataframe using the *dplyr* grammar 
 
 
-```{r Example of dplyr, warning=FALSE, message=FALSE, echo=TRUE, cache=F}
+
+```r
 # Load the necessary R libraries
 library(dplyr)
 
@@ -211,12 +303,12 @@ avgCellArea <- dbGetQuery(db, "select cell_id, frame, area from cells") %>%
 ## Vectorized conditional statement (ifelse)
 The R language provides a vectorized **ifelse()** function that we can then use in combination with the dplyr grammar. The vectorized **ifelse()** function takes 3 arguments corresponding to the condition (if), the consequent (then), and the alternative (else).
 
-```{r Example of ifelse, warning=FALSE, message=FALSE, echo=TRUE, cache=F}
+
+```r
 # Here, is an example in which we display each intermediate step
 cell <- dbGetQuery(db, "select cell_id, frame, area, elong_xx, elong_xy from cells") %>% 
   # additional column isMarginCell to flag the margin cell as "true"
   mutate(isMarginCell=ifelse(cell_id==10000, TRUE, FALSE))
-
 ```
 
 ***
@@ -231,7 +323,8 @@ The  melt() (or gather()) function creates two columns:
 
 Both **melt()** and **gather()** are equivalent, gather() being the newest implementation from the dplyr package.
 
-```{r Examples of melt or gather, warning=FALSE, message=FALSE, echo=TRUE, cache=F}
+
+```r
 # Load necessary libraries
 library(data.table)
 library(tidyr)
@@ -242,7 +335,19 @@ longFormat <- melt(cell)
 # by default, gather() gathers all columns
 longFormat <- gather(cell) 
 head(longFormat)
+```
 
+```
+##       key value
+## 1 cell_id 10000
+## 2 cell_id 10000
+## 3 cell_id 10000
+## 4 cell_id 10000
+## 5 cell_id 10000
+## 6 cell_id 10000
+```
+
+```r
 # Of note, the two columns {cell_id, frame} uniquely define each cell in frame 
 # Therefore, to keep consistent data, the frame column should not be gathered
 
@@ -251,16 +356,34 @@ longFormat <- melt(cell, measure.vars = c("area","elong_xx","elong_xy","isMargin
 # Or
 longFormat <- gather(cell, variable, value, c(area,elong_xx,elong_xy,isMarginCell)) 
 head(longFormat)
+```
 
+```
+##   cell_id frame variable value
+## 1   10000     0     area     0
+## 2   10000     1     area     0
+## 3   10000     2     area     0
+## 4   10000     3     area     0
+## 5   10000     4     area     0
+## 6   10000     5     area     0
+```
 
+```r
 # Example 3: specify which columns shouldn't be gathered (equivalent to example 2)
 longFormat <- melt(cell, id.vars =  c("cell_id","frame")) 
 # Or
 longFormat <- gather(cell, variable, value, -c(cell_id,frame)) 
 head(longFormat)
+```
 
-
-
+```
+##   cell_id frame variable value
+## 1   10000     0     area     0
+## 2   10000     1     area     0
+## 3   10000     2     area     0
+## 4   10000     3     area     0
+## 5   10000     4     area     0
+## 6   10000     5     area     0
 ```
 
 ***
@@ -268,7 +391,8 @@ head(longFormat)
 ### Lond to wide format: the dcast() or spread() function
 The  dcast() (or spread()) function creates as many columns as variable names contained in the 'variable' column and lists the corresponding values. Both **dcast()** and **spread()** are equivalent, spread() being the newest implementation from the tidyr package.
 
-```{r Example of dcast or spread, warning=FALSE, message=FALSE, echo=TRUE, cache=TRUE}
+
+```r
 # The melt operation is reversible (the row identifiers must be uniquely defined),
 # but booleans area coerced into numeric format
 # Using dcast(), cell_id and frame are the row identifiers,
@@ -283,9 +407,17 @@ example <- cell  %>%
 head(example)
 ```
 
-```{r MEM CLEAN UP 2, warning=FALSE, message=FALSE, echo=F,results='hide'}
-rm(cell,longFormat,example)
 ```
+##   cell_id frame area elong_xx elong_xy isMarginCell
+## 1   10000     0    0        0        0            1
+## 2   10000     1    0        0        0            1
+## 3   10000     2    0        0        0            1
+## 4   10000     3    0        0        0            1
+## 5   10000     4    0        0        0            1
+## 6   10000     5    0        0        0            1
+```
+
+
 
 ***
 
@@ -333,13 +465,29 @@ Function | Description | Package or project
 * ggplot's **aes()** function: to map the data to the system of coordinates
 
 
-```{r Example ggplot, warning=FALSE, message=FALSE, fig.width=11, cache=F}
+
+```r
 # Load the necessary libraries
 library(ggplot2)
 
 # Show the first rows of the previously calculated avgCellArea data frame:
 head(avgCellArea)
+```
 
+```
+## Source: local data frame [6 x 2]
+## 
+##   area_avg time_h
+##      (dbl)  (dbl)
+## 1 16.46156    0.0
+## 2 16.17277    0.1
+## 3 16.27033    0.2
+## 4 16.21719    0.2
+## 5 16.22896    0.3
+## 6 16.27422    0.4
+```
+
+```r
 # Map the data to the system of coordinates using ggplot
 ggplot(avgCellArea, aes(x = time_h, y = area_avg)) +
   # plot the average area as a line using geom_line
@@ -348,10 +496,13 @@ ggplot(avgCellArea, aes(x = time_h, y = area_avg)) +
   ggtitle("Average cell area as function of time")
 ```
 
+![](Learning_the_R_basics_for_TissueMiner_files/figure-html/Example ggplot-1.png)<!-- -->
+
 
 * save the graph with **ggsave2()**
 
-```{r Example ggsave2, warning=FALSE, message=FALSE, fig.width=11, cache=F}
+
+```r
 # Save the plot as svg for editing in Inkscape
 #ggsave2(width=14, unit="in", outputFormat="svg")
 ```
@@ -364,18 +515,32 @@ ggplot(avgCellArea, aes(x = time_h, y = area_avg)) +
 * The ordered list of vertices around each cell is stored in the *cellshapes.RData* table in the same folder as the database file.
 * The **geom_polygon()** function is used to represent cells as polygons on the original image.
 
-```{r Rendering cells and vertices load data, warning=FALSE, message=FALSE, fig.width=11,cache=F}
+
+```r
 # Load data into the 'cellshapes' variable
 load(file.path(movieDir, "cellshapes.RData")) 
 head(cellshapes)
+```
 
+```
+## Source: local data frame [6 x 5]
+## 
+##   frame cell_id x_pos y_pos bond_order
+##   (int)   (int) (dbl) (dbl)      (dbl)
+## 1     0   10001   193   195          1
+## 2     0   10001   189   199          2
+## 3     0   10001   206   212          3
+## 4     0   10001   229   206          4
+## 5     0   10001   219   192          5
+## 6     0   10001   217   190          6
 ```
 
 ***
 
 ## Example 1: plot cells as polygons in the Cartesian system
 
-```{r Rendering cells and vertices example1, warning=FALSE, message=FALSE, fig.width=11, cache=F}
+
+```r
 ggplot(cellshapes %>% filter(frame==70)) +
   # plot cells as polygons:
   geom_polygon(aes(x_pos, y_pos, group=cell_id),color="green",fill="white", size=0.3) +
@@ -385,11 +550,14 @@ ggplot(cellshapes %>% filter(frame==70)) +
   ggtitle("Pupal wing cells represented as polygons in Cartesian system")
 ```
 
+![](Learning_the_R_basics_for_TissueMiner_files/figure-html/Rendering cells and vertices example1-1.png)<!-- -->
+
 ***
 
 ## Example 2: plot cells as polygons in the image coordinate system
 
-```{r Rendering cells and vertices example2, warning=FALSE, message=FALSE, fig.width=11, cache=F}
+
+```r
 ggplot(cellshapes %>% filter(frame==70)) +
   geom_polygon(aes(x_pos, y_pos, group=cell_id),color="green",fill="white", size=0.3) + 
   coord_equal() +
@@ -398,11 +566,14 @@ ggplot(cellshapes %>% filter(frame==70)) +
   ggtitle("Pupal wing cells represented as polygons in image coordinate system")
 ```
 
+![](Learning_the_R_basics_for_TissueMiner_files/figure-html/Rendering cells and vertices example2-1.png)<!-- -->
+
 ***
 
 ## Example 3: plot cells and vertices
 
-```{r Rendering cells and vertices example3, warning=FALSE, message=FALSE, fig.width=11, cache=F}
+
+```r
 ggplot(cellshapes %>% filter(frame==70)) +
   geom_polygon(aes(x_pos, y_pos, group=cell_id),color="green",fill="white", size=0.3) +
   # plot each vertex as a point:
@@ -411,6 +582,8 @@ ggplot(cellshapes %>% filter(frame==70)) +
   scale_y_continuous(trans = "reverse") +
   ggtitle("Pupal wing cells and vertices")
 ```
+
+![](Learning_the_R_basics_for_TissueMiner_files/figure-html/Rendering cells and vertices example3-1.png)<!-- -->
 
 ***
 
