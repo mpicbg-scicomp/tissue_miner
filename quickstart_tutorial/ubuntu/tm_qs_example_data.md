@@ -9,7 +9,7 @@
 Just copy and paste the lines below **into your terminal** and press Enter:
 ```
      ## In your terminal, type in the command below to download and extract the Demo data
-     curl https://cloud.mpi-cbg.de/index.php/s/COYw9ugcG9BJQnf/download  | tar -zxvf -
+     curl https://cloud.mpi-cbg.de/index.php/s/vC0VqD2Wy4A6uqu/download  | tar -zxvf -
      
      ## Go to the movie directory
      cd example_data/demo
