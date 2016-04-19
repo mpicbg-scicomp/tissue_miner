@@ -44,7 +44,7 @@ docker pull etournay/tissue_miner
 
 ### How to force `git pull origin` in case of conflict ?
 
-Caution: if you do this, you may lose all you local changes in tissue_miner
+Caution: if you do this, you may lose all of your local changes in tissue_miner
 
 ```
 git fetch --all
