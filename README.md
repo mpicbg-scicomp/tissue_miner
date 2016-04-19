@@ -1,7 +1,7 @@
 
 
-![alt tag](https://raw.githubusercontent.com/mpicbg-scicomp/tissue_miner/master/docs/readme_screenshots/stripes_0.jpg)
-![alt tag](https://raw.githubusercontent.com/mpicbg-scicomp/tissue_miner/master/docs/readme_screenshots/veins_0.jpg)
+![alt tag](https://github.com/mpicbg-scicomp/tissue_miner/blob/gh-pages/readme_screenshots/stripes_0.jpg)
+![alt tag](https://github.com/mpicbg-scicomp/tissue_miner/blob/gh-pages/readme_screenshots/veins_0.jpg)
 
 
 About
@@ -75,7 +75,7 @@ beforehand. On any non-Ubuntu Linux, please install the [docker engine](https://
 
 * Next, you can download the TissueMiner application bundled in a docker image called _etournay/tissue_miner_.
 
-* On Mac or Windows, open a Docker Quick Start Terminal: ![alt tag](docs/readme_screenshots/docker_toolbox_osx_quickstart_icon_nolabel.png)
+* On Mac or Windows, open a Docker Quick Start Terminal: ![alt tag](https://github.com/mpicbg-scicomp/tissue_miner/blob/gh-pages/readme_screenshots/docker_toolbox_osx_quickstart_icon_nolabel.png)
 ```
 docker pull etournay/tissue_miner
 ```
@@ -88,16 +88,16 @@ Documentation
 ================
 
 * To get started with TissueMiner we suggest to do **Quickstart Tutorials:**
-    + **[Quickstart R Tutorials](docs/quickstart/ubuntu/tm_qs_example_data.md#first-use-of-tissueminer-with-example-data)** (Ubuntu).
-    + **[Quickstart docker-R Tutorials](docs/quickstart/other_os/tm_qs_example_data.md#first-use-of-tissueminer-with-example-data)** (Mac, Windows, other Linux).
+    + **[Quickstart R Tutorials](https://github.com/mpicbg-scicomp/tissue_miner/blob/gh-pages/quickstart_tutorial/ubuntu/tm_qs_example_data.md#first-use-of-tissueminer-with-example-data)** (Ubuntu).
+    + **[Quickstart docker-R Tutorials](https://github.com/mpicbg-scicomp/tissue_miner/blob/gh-pages/quickstart_tutorial/other_os/tm_qs_example_data.md#first-use-of-tissueminer-with-example-data)** (Mac, Windows, other Linux).
 
 * To get started with your own data analysis:
-    + **[R Tutorials](docs/quickstart/ubuntu/tm_qs_user_data.md#first-use-of-tissueminer-with-your-own-data)** (Ubuntu).
-    + **[docker-R Tutorials](docs/quickstart/other_os/tm_qs_user_data.md#first-use-of-tissueminer-with-your-own-data)** (Mac, Windows, other Linux).
+    + **[R Tutorials](https://github.com/mpicbg-scicomp/tissue_miner/blob/gh-pages/quickstart_tutorial/ubuntu/tm_qs_user_data.md#first-use-of-tissueminer-with-your-own-data)** (Ubuntu).
+    + **[docker-R Tutorials](https://github.com/mpicbg-scicomp/tissue_miner/blob/gh-pages/quickstart_tutorial/other_os/tm_qs_user_data.md#first-use-of-tissueminer-with-your-own-data)** (Mac, Windows, other Linux).
     
 * We provide the streamlined [R scripts](docs/quickstart/scripts) that are used in the tutorials to perform a simple analysis of a single movie
 
-* We also provide an exhaustive **[TM R User Manual](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/docs/TM_tutorial_in_R/TM_R-UserManual.md#tissueminer-an-r-tutorial-to-visualize-cell-dynamics-in-2d-tissues)** with lots of examples, background information and API details:
+* We also provide an exhaustive **[TM R User Manual](https://mpicbg-scicomp.github.io/tissue_miner/user_manual/TM_R-UserManual.html)** with lots of examples, background information and API details:
     + learn the necessary basics of the R language for TissueMiner
     + learn the powerful libraries of TissueMiner for epithelium analysis
     + benefit from lots of examples to make your own scripts
@@ -111,8 +111,8 @@ Documentation
 Datasets
 ================
 We provide four datasets:
-* 1 demo sample (~150 Mb) to run [Quickstart R Tutorials](docs/quickstart/tm_quickstart_landing_page.md#first-use-of-tissueminer-from-the-command-line)
-* 3 big datasets (>2Gb each) to explore more advanced capabilities of TissueMiner described in the [TM R User Manual](https://mpicbg-scicomp.github.io/tissue_miner/tm_tutorial/R-tutorial.html)
+* 1 demo sample (~150 Mb) to run [Quickstart R Tutorials](https://github.com/mpicbg-scicomp/tissue_miner/blob/gh-pages/quickstart_tutorial/tm_quickstart_landing_page.md#first-use-of-tissueminer)
+* 3 big datasets (>2Gb each) to explore more advanced capabilities of TissueMiner described in the [TM R User Manual](https://mpicbg-scicomp.github.io/tissue_miner/user_manual/TM_R-UserManual.html)
 
 Support
 =========
