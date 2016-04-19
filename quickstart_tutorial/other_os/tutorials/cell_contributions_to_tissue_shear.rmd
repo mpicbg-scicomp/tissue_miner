@@ -1,0 +1,95 @@
+---
+output: 
+  html_document: 
+    keep_md: yes
+---
+
+# Cell contributions to tissue shear analysis
+
+Cell contributions to tissue shear (change in aspect-ratio or pure shear) are calculated from the database using a dedicated routine included in the automated workflow. Therefore, on top of building the database, we also run this routine with the command `sm shear_calculate`.
+
+
+### 1. Plot the rate of tissue shear and its cellular contributions
+
+* Copy-paste the following commands in the terminal:
+
+```
+tm sm shear_calculate
+tm cell_contributions_to_tissue_shear_rate.R . output_analysis
+```
+
+```{r cell_contributions_to_tissue_shear_rate, warning=FALSE, message=FALSE, fig.width=11, cache=FALSE, eval=TRUE, echo=FALSE, results='hide'}
+movieDir="/Users/retourna/MovieDB/demo"
+
+scriptsDir=Sys.getenv("TM_HOME")
+if(is.na(file.info(scriptsDir)$isdir)){
+  stop(paste("TM_HOME not correctly defined (",scriptsDir ,")"))
+}
+
+source(file.path(scriptsDir, "commons/TMCommons.R"))
+source(file.path(scriptsDir, "commons/BaseQueryFunctions.R"))
+source(file.path(scriptsDir, "config/default_config.R"))
+
+db <- openMovieDb(movieDir)
+
+shearData <- mqf_cg_roi_rate_shear(movieDir, "raw")
+
+shearRateSlim <- subset(shearData, (tensor=="CEwithCT" | tensor=="correlationEffects" |
+                                      tensor=="nu" | tensor=="ShearT1" | 
+                                      tensor=="ShearT2" | tensor=="ShearCD"))
+shearRateSlim$tensor <- factor(shearRateSlim$tensor, 
+                               levels=c("ShearCD", "CEwithCT", "correlationEffects",
+                                        "nu", "ShearT1", "ShearT2"),
+                               labels=c("cell_division", "cell_elongation_change",
+                                        "correlation_effects","total_shear","T1", "T2"))
+
+deltaT=30
+shearRateInterpolated <- shearRateSlim %>%
+  select(-c(xy,yx,yy,xy.ma,yx.ma,yy.ma, TimeInt.ma,
+            phi, norm,time_sec,timeInt_sec,time_shift)) %>%
+  mutate(min_dev_time=min(dev_time),
+         max_dev_time=max(dev_time)) %>% 
+  group_by(movie, roi, tensor) %>%
+  do({
+    with(., approx(dev_time, xx.ma,
+                   xout = seq(min_dev_time[1], max_dev_time[1],
+                              by = deltaT/3600), method = "linear")) %>% as.df()
+  }) %>%
+  rename(dev_time=x, XX=y) %>% 
+  filter(!is.na(XX)) %>%
+  ungroup() 
+
+ggplot(shearRateInterpolated, aes(dev_time,XX*100, color=tensor)) +
+  geom_line() + 
+  xlab("Time [h]")+
+  ylab(expression(paste("shear rate xx [",10^-2,h^-1,"]"))) +
+  scale_color_manual(values=shearColors) +
+  facet_wrap(~roi) +
+  ggtitle("cell_contributions_to_tissue_shear_rate")
+
+```
+
+[Where to find the results ?](../tm_qs_example_data.md#4-look-at-the-results) **|** 
+[Back to tutorial list](../tm_qs_example_data.md#3-select-the-analysis-you-are-interested-in)
+
+
+### 2. Make videos of shear patterns
+
+Shear pattern videos are better generated in the automated workflow. Just typing in the `sm shear_movies` command is sufficient.
+
+* Copy-paste the following commands in the terminal:
+
+```
+tm sm shear_movies
+```
+
+* Find the videos
+
+Open your file browser and go to the movie directory, in which you should click on the "nematics_movies" folder that contains videos of cell shear contribution pattern.
+
+[Back to tutorial list](../tm_qs_example_data.md#3-select-the-analysis-you-are-interested-in)
+
+
+### 3. For further details
+
+* compare multiple movies and ROI's, see [TM R User Manual](https://mpicbg-scicomp.github.io/tissue_miner/tm_tutorial/R-tutorial.html#comparing-averaged-quantities-between-movies-and-rois)

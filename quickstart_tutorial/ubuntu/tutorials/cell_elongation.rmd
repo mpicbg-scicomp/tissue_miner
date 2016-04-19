@@ -1,0 +1,118 @@
+---
+output: 
+  html_document: 
+    keep_md: yes
+---
+
+# Cell elongation analysis
+
+Cell elongation is stored in the database. It is therefore sufficient to build the database only.
+
+
+### 1. Make a movie of cell elongation magnitude pattern plotted on the tissue
+
+* Copy-paste the following commands in the terminal:
+
+```
+sm make_db 
+cell_elongation_magnitude_pattern.R . output_analysis
+```
+
+```{r cell_elongation_magnitude_pattern, warning=FALSE, message=FALSE, fig.width=11, cache=FALSE, eval=TRUE, echo=FALSE, results='hide'}
+movieDir="/Users/retourna/MovieDB/demo"
+
+scriptsDir=Sys.getenv("TM_HOME")
+if(is.na(file.info(scriptsDir)$isdir)){
+  stop(paste("TM_HOME not correctly defined (",scriptsDir ,")"))
+}
+
+source(file.path(scriptsDir, "commons/TMCommons.R"))
+source(file.path(scriptsDir, "commons/BaseQueryFunctions.R"))
+source(file.path(scriptsDir, "config/default_config.R"))
+
+cellElongNematics <- mqf_fg_nematics_cell_elong(movieDir, rois = c("raw"), cellContour = T)
+
+db <- openMovieDb(movieDir)
+
+cellElongNematics %>%
+  render_frame(10) +
+  # we now map cell elongation values to a color palette: fill=elongNorm
+  geom_polygon(aes(x_pos, y_pos, group=cell_id, fill=norm)) + 
+  scale_fill_gradientn(name="elongation",
+                       colours=c("black", "blue", "green", "yellow", "red"),
+                       limits=c(0,1),
+                       na.value = "red") +
+  ggtitle("cell_elongation_pattern")
+
+
+```
+
+[Where to find the results ?](../tm_qs_example_data.md#4-look-at-the-results) **|** 
+[Back to tutorial list](../tm_qs_example_data.md#3-select-the-analysis-you-are-interested-in)
+
+
+### 2. Make a movie of coarse-grained cell elongation nematics plotted on the tissue
+* Copy-paste the following commands in the terminal:
+
+```
+sm make_db 
+cell_elongation_nematic_cg_pattern.R . output_analysis
+```
+
+```{r cg_cell_elongation_nematic_pattern, warning=FALSE, message=FALSE, fig.width=11, cache=FALSE, eval=TRUE, echo=FALSE, results='hide'}
+cellElongNematicsCG <- mqf_cg_grid_nematics_cell_elong(movieDir, gridSize = 96) 
+render_frame(cellElongNematicsCG, 1) +
+  geom_segment(aes(x=x1, y=y1,xend=x2, yend=y2),
+               size=2, lineend="round", color="red", na.rm=T)
+
+```
+
+[Where to find the results ?](../tm_qs_example_data.md#4-look-at-the-results) **|** 
+[Back to tutorial list](../tm_qs_example_data.md#3-select-the-analysis-you-are-interested-in)
+
+### 3. Plot cell elongation distrubution and averages
+* Copy-paste the following commands in the terminal:
+
+```
+sm make_db 
+cell_elongation_graphs.R . output_analysis
+```
+
+```{r cell_elongation_graphs, warning=FALSE, message=FALSE, fig.width=7, cache=FALSE, eval=TRUE, echo=FALSE,results='hide'}
+
+mqf_cg_roi_nematics_cell_elong(movieDir, rois = c("raw")) %>% 
+  ggplot(aes(dev_time, norm, color=movie)) +
+  geom_line() +
+  xlab("Time [h]") +
+  ylab("<Cell elongation norm>")  +
+  facet_wrap(~roi) +
+  ggtitle("averaged_cell_elongation")
+
+mqf_fg_nematics_cell_elong(movieDir, rois = c("raw")) %>% 
+  ggplot(aes(norm, fill=movie)) +
+  geom_histogram(color="white") +
+  xlab("Cell elongation norm")  +
+  facet_wrap(~roi) +
+  ggtitle("cell_elongation_distribution")
+
+mqf_fg_nematics_cell_elong(movieDir, rois = c("raw")) %>%
+  ggplot(aes(movie,norm, fill=movie)) +
+  geom_boxplot() +
+  ylab("Cell elongation norm")  +
+  facet_wrap(~roi) +
+  ggtitle("cell_elongation_boxplot")
+
+mqf_fg_nematics_cell_elong(movieDir, rois = c("raw")) %>%
+  ggplot(aes(movie,norm, fill=movie)) +
+  geom_violin() +
+  ylab("Cell elongation norm")  +
+  facet_wrap(~roi) +
+  ggtitle("cell_elongation_violin")
+```
+
+[Where to find the results ?](../tm_qs_example_data.md#4-look-at-the-results) **|** 
+[Back to tutorial list](../tm_qs_example_data.md#3-select-the-analysis-you-are-interested-in)
+
+### 4. For further details
+
+* compare multiple movies and ROI's, see [TM R User Manual](https://mpicbg-scicomp.github.io/tissue_miner/tm_tutorial/R-tutorial.html#comparing-averaged-quantities-between-movies-and-rois)

@@ -1,0 +1,156 @@
+---
+output: 
+  html_document: 
+    keep_md: yes
+---
+
+# Cell lineage and division analysis
+
+Cell lineages and cell divisions are stored in the database. It is therefore sufficient to build the database only.
+
+
+### 1. Make a video of the cumulative pattern of cell divisions plotted on the tissue
+
+* Copy-paste the following commands in the terminal:
+
+```
+tm sm make_db 
+tm cell_division_generation_pattern.R . output_analysis
+```
+
+```{r cumulative_cell_division_pattern, warning=FALSE, message=FALSE, fig.width=11, cache=FALSE, eval=TRUE, echo=FALSE, results='hide'}
+movieDir="/Users/retourna/MovieDB/demo"
+
+scriptsDir=Sys.getenv("TM_HOME")
+if(is.na(file.info(scriptsDir)$isdir)){
+  stop(paste("TM_HOME not correctly defined (",scriptsDir ,")"))
+}
+
+source(file.path(scriptsDir, "commons/TMCommons.R"))
+source(file.path(scriptsDir, "commons/BaseQueryFunctions.R"))
+source(file.path(scriptsDir, "config/default_config.R"))
+
+db <- openMovieDb(movieDir)
+
+# limit generation to a more reasonable range
+genColors =c("0"="white", "1" = "red", "2"="green", "3"="cyan", ">3"="magenta")
+
+# Send a SQL query to get the cell lineage
+cellsWithLin <- dbGetQuery(db, "select cell_id, lineage_group, generation 
+                                from cell_histories") %>%
+  # fix a generation cut off for a more reasonable range
+  mutate(generation_cutoff=ifelse(generation>3, ">3", ac(generation))) %>%
+  # add cell vertices for cell rendering as polygons
+  dt.merge(locload(file.path(movieDir, "cellshapes.RData")), by = "cell_id") %>%
+  arrange(frame, cell_id, bond_order) %>% print_head()
+
+cellsWithLin %>%
+  render_frame(70) + 
+  geom_polygon(aes(x_pos, y_pos, fill=as.factor(generation_cutoff), group=cell_id), alpha=0.5) +
+  scale_fill_manual(name="generation", values=genColors) +
+  ggtitle("Cell_division_generation")
+
+```
+
+[Where to find the results ?](../tm_qs_example_data.md#4-look-at-the-results) **|** 
+[Back to tutorial list](../tm_qs_example_data.md#3-select-the-analysis-you-are-interested-in)
+
+### 2. Make a video of coarse-grained cell division nematics plotted on the tissue
+
+* Copy-paste the following commands in the terminal:
+
+```
+tm sm make_db 
+tm cell_division_orientation_pattern.R . output_analysis
+```
+
+```{r cell_division_nematic_pattern, warning=FALSE, message=FALSE, fig.width=11, cache=FALSE, eval=TRUE, echo=FALSE, results='hide'}
+
+mqf_cg_grid_unit_nematics_CD(movieDir, gridSize = 90, kernSize = 5) %>%
+  ## Plot CD nematics on image #55
+  render_frame(7) + 
+  geom_segment(aes(x=x1, y=y1, xend=x2, yend=y2),
+               size=2, alpha=0.7, lineend="round", color="orange", na.rm=T) +
+  ggtitle("Coarse-grained cell division nemtatics")
+
+
+```
+
+[Where to find the results ?](../tm_qs_example_data.md#4-look-at-the-results) **|** 
+[Back to tutorial list](../tm_qs_example_data.md#3-select-the-analysis-you-are-interested-in)
+
+
+### 3. Plot cell division rate
+* Copy-paste the following commands in the terminal:
+
+```
+tm sm make_db 
+tm cell_division_rate.R . output_analysis
+```
+
+```{r cell_division_rate, warning=FALSE, message=FALSE, fig.width=7, cache=FALSE, eval=TRUE, echo=FALSE,results='hide'}
+source(file.path(scriptsDir, "commons/TimeFunctions.R"))
+
+CDrateByTimeIntervals <- mqf_cg_roi_rate_CD(movieDir, rois = "raw") %>%
+  chunk_time_into_intervals(3600) %>%
+  group_by(movie, roi,interval_mid) %>%
+  summarise(avgCDrate=mean(cell_loss_rate),
+            semCD=se(cell_loss_rate),
+            time_sec=interval_mid[1],
+            dev_time=mean(dev_time))
+
+ggplot(CDrateByTimeIntervals, aes(dev_time, avgCDrate, color=movie)) + 
+  geom_line()+
+  geom_point(size=1, color="black") +
+  geom_errorbar(aes(ymin=(avgCDrate-semCD), ymax=(avgCDrate+semCD)),
+                size=0.3, width=0.4, color="black") +
+  ylab(expression(paste("CD rate [", cell^-1, h^-1,"]"))) +
+  facet_wrap(~roi) +
+  ggtitle("Cell_division_rate")
+
+```
+
+[Where to find the results ?](../tm_qs_example_data.md#4-look-at-the-results) **|** 
+[Back to tutorial list](../tm_qs_example_data.md#3-select-the-analysis-you-are-interested-in)
+
+### 4. Plot average cell division orientation as a function of time
+* Copy-paste the following commands in the terminal:
+
+```
+tm sm make_db 
+tm cell_division_orientation.R . output_analysis
+```
+
+```{r cell_division_orientation, warning=FALSE, message=FALSE, fig.width=7, cache=FALSE, eval=TRUE, echo=FALSE,results='hide'}
+CDNematics <- mqf_cg_roi_unit_nematics_CD(movieDir, rois = "raw") %>% 
+  group_by(movie) %>%
+  mutate(maxnormByMovie=max(norm,na.rm=T)) %>% 
+  group_by(movie,roi) %>%
+  mutate(maxnormByRoi=max(norm,na.rm=T)) %>% print_head() 
+
+ggplot(CDNematics , aes()) + 
+  geom_segment(aes(x=phi, y=0, xend=phi, yend=(norm), color=dev_time),size=1, alpha=0.5) +
+  geom_segment(aes(x=mod2pi(phi+pi), y=0, xend=mod2pi(phi+pi), yend=(norm),
+                   color=dev_time), size=1, alpha=0.5) +
+  scale_color_gradientn(name="Time [h]",
+                        colours=c("black", "blue", "green", "yellow", "red"),
+                        limits=c(min(CDNematics$dev_time),max(CDNematics$dev_time)),
+                        na.value = "red") +
+  coord_polar(start=-pi/2,direction=+1)+
+  scale_x_continuous(breaks=seq(0,3*pi/2,pi/2), 
+                     labels=c(expression(pi),expression(paste(pi/2," Ant")),
+                              expression(0),expression(-pi/2)),
+                     limits=c(0,2*pi)) +
+  xlab("") +
+  ylab("CD nematic norm") +
+  facet_wrap(~roi) +
+  ggtitle("avg_CD_nematics")
+
+```
+
+[Where to find the results ?](../tm_qs_example_data.md#4-look-at-the-results) **|** 
+[Back to tutorial list](../tm_qs_example_data.md#3-select-the-analysis-you-are-interested-in)
+
+### 5. For further details
+
+* compare multiple movies and ROI's, see [TM R User Manual](https://mpicbg-scicomp.github.io/tissue_miner/tm_tutorial/R-tutorial.html#comparing-averaged-quantities-between-movies-and-rois)
