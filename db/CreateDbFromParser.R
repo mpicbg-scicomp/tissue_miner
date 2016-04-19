@@ -99,6 +99,10 @@ save(cells, dbonds, ubonds, vertices, file="cells_dbonds_ubonds_vertices.RData")
 ########################################################################################################################
 ### also load the time here already so that we can fail if we can not find the file
 
+if(!file.exists(file.path(movieDir, "Segmentation", "cumultimesec.txt"))){
+  stop(paste("cumultimesec.txt doesn't exit in the Segmentation folder, aborting..."))
+}
+
 frames <-read.delim(file.path(movieDir, "Segmentation", "cumultimesec.txt"), header=F)
 frames <- data.frame(frame=0:(nrow(frames)-1), time_sec=frames$V1)
 
