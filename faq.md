@@ -10,7 +10,7 @@ export TM_CONFIG=$TM_HOME/config/flywing_tm_config.R
 ```
 
 
-* For running [TissueMiner snakemake workflow]
+* For running [TissueMiner snakemake workflow](https://mpicbg-scicomp.github.io/tissue_miner/user_manual/TM_R-UserManual.html#tissueminer-snakemake-automated-workflow)
     + Ubuntu: `export TM_CONFIG=$TM_HOME/config/flywing_tm_config.R`
     + Docker: defined my_config.R in the movie repository and run the command below
     ```
