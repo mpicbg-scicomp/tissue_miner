@@ -94,7 +94,7 @@ Example:
 
 `alias tm='docker run --rm -ti -v $(dirname $PWD):/movies -w /movies/$(basename $PWD) etournay/tissue_miner'`
 
-**A tip !** Just copy this line above in your .bashrc or .bash_profile to make this command permanent.
+**A tip !** Just copy this line above in your .bashrc or .bash_profile to make this `tm` command permanent.
 
 
 ### 6. Select the analysis you are interested in
@@ -111,6 +111,18 @@ Here, we propose some streamlined quickstart tutorials.
 Here, we extend the cell area example to compare between different regions of interest.
 
 * [Compare cell area in different ROI's](tutorials/cell_area_ROI.md#cell-area-analysis-in-multiple-rois)
+
+Here, run an entire analysis of a single movie
+
+```
+tm sm shear_calculate topo_countt1 polygon_class tri_categorize 
+tm analyze_movie.R . output_analysis
+```
+
+Here, use your own [configuration file](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/config/flywing_tm_config.R) to optimize the output rendering. Your configuration file *my_config.R* must be located in the movie repository folder. You'll find more explanation about this file in the [TM R User Manual](https://mpicbg-scicomp.github.io/tissue_miner/user_manual/TM_R-UserManual.html#tissueminer-api-configuration).
+```
+tm "export TM_CONFIG=/movies/my_config.R; sm shear_calculate topo_countt1 polygon_class tri_categorize; analyze_movie.R . output_analysis"
+```
 
 
 ### 7. Look at the results 
