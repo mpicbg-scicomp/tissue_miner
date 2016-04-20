@@ -1,7 +1,0 @@
-base
-dplyr
-DBI
-RSQLite
-data.table
-tidyr
-ggplot2
