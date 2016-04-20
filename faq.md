@@ -3,12 +3,20 @@
 
 ### How do I run snakemake with a project specific configuration file instead of `default_config.R`?
 
-
+* For running [TissueMiner API](https://mpicbg-scicomp.github.io/tissue_miner/user_manual/TM_R-UserManual.html#tissueminer-api-configuration)
 Export a shell variable named `TM_CONFIG` pointing to the config file you would like to use. E.g. to use `config/flywing_tm_config.R` just do
-    
-    export TM_CONFIG=$TM_HOME/config/flywing_tm_config.R
-
+```  
+export TM_CONFIG=$TM_HOME/config/flywing_tm_config.R
+```
 before running snakemake.
+
+* For running [TissueMiner snakemake workflow]
+    + Ubuntu: `export TM_CONFIG=$TM_HOME/config/flywing_tm_config.R`
+    + Docker: defined my_config.R in the movie repository and run the command below
+    ```
+    alias tm='docker run --rm -ti -v $(dirname $PWD):/movies -w /movies/$(basename $PWD) etournay/tissue_miner'
+    tm "export TM_CONFIG=/movies/my_config.R; sm all"
+    ```
 
 ### What kind of data are required to run TissueMiner ?
 
