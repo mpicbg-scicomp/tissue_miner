@@ -21,7 +21,7 @@ localrules: parse_tables, make_db
 
 ## grep output /projects/project-raphael/scripts/tissue_miner/workflow/tm.snkmk | tail -n+2 | cut -d: -f2-  | sort -u | tr "\\n" ","
 rule all:
-    input:  "4way_vertices/not3_vertices.mp4", DB, "dbTablesFromParser/vertex_in_frame.dat", "lg_color_optimization/lg_colors.txt", "lineage/generation_limit_range.mp4", "nematics_movies/" + movie + "_cell_elongation.mp4", "polygon_class/polygon_class_discrete.mp4", "shear_contrib/thirdInt.RData", TRIANGLES, "state_movies/" + movie + "_cell_area_rainbow.mp4", "state_movies/" + movie + "_DBelong_nematics.mp4", "state_movies/" + movie + "_cell_elong_norm.mp4", "stripe_movies/blue_square_tracking.mp4", "stripe_movies/static_stripes.mp4", T1_COUNTS, "topochanges/t1_balance_smoothed.mp4", "topochanges/t1_rates_smoothed.mp4", TRACKED_ROIS, "tri_categories/triangleCategories.RData", "roi_bt/bt_bhfix_peeled.mp4", "shear_contrib/raw/Ta_t.RData"
+    input:  "4way_vertices/not3_vertices.mp4", DB, "dbTablesFromParser/vertex_in_frame.dat", "lg_color_optimization/lg_colors.txt", "lineage/generation_limit_range.mp4", "nematics_movies/" + movie + "_cell_elongation.mp4", "polygon_class/polygon_class_discrete.mp4", "shear_contrib/thirdInt.RData", TRIANGLES, "state_movies/" + movie + "_cell_area_rainbow.mp4", "state_movies/" + movie + "_DBelong_nematics.mp4", "state_movies/" + movie + "_cell_elong_norm.mp4", "stripe_movies/blue_square_tracking.mp4", T1_COUNTS, "topochanges/t1_balance_smoothed.mp4", "topochanges/t1_gain_loss.mp4", TRACKED_ROIS, "tri_categories/triangleCategories.RData", "roi_bt/bt_bhfix_peeled.mp4", "shear_contrib/raw/Ta_t.RData"
 
 
 # rule hello:
@@ -108,7 +108,7 @@ rule topo_countt1:
 rule topo_movies:
     params: name="topo_movies"
     input: T1_COUNTS
-    output: "topochanges/t1_rates_smoothed.mp4"
+    output: "topochanges/t1_gain_loss.mp4"
     shell: "TopologyMovies.R "  + movieDbDir
 
 
@@ -171,7 +171,7 @@ rule density_movies:
 rule deformation_movies:
     params: name="deformation_movies"
     input: DB
-    output: "stripe_movies/static_stripes.mp4",  "stripe_movies/blue_square_tracking.mp4"
+    output: "stripe_movies/blue_square_tracking.mp4"
     shell: "StripeMovies.R " + movieDbDir
 
 
