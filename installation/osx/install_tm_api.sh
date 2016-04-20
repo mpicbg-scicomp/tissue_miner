@@ -23,5 +23,8 @@ ${TM_HOME}/Setup.R
 
 
 # Rstudio installation
-brew install Caskroom/cask/rstudio # OK, installed in $HOME/Applications/
+DIRECTORY="/Applications/RStudio.app/Contents/MacOS/"
+if [ ! -d "$DIRECTORY" ]; then
+  brew install Caskroom/cask/rstudio # OK, installed in $HOME/Applications/
+fi
 
