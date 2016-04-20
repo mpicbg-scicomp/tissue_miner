@@ -9,8 +9,7 @@ Cell area is stored in the database.
 * Copy-paste the following commands in the terminal:
 
 ```
-tm sm make_db 
-tm cell_area_pattern.R . output_analysis
+tm sm make_db; tm cell_area_pattern.R . output_analysis
 ```
 
 ![](cell_area_files/figure-html/cell_area_pattern-1.png)
@@ -22,8 +21,7 @@ tm cell_area_pattern.R . output_analysis
 * Copy-paste the following commands in the terminal:
 
 ```
-tm sm make_db 
-tm cell_area_graphs.R . output_analysis
+tm sm make_db; tm cell_area_graphs.R . output_analysis
 ```
 
 ![](cell_area_files/figure-html/cell_area_graphs-1.png)![](cell_area_files/figure-html/cell_area_graphs-2.png)![](cell_area_files/figure-html/cell_area_graphs-3.png)![](cell_area_files/figure-html/cell_area_graphs-4.png)

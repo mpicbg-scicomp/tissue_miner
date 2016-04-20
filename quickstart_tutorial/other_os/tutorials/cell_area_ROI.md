@@ -12,8 +12,7 @@ Cell area is stored in the database, but ROI's are not. ROI's are identified by 
 * Copy-paste the following commands in the terminal:
 
 ```
-tm sm roi_tracking 
-tm cell_area_pattern.R . output_analysis "cell_patch"
+tm sm roi_tracking; tm cell_area_pattern.R . output_analysis "cell_patch"
 ```
 
 ![](cell_area_ROI_files/figure-html/cell_area_pattern-1.png)
@@ -25,8 +24,7 @@ tm cell_area_pattern.R . output_analysis "cell_patch"
 * Copy-paste the following commands in the terminal:
 
 ```
-tm sm make_db 
-tm cell_area_graphs.R . output_analysis "raw whole_tissue cell_patch"
+tm sm make_db; tm cell_area_graphs.R . output_analysis "raw whole_tissue cell_patch"
 ```
 
 ![](cell_area_ROI_files/figure-html/cell_area_graphs-1.png)![](cell_area_ROI_files/figure-html/cell_area_graphs-2.png)![](cell_area_ROI_files/figure-html/cell_area_graphs-3.png)![](cell_area_ROI_files/figure-html/cell_area_graphs-4.png)

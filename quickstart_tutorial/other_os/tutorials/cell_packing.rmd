@@ -14,8 +14,7 @@ Cell neighbor count is easily calculated from the database. It is therefore suff
 * Copy-paste the following commands in the terminal:
 
 ```
-tm sm make_db 
-tm cell_neighbor_number_pattern.R . output_analysis
+tm sm make_db; tm cell_neighbor_number_pattern.R . output_analysis
 ```
 
 ```{r cell_neighbor_number_pattern, warning=FALSE, message=FALSE, fig.width=11, cache=FALSE, eval=TRUE, echo=FALSE, results='hide'}
@@ -56,8 +55,7 @@ cellPolygonClass %>%
 * Copy-paste the following commands in the terminal:
 
 ```
-tm sm topo_countt1 
-tm cell_neighbor_number_graphs.R . output_analysis
+tm sm topo_countt1; tm cell_neighbor_number_graphs.R . output_analysis
 ```
 
 ```{r cell_neighbor_number_graphs, warning=FALSE, message=FALSE, fig.width=7, cache=FALSE, eval=TRUE, echo=FALSE,results='hide'}

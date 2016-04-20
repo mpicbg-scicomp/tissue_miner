@@ -9,8 +9,7 @@ Cell neighbor count is easily calculated from the database. It is therefore suff
 * Copy-paste the following commands in the terminal:
 
 ```
-tm sm make_db 
-tm cell_neighbor_number_pattern.R . output_analysis
+tm sm make_db; tm cell_neighbor_number_pattern.R . output_analysis
 ```
 
 ![](cell_packing_files/figure-html/cell_neighbor_number_pattern-1.png)
@@ -22,8 +21,7 @@ tm cell_neighbor_number_pattern.R . output_analysis
 * Copy-paste the following commands in the terminal:
 
 ```
-tm sm topo_countt1 
-tm cell_neighbor_number_graphs.R . output_analysis
+tm sm topo_countt1; tm cell_neighbor_number_graphs.R . output_analysis
 ```
 
 ![](cell_packing_files/figure-html/cell_neighbor_number_graphs-1.png)![](cell_packing_files/figure-html/cell_neighbor_number_graphs-2.png)

@@ -9,8 +9,7 @@ Cell elongation is stored in the database. It is therefore sufficient to build t
 * Copy-paste the following commands in the terminal:
 
 ```
-tm sm make_db 
-tm cell_elongation_magnitude_pattern.R . output_analysis
+tm sm make_db; tm cell_elongation_magnitude_pattern.R . output_analysis
 ```
 
 ![](cell_elongation_files/figure-html/cell_elongation_magnitude_pattern-1.png)
@@ -23,8 +22,7 @@ tm cell_elongation_magnitude_pattern.R . output_analysis
 * Copy-paste the following commands in the terminal:
 
 ```
-tm sm make_db 
-tm cell_elongation_nematic_cg_pattern.R . output_analysis
+tm sm make_db; tm cell_elongation_nematic_cg_pattern.R . output_analysis
 ```
 
 ![](cell_elongation_files/figure-html/cg_cell_elongation_nematic_pattern-1.png)
@@ -36,8 +34,7 @@ tm cell_elongation_nematic_cg_pattern.R . output_analysis
 * Copy-paste the following commands in the terminal:
 
 ```
-tm sm make_db 
-tm cell_elongation_graphs.R . output_analysis
+tm sm make_db; tm cell_elongation_graphs.R . output_analysis
 ```
 
 ![](cell_elongation_files/figure-html/cell_elongation_graphs-1.png)![](cell_elongation_files/figure-html/cell_elongation_graphs-2.png)![](cell_elongation_files/figure-html/cell_elongation_graphs-3.png)![](cell_elongation_files/figure-html/cell_elongation_graphs-4.png)
@@ -47,4 +44,4 @@ tm cell_elongation_graphs.R . output_analysis
 
 ### 4. For further details
 
-* compare multiple movies and ROI's, see [TM R User Manual](https://mpicbg-scicomp.github.io/tissue_miner/tm_tutorial/R-tutorial.html#comparing-averaged-quantities-between-movies-and-rois)
+* compare multiple movies and ROI's, see [TM R User Manual](https://mpicbg-scicomp.github.io/tissue_miner/user_manual/TM_R-UserManual.html#comparing-averaged-quantities-between-movies-and-rois)

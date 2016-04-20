@@ -9,8 +9,7 @@ Cell lineages and cell divisions are stored in the database. It is therefore suf
 * Copy-paste the following commands in the terminal:
 
 ```
-tm sm make_db 
-tm cell_division_generation_pattern.R . output_analysis
+tm sm make_db; tm cell_division_generation_pattern.R . output_analysis
 ```
 
 ![](cell_lineage_and_divisions_files/figure-html/cumulative_cell_division_pattern-1.png)
@@ -23,8 +22,7 @@ tm cell_division_generation_pattern.R . output_analysis
 * Copy-paste the following commands in the terminal:
 
 ```
-tm sm make_db 
-tm cell_division_orientation_pattern.R . output_analysis
+tm sm make_db; tm cell_division_orientation_pattern.R . output_analysis
 ```
 
 ![](cell_lineage_and_divisions_files/figure-html/cell_division_nematic_pattern-1.png)
@@ -37,8 +35,7 @@ tm cell_division_orientation_pattern.R . output_analysis
 * Copy-paste the following commands in the terminal:
 
 ```
-tm sm make_db 
-tm cell_division_rate.R . output_analysis
+tm sm make_db; tm cell_division_rate.R . output_analysis
 ```
 
 ![](cell_lineage_and_divisions_files/figure-html/cell_division_rate-1.png)
@@ -50,8 +47,7 @@ tm cell_division_rate.R . output_analysis
 * Copy-paste the following commands in the terminal:
 
 ```
-tm sm make_db 
-tm cell_division_orientation.R . output_analysis
+tm sm make_db; tm cell_division_orientation.R . output_analysis
 ```
 
 ![](cell_lineage_and_divisions_files/figure-html/cell_division_orientation-1.png)
