@@ -42,6 +42,18 @@ Here, we extend the cell area example to compare between different regions of in
 
 * [Compare cell area in different ROI's](tutorials/cell_area_ROI.md#cell-area-analysis-in-multiple-rois)
 
+Here, run an entire analysis of a single movie
+
+```
+tm sm shear_calculate topo_countt1 polygon_class tri_categorize 
+tm analyze_movie.R . output_analysis
+```
+
+Here, use your own [configuration file](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/config/flywing_tm_config.R) to optimize the output rendering. Your configuration file *my_config.R* must be located in the movie repository folder.
+```
+tm "export TM_CONFIG=/movies/my_config.R; sm shear_calculate topo_countt1 polygon_class tri_categorize; analyze_movie.R . output_analysis"
+```
+
 
 ### 4. Look at the results 
 
