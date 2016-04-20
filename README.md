@@ -88,11 +88,11 @@ Documentation
 ================
 
 * First [install](https://github.com/mpicbg-scicomp/tissue_miner#installation) TissueMiner on your system.
-* To get started with TissueMiner we suggest to do **Quickstart Tutorials:**
+* To get started with TissueMiner we suggest to do **Quickstart Tutorials on our example data:** 
     + **[Quickstart R Tutorials](https://github.com/mpicbg-scicomp/tissue_miner/blob/gh-pages/quickstart_tutorial/ubuntu/tm_qs_example_data.md#first-use-of-tissueminer-with-example-data)** (Ubuntu).
     + **[Quickstart docker-R Tutorials](https://github.com/mpicbg-scicomp/tissue_miner/blob/gh-pages/quickstart_tutorial/other_os/tm_qs_example_data.md#first-use-of-tissueminer-with-example-data)** (Mac, Windows, other Linux).
 
-* To get started with your own data analysis:
+* To get started with your **own data** analysis:
     + **[R Tutorials](https://github.com/mpicbg-scicomp/tissue_miner/blob/gh-pages/quickstart_tutorial/ubuntu/tm_qs_user_data.md#first-use-of-tissueminer-with-your-own-data)** (Ubuntu).
     + **[docker-R Tutorials](https://github.com/mpicbg-scicomp/tissue_miner/blob/gh-pages/quickstart_tutorial/other_os/tm_qs_user_data.md#first-use-of-tissueminer-with-your-own-data)** (Mac, Windows, other Linux).
     
