@@ -99,18 +99,18 @@ if(F){ #### DEBUG
 ## Clean up memory
 rm(topoChangeSummary,t1EventsROI,t1EventsROInoBcknd,t1Events,cellPositions,t1Summary,lgRoiSmoothed)
 
-# print("rendering t1 event movie...")
-# 
-# render_movie(t1SummarySmooth, "t1_balance_raw.mp4", list(
-#     geom_tile(aes(xGrid, yGrid, fill=sum_t1_balance_trimmed), alpha=0.7),
-#     scale_fill_gradientn(name="t1_gain - t1_loss", colours=c("red", "black", "green"), limits=balanceLimits)
-# ))
-# 
-# render_movie(t1SummarySmooth, "t1_balance_smoothed.mp4", list(
-#     geom_tile(aes(xGrid, yGrid, fill=sum_t1_balance_smooth, alpha=abs(sum_t1_balance_smooth))),
-#     scale_fill_gradientn(name="t1_gain-t1_loss", colours=c("red", "black", "green"), limits=balanceLimits),
-#     scale_alpha(range=c(0.4,1), na.value=0),
-#     guides(alpha=FALSE)
-# ))
-# 
-# print("rate t1 balance rendering done")
+print("rendering t1 event movie...")
+
+render_movie(t1SummarySmooth, "t1_balance_raw.mp4", list(
+    geom_tile(aes(xGrid, yGrid, fill=sum_t1_balance_trimmed), alpha=0.7),
+    scale_fill_gradientn(name="t1_gain - t1_loss", colours=c("red", "black", "green"), limits=balanceLimits)
+))
+
+render_movie(t1SummarySmooth, "t1_balance_smoothed.mp4", list(
+    geom_tile(aes(xGrid, yGrid, fill=sum_t1_balance_smooth, alpha=abs(sum_t1_balance_smooth))),
+    scale_fill_gradientn(name="t1_gain-t1_loss", colours=c("red", "black", "green"), limits=balanceLimits),
+    scale_alpha(range=c(0.4,1), na.value=0),
+    guides(alpha=FALSE)
+))
+
+print("rate t1 balance rendering done")
