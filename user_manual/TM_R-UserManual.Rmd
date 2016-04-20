@@ -67,7 +67,8 @@ print("Welcome to TissueMiner")
 * Command to run the complete workflow including video creation: `sm all`
 * Command to see all non-processed rules: `sm -n`
 * Command to build the database only: `sm make_db`
-* Command to generate the necessary data for exploiting the TissueMiner API: `sm calculate_all`
+* Command to generate the necessary data for exploiting the TissueMiner API: `sm shear_calculate topo_countt1 polygon_class tri_categorize`
+* Using docker, all of these commands must be used right after the docker command. Ex: `tm sm make_db`
 
 ### Strengths
 * The _snakemake_ automated workflow (sm command) builds the **database** and generates additional data about cell lineages, cell topology, cell geometry, and cell contributions to tissue deformation. 
