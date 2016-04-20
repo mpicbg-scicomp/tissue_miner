@@ -87,6 +87,7 @@ docker pull etournay/tissue_miner
 Documentation
 ================
 
+* First [install](https://github.com/mpicbg-scicomp/tissue_miner#installation) TissueMiner on your system.
 * To get started with TissueMiner we suggest to do **Quickstart Tutorials:**
     + **[Quickstart R Tutorials](https://github.com/mpicbg-scicomp/tissue_miner/blob/gh-pages/quickstart_tutorial/ubuntu/tm_qs_example_data.md#first-use-of-tissueminer-with-example-data)** (Ubuntu).
     + **[Quickstart docker-R Tutorials](https://github.com/mpicbg-scicomp/tissue_miner/blob/gh-pages/quickstart_tutorial/other_os/tm_qs_example_data.md#first-use-of-tissueminer-with-example-data)** (Mac, Windows, other Linux).
