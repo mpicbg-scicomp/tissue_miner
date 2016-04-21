@@ -115,7 +115,10 @@ Here, we extend the cell area example to compare between different regions of in
 Here, run an entire analysis of a single movie
 
 ```
-tm sm shear_calculate topo_countt1 polygon_class tri_categorize 
+tm sm shear_calculate topo_countt1 polygon_class tri_categorize
+```
+
+```
 tm analyze_movie.R . output_analysis
 ```
 

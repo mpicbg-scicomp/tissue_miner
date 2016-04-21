@@ -46,6 +46,9 @@ Here, run an entire analysis of a single movie
 
 ```
 tm sm shear_calculate topo_countt1 polygon_class tri_categorize 
+```
+
+```
 tm analyze_movie.R . output_analysis
 ```
 
