@@ -195,7 +195,7 @@ if (!identical(row.names(lostCells), character(0))) {
   ## add cell center from second frame to first frame triangulation
   ## - if we would ignore cells which are dead in the next frame, we would be done already
   sndIntRaw <- dt.merge(transform(triList, frame=frame+1), cells, by=c("frame", "cell_id"), all.x=T)
-  sndIntRaw <- subset(sndIntRaw, frame<=max(triList$frame)) ## fix lookahead overlap at the last frame
+  sndInt <- subset(sndIntRaw, frame<=max(triList$frame)) ## fix lookahead overlap at the last frame
   
   save(sndInt, file="sndInt.RData")
   # sndInt <- local(get(load("sndInt.RData")))
