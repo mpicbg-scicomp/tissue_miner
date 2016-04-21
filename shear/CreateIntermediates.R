@@ -14,31 +14,40 @@ print("building 1st intermediate...")
 cells <- dbGetQuery(db, "select frame, cell_id, center_x, center_y, area from cells where cell_id!=10000")
 
 #### account for cell death ONLY
-## project cell positions of dying cells ONLY to next frame
 lostDyingCells <-  dbGetQuery(db, "select cell_id, last_occ from cell_histories where disappears_by='Apoptosis'")
-lastOccNeighborsDying <- dt.merge(neighbors, with(lostDyingCells, data.frame(cell_id.x=cell_id, frame=last_occ)))
 
-
-## note no time-shift here because we just want to replace dying cells with the center of the neighbor coordinates
-ghostPositionsFI <- lastOccNeighborsDying %>%
-  select(center_cell_id=cell_id.x, frame=frame, cell_id=cell_id.y) %>%  # create filter list for merge with cells table
-  dt.merge(cells, by=c("frame", "cell_id")) %>%                         # add cell positions
-  group_by(center_cell_id, frame) %>%                               # calculate ghost position for each
-  summarise(ghost_x=mean(center_x), ghost_y=mean(center_y)) %>%
-  ungroup() %>%
-  select(cell_id=center_cell_id, frame, center_x=ghost_x, center_y=ghost_y)
-
-
-stopifnot(nrow(ghostPositionsFI) == nrow(lostDyingCells))
-
-## now replace dying cell positions in cells with ghost positions
-firstInt <- cells %>%
-  select(-area) %>%                                           ## not needed
-  anti_join(ghostPositionsFI, by=c("cell_id", "frame")) %>%   ## remove dying cells
-  rbind(ghostPositionsFI) %>%                                 ## add dying cells with ghost positions
-  dt.merge(triList) %>%                                       ## add triangulation
-  arrange(frame, tri_id, tri_order)                           ## resort for better reading; not necessary for processing
-
+# check if any dying cells are present at all
+if (!identical(row.names(lostDyingCells), character(0))) {
+  
+  ## project cell positions of dying cells ONLY to next frame
+  lastOccNeighborsDying <- dt.merge(neighbors, with(lostDyingCells, data.frame(cell_id.x=cell_id, frame=last_occ)))
+  
+  ## note no time-shift here because we just want to replace dying cells with the center of the neighbor coordinates
+  ghostPositionsFI <- lastOccNeighborsDying %>%
+    select(center_cell_id=cell_id.x, frame=frame, cell_id=cell_id.y) %>%  # create filter list for merge with cells table
+    dt.merge(cells, by=c("frame", "cell_id")) %>%                         # add cell positions
+    group_by(center_cell_id, frame) %>%                               # calculate ghost position for each
+    summarise(ghost_x=mean(center_x), ghost_y=mean(center_y)) %>%
+    ungroup() %>%
+    select(cell_id=center_cell_id, frame, center_x=ghost_x, center_y=ghost_y)
+  
+  
+  stopifnot(nrow(ghostPositionsFI) == nrow(lostDyingCells))
+  
+  ## now replace dying cell positions in cells with ghost positions
+  firstInt <- cells %>%
+    select(-area) %>%                                           ## not needed
+    anti_join(ghostPositionsFI, by=c("cell_id", "frame")) %>%   ## remove dying cells
+    rbind(ghostPositionsFI) %>%                                 ## add dying cells with ghost positions
+    dt.merge(triList) %>%                                       ## add triangulation
+    arrange(frame, tri_id, tri_order)                           ## resort for better reading; not necessary for processing
+  
+} else {
+  firstInt <- cells %>%
+    select(-area) %>%                                           ## not needed
+    dt.merge(triList) %>%                                       ## add triangulation
+    arrange(frame, tri_id, tri_order)                           ## resort for better reading; not necessary for processing
+}
 
 save(firstInt, file="firstInt.RData"); rm(firstInt)
 # firstInt <- local(get(load("firstInt.RData")))
@@ -69,112 +78,131 @@ print("building 2nd intermediate...")
 
 
 if(F){ #### DEBUG
-cells<- subset(cells, frame < 25)
-triList<- subset(triList, frame < 25)
-neighbors<- subset(neighbors, frame < 50)
-#lostCells<- subset(last_occ, frame < 50)
+  cells<- subset(cells, frame < 25)
+  triList<- subset(triList, frame < 25)
+  neighbors<- subset(neighbors, frame < 50)
+  #lostCells<- subset(last_occ, frame < 50)
 } #### DEBUG end
 
 
 #### account for cell death
-## 1) project cell positions of lost cells to next frame
+
 lostCells <-  dbGetQuery(db, "select cell_id, last_occ from cell_histories where disappears_by='Apoptosis' or disappears_by='Division'")
-lastOccNeighbors <- dt.merge(neighbors, with(lostCells, data.frame(cell_id.x=cell_id, frame=last_occ)))
 
-if(F){
-  ## display lost cells from the lastOccNeighbors table
-  lostCellID <- lastOccNeighbors %>% select(cell_id.x,frame) %>%
-    unique_rows(c("cell_id.x","frame"))
-  ggplot(lostCellID, aes(frame))+geom_histogram()
-
-  lostCellIDFrame25 <- filter(lostCellID, frame==25) %>%
-    select(cell_id=cell_id.x,frame) %>%
-    dt.merge(cells, by=c("frame","cell_id"))
-
-  render_frame(lostCellIDFrame25, 25) + geom_point(aes(center_x, center_y), size=2, color="red") +  guides(alpha=FALSE)
-}
-
-
-
-## 2) join with neighbor topology from last frame (left outer join to allow us to count co-dying ghost neighbors)
-## note could also be done with all neighbors instead of lastOccNeighbors
-projNeighborCenters <- dt.merge(with(lastOccNeighbors, data.frame(center_cell_id=cell_id.x, frame=frame+1, cell_id=cell_id.y)), cells, by=c("frame", "cell_id"))
-projNeighborCenters <- subset(projNeighborCenters, frame<=max(cells$frame)) ## because lookahead must fail for the last frame the data-set
-
-
-## 3) calculate centers for each cell and count dead neighbors
-ghostPositions <- as.df(data.table(projNeighborCenters)[, list(frame=frame[1], ghost_x=mean(center_x), ghost_y=mean(center_y), num_neighbors=length(frame)), by=c("center_cell_id")])
-
-## 4) quick fix to set the center of mass of merged-daughter cells (mother cell id enforced at time t+1)
-mergedDaughterCenter <- dbGetQuery(db, "select cell_id as mother_cell_id, last_occ+1 as frametp1, left_daughter_cell_id, right_daughter_cell_id from cell_histories where disappears_by='Division'") %>%
-  dt.merge(select(cells, left_daughter_cell_id=cell_id, frametp1=frame, matches(".")), by=c("frametp1","left_daughter_cell_id")) %>%
-  dt.merge(select(cells, right_daughter_cell_id=cell_id, frametp1=frame, matches(".")), by=c("frametp1","right_daughter_cell_id"), suffixes=c(".left", ".right")) %>%
-  transmute(frametp1, mother_cell_id, left_daughter_cell_id, right_daughter_cell_id,
-              avg_center_x=0.5*(center_x.left+center_x.right),
-              avg_center_y=0.5*(center_y.left+center_y.right))
-
-ghostPositions <- ghostPositions %>%
-  dt.merge(select(mergedDaughterCenter, center_cell_id=mother_cell_id, frame=frametp1, avg_center_x, avg_center_y), all.x=T) %>%
-  mutate(ghost_x=ifelse(is.na(avg_center_x),ghost_x,avg_center_x),
-         ghost_y=ifelse(is.na(avg_center_y),ghost_y,avg_center_y)) %>%
-  select(-c(avg_center_x,avg_center_y))
-
-
-## numExpectedGhostPositions <- nrow(dbGetQuery(db, "select cell_id, last_occ from cell_histories where disappears_by='Apoptosis' and last_occ<50"))
-
-## note some will have NA positions because they have just dead neighbors
-if(F){ #### DEBUG
+# check if any lost cells are identified at all
+if (!identical(row.names(lostCells), character(0))) {
+  
+  ## 1) project cell positions of lost cells to next frame
+  lastOccNeighbors <- dt.merge(neighbors, with(lostCells, data.frame(cell_id.x=cell_id, frame=last_occ)))
+  
+  if(F){
+    ## display lost cells from the lastOccNeighbors table
+    lostCellID <- lastOccNeighbors %>% select(cell_id.x,frame) %>%
+      unique_rows(c("cell_id.x","frame"))
+    ggplot(lostCellID, aes(frame))+geom_histogram()
+    
+    lostCellIDFrame25 <- filter(lostCellID, frame==25) %>%
+      select(cell_id=cell_id.x,frame) %>%
+      dt.merge(cells, by=c("frame","cell_id"))
+    
+    render_frame(lostCellIDFrame25, 25) + geom_point(aes(center_x, center_y), size=2, color="red") +  guides(alpha=FALSE)
+  }
+  
+  ## 2) join with neighbor topology from last frame (left outer join to allow us to count co-dying ghost neighbors)
+  ## note could also be done with all neighbors instead of lastOccNeighbors
+  projNeighborCenters <- dt.merge(with(lastOccNeighbors, data.frame(center_cell_id=cell_id.x, frame=frame+1, cell_id=cell_id.y)), cells, by=c("frame", "cell_id"))
+  projNeighborCenters <- subset(projNeighborCenters, frame<=max(cells$frame)) ## because lookahead must fail for the last frame the data-set
+  
+  
+  ## 3) calculate centers for each cell and count dead neighbors
+  ghostPositions <- as.df(data.table(projNeighborCenters)[, list(frame=frame[1], ghost_x=mean(center_x), ghost_y=mean(center_y), num_neighbors=length(frame)), by=c("center_cell_id")])
+  
+  ## 4) quick fix to set the center of mass of merged-daughter cells (mother cell id enforced at time t+1)
+  lostMotherCells <- dbGetQuery(db, "select cell_id as mother_cell_id, last_occ+1 as frametp1, left_daughter_cell_id, right_daughter_cell_id from cell_histories where disappears_by='Division'")
+  if (!identical(row.names(lostMotherCells), character(0))){
+    mergedDaughterCenter <- lostMotherCells %>%
+      dt.merge(select(cells, left_daughter_cell_id=cell_id, frametp1=frame, matches(".")), by=c("frametp1","left_daughter_cell_id")) %>%
+      dt.merge(select(cells, right_daughter_cell_id=cell_id, frametp1=frame, matches(".")), by=c("frametp1","right_daughter_cell_id"), suffixes=c(".left", ".right")) %>%
+      transmute(frametp1, mother_cell_id, left_daughter_cell_id, right_daughter_cell_id,
+                avg_center_x=0.5*(center_x.left+center_x.right),
+                avg_center_y=0.5*(center_y.left+center_y.right))
+    
+    ghostPositions <- ghostPositions %>%
+      dt.merge(select(mergedDaughterCenter, center_cell_id=mother_cell_id, frame=frametp1, avg_center_x, avg_center_y), all.x=T) %>%
+      mutate(ghost_x=ifelse(is.na(avg_center_x),ghost_x,avg_center_x),
+             ghost_y=ifelse(is.na(avg_center_y),ghost_y,avg_center_y)) %>%
+      select(-c(avg_center_x,avg_center_y))
+  }
+  
+  ## numExpectedGhostPositions <- nrow(dbGetQuery(db, "select cell_id, last_occ from cell_histories where disappears_by='Apoptosis' and last_occ<50"))
+  
+  ## note some will have NA positions because they have just dead neighbors
+  if(F){ #### DEBUG
     with(ghostPositions, as.data.frame(table(is.na(ghost_x))))
-
+    
     ggplot(ghostPositions, aes(as.factor(num_neighbors))) + geom_bar()
-
+    
     ggplot(projNeighborCenters, aes(frame)) + geom_histogram() ## includes duplicates
-
+    
     ghostDeadCounts <- as.df(data.table(projNeighborCenters)[, list(ghost_x=mean(center_x, na.rm=T), ghost_y=mean(center_y, na.rm=T), num_dead_neighbors=sum(is.na(center_x)), num_neighbors=length(center_x), frame=mean(frame)), by=c("center_cell_id")])
-
+    
     ## get an idea about the numbers of dead cells around dead cells
     ggplot(ghostDeadCounts, aes(as.factor(num_dead_neighbors))) + geom_histogram() + xlab("number of dead neighbors of ghost cells")
     ggplot(ghostDeadCounts, aes(as.factor(num_neighbors))) + geom_histogram() + xlab("number of neighbors of ghost cells")
     ggplot(ghostDeadCounts, aes(num_dead_neighbors/num_neighbors)) + geom_histogram() + xlab("dead neighbor proporition of ghost cells") +scale_x_continuous(limits=c(0,1))#+ scale_y_sqrt()
     #ggplot(ghostDeadCounts, aes(num_dead_neighbors/num_neighbors)) + geom_histogram()+ facet_wrap(~num_neighbors) + xlab("dead neighbor counts of ghost cells by number of neighbors")
-
+    
     justDeadNeighborGhosts <- subset(ghostDeadCounts, num_neighbors==num_dead_neighbors) # <-- should be empty
-
+    
     #render_source_image(frameOI) + geom_point(aes(x_pos, y_pos, fill=factor(color), group=cell_id), alpha=0.5, data=csF) + scale_fill_discrete(guide=FALSE)
-} #### DEBUG end
+  } #### DEBUG end
+  
+  ## Build actual 2nd intermediate
+  ## add cell center from second frame to first frame triangulation
+  ## - if we would ignore cells which are dead in the next frame, we would be done already
+  sndIntRaw <- dt.merge(transform(triList, frame=frame+1), cells, by=c("frame", "cell_id"), all.x=T)
+  sndIntRaw <- subset(sndIntRaw, frame<=max(triList$frame)) ## fix lookahead overlap at the last frame
+  
+  #sndIntRaw <- arrange(sndIntRaw, frame, tri_id, tri_order)
+  sndIntWithGhosts <- dt.merge(sndIntRaw, plyr::rename(ghostPositions, c(center_cell_id="cell_id")), by=c("frame", "cell_id"), all=T)
+  
+  sndIntWithGhosts <- transform(sndIntWithGhosts, center_x_fixed=ifelse(!is.na(center_x), center_x, ghost_x), center_y_fixed=ifelse(!is.na(center_y), center_y, ghost_y))
+  
+  ## remove ghost fixes where we just have 2 neighbors
+  ghostTriWithTooFewNeighbors <- subset(data.table(sndIntWithGhosts)[, list(minGhostNeighbors=min(c(num_neighbors, length(num_neighbors)), na.rm=T)), by="tri_id"], minGhostNeighbors<3)
+  sndIntWithGhostsFilt <- subset(sndIntWithGhosts, !(tri_id %in% ghostTriWithTooFewNeighbors$tri_id))
+  
+  ## get rid of incomplete triangles due to NAs
+  ## http://stackoverflow.com/questions/16573995/subset-by-group-with-data-table
+  #sndIntWithGhostsFiltNoNA <- data.table(sndIntWithGhostsFilt)[, .SD[any(is.na(center_x_fixed))], by="tri_id"]
+  sndIntWithGhostsFilt <- data.table(sndIntWithGhostsFilt)[, is_complete_tri:=!any(is.na(center_x_fixed)), by="tri_id"]
+  sndIntWithGhostsFiltNoNA <- subset(sndIntWithGhostsFilt, is_complete_tri)
+  
+  #with(sndIntWithGhostsFilt, as.data.frame(table(is_complete_tri)))
+  
+  ## cleanup
+  sndInt <- with(sndIntWithGhostsFiltNoNA, data.frame(cell_id, frame, tri_id, tri_order, center_x=center_x_fixed, center_y=center_y_fixed))
+  
+  # Note1: frame refers to time t+1 of the interval [t,t+1] (due to positions from t+1)
+  # Note2: tri_id refers to time t of the interval [t,t+1] (due to topology from t)
+  
+  save(sndInt, file="sndInt.RData")
+  # sndInt <- local(get(load("sndInt.RData")))
+  
+} else {
+  
+  ## Build actual 2nd intermediate
+  ## add cell center from second frame to first frame triangulation
+  ## - if we would ignore cells which are dead in the next frame, we would be done already
+  sndIntRaw <- dt.merge(transform(triList, frame=frame+1), cells, by=c("frame", "cell_id"), all.x=T)
+  sndIntRaw <- subset(sndIntRaw, frame<=max(triList$frame)) ## fix lookahead overlap at the last frame
+  
+  save(sndInt, file="sndInt.RData")
+  # sndInt <- local(get(load("sndInt.RData")))
+  
+}
 
 
-## Build actual 2nd intermediate
-## add cell center from second frame to first frame triangulation
-## - if we would ignore cells which are dead in the next frame, we would be done already
-sndIntRaw <- dt.merge(transform(triList, frame=frame+1), cells, by=c("frame", "cell_id"), all.x=T)
-sndIntRaw <- subset(sndIntRaw, frame<=max(triList$frame)) ## fix lookahead overlap at the last frame
-
-#sndIntRaw <- arrange(sndIntRaw, frame, tri_id, tri_order)
-sndIntWithGhosts <- dt.merge(sndIntRaw, plyr::rename(ghostPositions, c(center_cell_id="cell_id")), by=c("frame", "cell_id"), all=T)
-
-sndIntWithGhosts <- transform(sndIntWithGhosts, center_x_fixed=ifelse(!is.na(center_x), center_x, ghost_x), center_y_fixed=ifelse(!is.na(center_y), center_y, ghost_y))
-
-## remove ghost fixes where we just have 2 neighbors
-ghostTriWithTooFewNeighbors <- subset(data.table(sndIntWithGhosts)[, list(minGhostNeighbors=min(c(num_neighbors, length(num_neighbors)), na.rm=T)), by="tri_id"], minGhostNeighbors<3)
-sndIntWithGhostsFilt <- subset(sndIntWithGhosts, !(tri_id %in% ghostTriWithTooFewNeighbors$tri_id))
-
-## get rid of incomplete triangles due to NAs
-## http://stackoverflow.com/questions/16573995/subset-by-group-with-data-table
-#sndIntWithGhostsFiltNoNA <- data.table(sndIntWithGhostsFilt)[, .SD[any(is.na(center_x_fixed))], by="tri_id"]
-sndIntWithGhostsFilt <- data.table(sndIntWithGhostsFilt)[, is_complete_tri:=!any(is.na(center_x_fixed)), by="tri_id"]
-sndIntWithGhostsFiltNoNA <- subset(sndIntWithGhostsFilt, is_complete_tri)
-
-#with(sndIntWithGhostsFilt, as.data.frame(table(is_complete_tri)))
-
-## cleanup
-sndInt <- with(sndIntWithGhostsFiltNoNA, data.frame(cell_id, frame, tri_id, tri_order, center_x=center_x_fixed, center_y=center_y_fixed))
-
-# Note1: frame refers to time t+1 of the interval [t,t+1] (due to positions from t+1)
-# Note2: tri_id refers to time t of the interval [t,t+1] (due to topology from t)
-
-save(sndInt, file="sndInt.RData")
-# sndInt <- local(get(load("sndInt.RData")))
 
 
 
