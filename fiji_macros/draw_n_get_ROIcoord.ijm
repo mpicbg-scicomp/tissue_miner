@@ -98,7 +98,7 @@ function extract_ROIcoord(filePath, ROIpath){
 function setDefaultTemplatesFile(templatesPathName)
 {
 	f = File.open(templatesPathName);
-	print(f, "pupal wing,blade,interL1-L2,L2,interL2-L3,L3,proxInterL3-L4,distInterL3-L4,L4,proxInterL4-L5,postCV,distInterL4-L5,L5,postL5,HBinterface,hinge");
+	print(f, "pupal_wing,blade,interL1-L2,L2,interL2-L3,L3,proxInterL3-L4,distInterL3-L4,L4,proxInterL4-L5,postCV,distInterL4-L5,L5,postL5,HBinterface,hinge");
 	//print(f, "wing disk,DV,AP,DorsInLeft,DorsInRight,VentrInRight,VentrInLeft,DorsOutLeft,DorsOutRight,VentrOutRight,VentrOutLeft");
 	File.close(f);
 }
@@ -148,7 +148,7 @@ function updateTemplate(title, default)
 	Dialog.addString("", default, 100);			  
 	Dialog.addMessage("please enter the template name and the name of the different\n"+
 					  "structures separateded by a comma. For instance:\n"+
-					  "pupal wing,blade,interL1-L2,L2,interL2-L3,L3 ... ");
+					  "pupal_wing,blade,interL1-L2,L2,interL2-L3,L3 ... ");
 	Dialog.show();
 	return Dialog.getString();
 }
@@ -240,6 +240,7 @@ while( (action!=actions[0]) | (templatesName.length==0) )
 	{
 		id = getTemplateId(templates_str_list, templateName);
 		templates_str = updateTemplate( "Update template "+templateName, templates_str_list[id] );
+		template_str = replace(template_str, " ", "");
 		templates_str_list[id] = templates_str;
 		IJ.log(templateName+" template was edited");
 	}
@@ -252,6 +253,7 @@ while( (action!=actions[0]) | (templatesName.length==0) )
 	else if(action == actions[3]) //Add a new template
 	{
 		template_str = updateTemplate("Create a new template","");
+		template_str = replace(template_str, " ", "");
 		templates_str_list = appendToArray(templates_str_list, template_str);
 		chuncks=split(template_str,",");
 		IJ.log(chuncks[0]+" was created");
