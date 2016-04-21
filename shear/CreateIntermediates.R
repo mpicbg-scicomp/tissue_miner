@@ -4,7 +4,7 @@ neighbors <- local(get(load("neighbors.RData")))
 ########################################################################################################################
 ## First intermediate I1:
 #
-# - topo from t asseuming that dying were shrinked to n-way vertices
+# - topo from t assuming that dying were shrunk to n-way vertices
 # - cell positions from t
 #
 # Marko: At intermediate one only thing that changes is that position of dying cells are substituted by ghosts (average of neighbour positions). For intermediate 2 we take positions from t+dt and ghosts positions will also change. I am not sure I answered your question since I am not sure I understood it (I hope I have :) )
@@ -201,9 +201,6 @@ if (!identical(row.names(lostCells), character(0))) {
   # sndInt <- local(get(load("sndInt.RData")))
   
 }
-
-
-
 
 
 if(F){ #### DEBUG Figure out why some of the positions are NA
