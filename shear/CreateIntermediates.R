@@ -189,6 +189,10 @@ if (!identical(row.names(lostCells), character(0))) {
   save(sndInt, file="sndInt.RData")
   # sndInt <- local(get(load("sndInt.RData")))
   
+  ## clean up memory
+  rm(sndIntRaw, sndIntWithGhosts, sndIntWithGhostsFilt, sndIntWithGhostsFiltNoNA, sndInt)
+  
+  
 } else {
   
   ## Build actual 2nd intermediate
@@ -203,6 +207,10 @@ if (!identical(row.names(lostCells), character(0))) {
   
   save(sndInt, file="sndInt.RData")
   # sndInt <- local(get(load("sndInt.RData")))
+  
+  ## clean up memory
+  rm(sndIntRaw, sndIntFilt, sndInt)
+  
   
 }
 
