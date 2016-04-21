@@ -203,7 +203,7 @@ if (!identical(row.names(lostCells), character(0))) {
   
   # Get rid of incomplete triangles thanks to NAs
   sndIntFilt <- data.table(sndIntRaw)[, is_complete_tri:=!any(is.na(center_x)), by="tri_id"]
-  sndInt <- subset(sndIntFilt, is_complete_tri)
+  sndInt <- subset(sndIntFilt, is_complete_tri) %>% as.df()
   
   save(sndInt, file="sndInt.RData")
   # sndInt <- local(get(load("sndInt.RData")))
