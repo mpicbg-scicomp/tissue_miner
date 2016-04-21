@@ -44,10 +44,11 @@ for originalIm in $(find $segDataDir -name "$movieName*.[p,t][n,i][f,g]" | sort)
 		file=$(basename $originalIm)		
 		ext="${file##*.}"
         pngOutput=$(dirname $originalIm)/${file%.$ext}/"original".png
-        echo "converting $originalIm to $pngOutput ..."
-		sem -j4 convert $originalIm -background "black" -type truecolor -colorspace RGB -define png:compression-level=9 $pngOutput
+        echo "converting $originalIm -> $pngOutput ..."
+	#sem -j4 convert $originalIm -background "black" -type truecolor -colorspace RGB -define png:compression-level=9 $pngOutput
+	convert $originalIm -background "black" -type truecolor -colorspace RGB -define png:compression-level=9 $pngOutput
     done
-sem --wait
+#sem --wait
 
 
 ### create fake config file for parser NO ANYMORE NEEDED !!
