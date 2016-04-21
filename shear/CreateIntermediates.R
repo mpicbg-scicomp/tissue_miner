@@ -263,10 +263,6 @@ subset(cells, cell_id==11008)
 
 } #### DEBUG end
 
-
-## clean up memory
-rm(sndIntRaw, sndIntWithGhosts, sndIntWithGhostsFilt, sndIntWithGhostsFiltNoNA, sndInt)
-
 ########################################################################################################################
 ### Create 3nd intermediate: ignoring cell divisions
 
