@@ -56,8 +56,8 @@ TissueMiner ships with a command-line Ubuntu-Installer and can be used via Docke
 
 * To install TissueMiner on Ubuntu simply copy-paste the commands in the box below into a [terminal](https://help.ubuntu.com/community/UsingTheTerminal) to perform the following steps:
     + Define the directory where to install TissueMiner
-    + Download TissueMiner repository
-    + Install TM
+    + Download TissueMiner repository (~120MB)
+    + Install TM (~30 min due to the complitation of the source code of R packages)
 ```
 export TM_HOME="${HOME}/tissue_miner"
 sudo apt-get install git
@@ -71,11 +71,11 @@ source ${HOME}/.bashrc
 ### Other Systems
 
 * To install TissueMiner on a MacOS or a Windows system, we provide a Docker container that bundles TissueMiner and all its dependencies. If not yet present on your system, you need to install the [docker toolbox](https://www.docker.com/products/docker-toolbox)
-beforehand. On any non-Ubuntu Linux, please install the [docker engine](https://docs.docker.com/).
+beforehand (180Mb). On any non-Ubuntu Linux, please install the [docker engine](https://docs.docker.com/).
 
-* Next, you can download the TissueMiner application bundled in a docker image called _etournay/tissue_miner_.
+* Next, you can download the TissueMiner application bundled in a docker image called _etournay/tissue_miner_ (~700Mb).
 
-* On Mac or Windows, open a Docker Quick Start Terminal: ![alt tag](https://github.com/mpicbg-scicomp/tissue_miner/blob/gh-pages/readme_screenshots/docker_toolbox_osx_quickstart_icon_nolabel.png)
+    + On Mac or Windows, open a Docker Quick Start Terminal: ![alt tag](https://github.com/mpicbg-scicomp/tissue_miner/blob/gh-pages/readme_screenshots/docker_toolbox_osx_quickstart_icon_nolabel.png)
 ```
 docker pull etournay/tissue_miner
 ```
