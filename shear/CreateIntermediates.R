@@ -195,7 +195,11 @@ if (!identical(row.names(lostCells), character(0))) {
   ## add cell center from second frame to first frame triangulation
   ## - if we would ignore cells which are dead in the next frame, we would be done already
   sndIntRaw <- dt.merge(transform(triList, frame=frame+1), cells, by=c("frame", "cell_id"), all.x=T)
-  sndInt <- subset(sndIntRaw, frame<=max(triList$frame)) ## fix lookahead overlap at the last frame
+  sndIntRaw <- subset(sndIntRaw, frame<=max(triList$frame)) ## fix lookahead overlap at the last frame
+  
+  # Get rid of incomplete triangles thanks to NAs
+  sndIntFilt <- data.table(sndIntRaw)[, is_complete_tri:=!any(is.na(center_x)), by="tri_id"]
+  sndInt <- subset(sndIntFilt, is_complete_tri)
   
   save(sndInt, file="sndInt.RData")
   # sndInt <- local(get(load("sndInt.RData")))
