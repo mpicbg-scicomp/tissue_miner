@@ -35,8 +35,8 @@ cells   <- dbGetQuery(db, "select cell_id, frame, center_x, center_y from cells 
 #### CELL GAIN
 
 
-gained_cells <- merge(cells, cellinfo, by.x=c("cell_id", "frame"), by.y=c("cell_id", "first_occ"))
-gained_cells <- transform(gained_cells,  appears_by=as.factor(appears_by))
+# gained_cells <- merge(cells, cellinfo, by.x=c("cell_id", "frame"), by.y=c("cell_id", "first_occ"))
+# gained_cells <- transform(gained_cells,  appears_by=as.factor(appears_by))
 
 ## plot gain status codes
 #render_movie(cell_divisions, "cell_divisions.mp4", geom_point(aes(center_x, center_y),  alpha=0.5, color='red'))
@@ -44,58 +44,54 @@ gained_cells <- transform(gained_cells,  appears_by=as.factor(appears_by))
 # render_movie(gained_cells, "cell_gain.mp4", list(geom_point(aes(center_x, center_y, color=appears_by),  alpha=0.5), scale_color_discrete(drop=F)))
 
 
-rm(gained_cells) ## clean up
+# rm(gained_cells) ## clean up
 
 
 ########################################################################################################################
 ### Also create a CD rate heatmap
 
-
-
-
-
-#t1Events <- with(subset(topoChangeSummary, num_t1_gained>0  | num_t1_lost>0), data.frame(cell_id, frame, t1_sum=num_t1_gained+num_t1_lost))
-cdEvents <- with(subset(cellinfo, disappears_by=="Division"), data.frame(cell_id, frame=last_occ, is_cd_next_frame=T))
-
-## filter cell positions by with grid model
-## note movie_grid_size comes from config file
-gridSize=movie_grid_size
-
-cdEventsROI <- coarseGrid(dt.merge(cells, cdEvents, all.x=T), gridSize)
-cdEventsROInoBcknd <- removeBckndGridOvlp(cdEventsROI, getBckndGridElements(db, gridSize))
-
-cdSummary <- as.df(group_by(cdEventsROInoBcknd, xGrid, yGrid, frame) %>% summarise(num_cells=length(cell_id), num_cd=sum(is_cd_next_frame, na.rm=T)))
-cdSummary <- transform(cdSummary, cd_rate=num_cd/(num_cells*5)) ## todo use actual time here
-
-## todo continue here: smoothing still seems to shuffle grid elements...
-cdSummarySmooth <- smooth_tissue(cdSummary, cd_rate, kernel_size=10)
-
-## define a range for plotting
-#ggplot(cdSummarySmooth, aes(cd_rate_smooth)) + geom_histogram() + ggtitle("smoothed cd rates")
-cdSmoothRange <- c(0,8)
-
-cdSummarySmooth <- transform(cdSummarySmooth, cd_rate_trimmed=limitRange(cd_rate, cdSmoothRange))
-#summary(t1SummarySmooth$t1_rate_trimmed)
-
-
-# interesting: with(t1SummarySmooth, as.data.frame(table(frame, is.na(t1_rate_trimmed))))
-
-if(F){ #### DEBUG
+if (!identical(row.names(subset(cellinfo, disappears_by=="Division")), character(0))){
+  cdEvents <- with(subset(cellinfo, disappears_by=="Division"), data.frame(cell_id, frame=last_occ, is_cd_next_frame=T))
+  
+  ## filter cell positions by with grid model
+  ## note movie_grid_size comes from config file
+  gridSize=movie_grid_size
+  
+  cdEventsROI <- coarseGrid(dt.merge(cells, cdEvents, all.x=T), gridSize)
+  cdEventsROInoBcknd <- removeBckndGridOvlp(cdEventsROI, getBckndGridElements(db, gridSize))
+  
+  cdSummary <- as.df(group_by(cdEventsROInoBcknd, xGrid, yGrid, frame) %>% summarise(num_cells=length(cell_id), num_cd=sum(is_cd_next_frame, na.rm=T)))
+  cdSummary <- transform(cdSummary, cd_rate=num_cd/(num_cells*5)) ## todo use actual time here
+  
+  ## todo continue here: smoothing still seems to shuffle grid elements...
+  cdSummarySmooth <- smooth_tissue(cdSummary, cd_rate, kernel_size=10)
+  
+  ## define a range for plotting
+  #ggplot(cdSummarySmooth, aes(cd_rate_smooth)) + geom_histogram() + ggtitle("smoothed cd rates")
+  cdSmoothRange <- c(0,8)
+  
+  cdSummarySmooth <- transform(cdSummarySmooth, cd_rate_trimmed=limitRange(cd_rate, cdSmoothRange))
+  #summary(t1SummarySmooth$t1_rate_trimmed)
+  
+  
+  # interesting: with(t1SummarySmooth, as.data.frame(table(frame, is.na(t1_rate_trimmed))))
+  
+  if(F){ #### DEBUG
     render_frame(cdSummarySmooth, 15) + geom_tile(aes(xGrid, yGrid, fill=cd_rate_trimmed, alpha=cd_rate_trimmed)) + scale_fill_gradient(name="cd/sec", low="black", high="blue", limits=cdSmoothRange)  + scale_alpha(range=c(0.1,0.8), na.value=0) +  guides(alpha=FALSE)
-
-cdSummarySmooth <- subset(cdSummarySmooth, frame <25)
+    
+    cdSummarySmooth <- subset(cdSummarySmooth, frame <25)
+  }
+  
+  
+  render_movie(cdSummarySmooth, "cd_rates_smoothed.mp4", list(
+    geom_tile(aes(xGrid, yGrid, fill=cd_rate_trimmed, alpha=cd_rate_trimmed)),
+    scale_fill_gradient(name="cd/min", low="black", high="blue", limits=cdSmoothRange) ,
+    scale_alpha(range=c(0.1,0.8), na.value=0),
+    guides(alpha=FALSE)
+  ))
+  
+  print("rate cd rate rendering done")
 }
-
-
-# render_movie(cdSummarySmooth, "cd_rates_smoothed.mp4", list(
-# geom_tile(aes(xGrid, yGrid, fill=cd_rate_trimmed, alpha=cd_rate_trimmed)),
-#  scale_fill_gradient(name="cd/min", low="black", high="blue", limits=cdSmoothRange) ,
-#  scale_alpha(range=c(0.1,0.8), na.value=0),
-#  guides(alpha=FALSE)
-# ))
-# 
-# print("rate cd rate rendering done")
-
 
 ########################################################################################################################
 #### CELL LOSS
@@ -152,15 +148,15 @@ cell_age <- cellinfo %>%
     dt.merge(cellshapes, "cell_id") %>%
     arrange(frame, cell_id, bond_order)
 
-#curFrame <- 70
-#img <- readPNG(paste0(imageBase, sprintf("Optimized_projection_%03d/original.png", curFrame)))
-#csFrame <- subset(cell_age, frame==curFrame)
-#render_source_image(curFrame) + geom_polygon(aes(x_pos, y_pos, fill=frame-first_occ, group=cell_id), csFrame,  alpha=0.5)  + scale_fill_gradient(name="age", low="green", high="darkred")
+# curFrame <- 70
+# img <- readPNG(paste0(imageBase, sprintf("Optimized_projection_%03d/original.png", curFrame)))
+# csFrame <- subset(cell_age, frame==curFrame)
+# render_source_image(curFrame) + geom_polygon(aes(x_pos, y_pos, fill=frame-first_occ, group=cell_id), csFrame,  alpha=0.5)  + scale_fill_gradient(name="age", low="green", high="darkred")
 
-# render_movie(cell_age, "cell_age.mp4", list(
-# geom_polygon(aes(x_pos, y_pos, fill=frame-first_occ, group=cell_id),  alpha=0.5),
-# scale_fill_gradient(name="age", low="green", high="darkred", limits=c(0,200))
-# ))
+render_movie(cell_age, "cell_age.mp4", list(
+geom_polygon(aes(x_pos, y_pos, fill=frame-first_occ, group=cell_id),  alpha=0.5),
+scale_fill_gradient(name="age", low="green", high="darkred", limits=c(0,200))
+))
 
 
 
@@ -173,7 +169,7 @@ cell_age <- cellinfo %>%
 #))
 
 ## fixme hardwired constant
-maxPossibleCDhAPF <- 25
+# maxPossibleCDhAPF <- 25
 
 # render_movie(cell_age, "cell_first_occ.mp4", list(
 #     geom_polygon(aes(x_pos, y_pos, fill=time_of_first_occ, group=cell_id),  alpha=0.9),
@@ -181,7 +177,7 @@ maxPossibleCDhAPF <- 25
 # ))
 
 
-if(F){ #### DEBUG
+# if(F){ #### DEBUG
 #    ## first do simple bi
 #
 #    render_frame(cell_age, 33) + geom_polygon(aes(x_pos, y_pos, fill=frame-first_occ, group=cell_id),  alpha=0.5) + scale_fill_gradient(name="age", low="green", high="darkred", limits=c(0, max(cell_age$frame)))
@@ -206,12 +202,12 @@ if(F){ #### DEBUG
 #
 #    render_frame(cell_age, 70) + geom_polygon(aes(x_pos, y_pos, fill=first_occ, group=cell_id),  alpha=0.9) +
 #       scale_fill_gradientn(name="first occurence", colours=c("blue", "green", "yellow", "red"), limits=c(0, max(cell_age$frame)))
-
-    cell_age %>% filter(time_of_first_occ<maxPossibleCDhAPF) %>% render_frame(110) + geom_polygon(aes(x_pos, y_pos, fill=time_of_first_occ, group=cell_id),  alpha=0.9) +
-       scale_fill_gradientn(name="first occurence (hAPF)", colours=c("blue", "green", "yellow", "red"), limits=c(15, maxPossibleCDhAPF))
-} #### DEBUG end
-
-rm(cell_age) ## clean up
+#
+#     cell_age %>% filter(time_of_first_occ<maxPossibleCDhAPF) %>% render_frame(110) + geom_polygon(aes(x_pos, y_pos, fill=time_of_first_occ, group=cell_id),  alpha=0.9) +
+#        scale_fill_gradientn(name="first occurence (hAPF)", colours=c("blue", "green", "yellow", "red"), limits=c(15, maxPossibleCDhAPF))
+# } #### DEBUG end
+#
+# rm(cell_age) ## clean up
 
 
 ########################################################################################################################
