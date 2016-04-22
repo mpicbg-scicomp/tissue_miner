@@ -1,11 +1,11 @@
 # First Use of TissueMiner with your own data
 
-### 1. First, organize your movie images as follow
+### 1. First, organize your movie images as follows
 
-* **Create a movie_repository** folder where to centralize all of your movies
-    + Inside this folder, **create one movie folder per movie**
-        + inside each movie folder, **create a "Segmentation" folder** where to store you movie images
-            + the **name of movie images** is composed of the movie name followed by an underscore and a frame number 
+* Create a **movie_repository folder** where you store the data from all your movies
+    + Inside this folder, create one **movie folder** per movie
+        + inside each movie folder, create a **Segmentation folder** to store movie images
+            + the movie should be stored as a series of tif or png files, one per timepoint, with the name of each file composed of a sample name + underscore + frame number
 
 The data organization is summarized as follow:
 
@@ -52,7 +52,7 @@ To this purpose, we provide two [FIJI](http://fiji.sc/) programs ***draw_n_get_R
 #### 3.1 Define ROI's:
 * launch FIJI
 * go to the ***fiji_macros*** folder located in your TissueMiner installation folder
-* drap-and-drop the ***draw_n_get_ROIcoord.ijm*** file into FIJI
+* drag-and-drop the ***draw_n_get_ROIcoord.ijm*** file into FIJI
 * a script editor opens automatically
 * click **RUN** and define your ROI's   
 
@@ -73,7 +73,7 @@ By default, TissueMiner always creates two ROI's:
 Both programs automatically save a text file (LastFrameRoi.txt and transformation.txt, respectively). If these files are present, TissueMiner will take them into account for further precessing steps.
 
 
-### 4. Open a terminal
+### 4. Open a Docker QuickStart Terminal
 
 * You'll find it either in your application menu or application folder (depending on your system):
 
@@ -94,7 +94,11 @@ Example:
 
 `alias tm='docker run --rm -ti -v $(dirname $PWD):/movies -w /movies/$(basename $PWD) etournay/tissue_miner'`
 
-**A tip !** Just copy this line above in your .bashrc or .bash_profile to make this `tm` command permanent.
+**A tip !** Just copy this line above in your .bashrc to make this `tm` command permanent. This file is the standard configuration file of the Terminal. Here, is one way to insert the line above into the .bashrc and apply the changes:
+```
+echo "alias tm='docker run --rm -ti -v $(dirname $PWD):/movies -w /movies/$(basename $PWD) etournay/tissue_miner'" >> $HOME/.bashrc
+source $HOME/.bashrc
+```
 
 
 ### 6. Select the analysis you are interested in
@@ -103,24 +107,21 @@ Here, we propose some streamlined quickstart tutorials.
 * [Cell area](tutorials/cell_area.md#cell-area-analysis)
 * [Cell elongation](tutorials/cell_elongation.md#cell-elongation-analysis)
 * [Cell packing](tutorials/cell_packing.md#cell-packing-analysis)
-* [Cell lineage and divisions](tutorials/ell_lineage_and_divisions.md#cell-lineage-and-division-analysis)
+* [Cell lineage and divisions](tutorials/cell_lineage_and_divisions.md#cell-lineage-and-division-analysis)
 * [Cell rearrangements](tutorials/cell_rearrangements.md#cell-rearrangement-analysis)
 * [Cell contributions to tissue shear](tutorials/cell_contributions_to_tissue_shear.md#cell-contributions-to-tissue-shear-analysis)
 * [Cell contributions to tissue area changes](tutorials/cell_contributions_to_tissue_area_changes.md#cell-contributions-to-tissue-area-change-analysis)
 
-Here, we extend the cell area example to compare between different regions of interest.
+All tutorials can be used to compare between different regions of interest. Here, we give an example with cell area
 
 * [Compare cell area in different ROI's](tutorials/cell_area_ROI.md#cell-area-analysis-in-multiple-rois)
 
 Here, run an entire analysis of a single movie
 
 ```
-tm sm shear_calculate topo_countt1 polygon_class tri_categorize
+tm "sm shear_calculate topo_countt1 polygon_class tri_categorize; analyze_movie.R . output_analysis""
 ```
 
-```
-tm analyze_movie.R . output_analysis
-```
 
 Here, use your own [configuration file](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/config/flywing_tm_config.R) to optimize the output rendering. Your configuration file *my_config.R* must be located in the movie repository folder. You'll find more explanation about this file in the [TM R User Manual](https://mpicbg-scicomp.github.io/tissue_miner/user_manual/TM_R-UserManual.html#tissueminer-api-configuration).
 ```

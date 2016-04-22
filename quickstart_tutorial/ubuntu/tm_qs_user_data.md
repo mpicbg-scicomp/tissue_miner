@@ -1,11 +1,11 @@
 # First Use of TissueMiner with your own data
 
-### 1. First, organize your movie images as follow
+### 1. First, organize your movie images as follows
 
-* **Create a movie_repository** folder where to centralize all of your movies
-    + Inside this folder, **create one movie folder per movie**
-        + inside each movie folder, **create a "Segmentation" folder** where to store you movie images
-            + the **name of movie images** is composed of the movie name followed by an underscore and a frame number 
+* Create a **movie_repository folder** where you store the data from all your movies
+    + Inside this folder, create one **movie folder** per movie
+        + inside each movie folder, create a **Segmentation folder** to store movie images
+            + the movie should be stored as a series of tif or png files, one per timepoint, with the name of each file composed of a sample name + underscore + frame number 
 
 The data organization is summarized as follow:
 
@@ -52,7 +52,7 @@ To this purpose, we provide two [FIJI](http://fiji.sc/) programs ***draw_n_get_R
 #### 3.1 Define ROI's:
 * launch FIJI
 * go to the ***fiji_macros*** folder located in your TissueMiner installation folder
-* drap-and-drop the ***draw_n_get_ROIcoord.ijm*** file into FIJI
+* drag-and-drop the ***draw_n_get_ROIcoord.ijm*** file into FIJI
 * a script editor opens automatically
 * click **RUN** and define your ROI's   
 
@@ -97,7 +97,7 @@ Here, we propose some streamlined quickstart tutorials.
 * [Cell contributions to tissue shear](tutorials/cell_contributions_to_tissue_shear.md#cell-contributions-to-tissue-shear-analysis)
 * [Cell contributions to tissue area changes](tutorials/cell_contributions_to_tissue_area_changes.md#cell-contributions-to-tissue-area-change-analysis)
 
-Here, we extend the cell area example to compare between different regions of interest.
+All tutorials can be used to compare between different regions of interest. Here, we give an example with cell area
 
 * [Compare cell area in different ROI's](tutorials/cell_area_ROI.md#cell-area-analysis-in-multiple-rois)
 
