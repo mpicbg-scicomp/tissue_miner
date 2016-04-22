@@ -1,6 +1,9 @@
 
 # Cell area analysis in multiple ROI's
 
+
+### 1. Make a movie of cell area pattern plotted on the tissue for the *cell_patch* ROI
+
 What if you suspect that different parts of the tissue are doing different cellular behaviours (or have different areas, for example) and you want to analyse them separately and compare them? In our example data we have provided three ROIs:
 
 * raw (default ROI created by the workflow)
@@ -9,7 +12,9 @@ What if you suspect that different parts of the tissue are doing different cellu
 
 but in your own data, you can draw as many ROIs as necessary. ROIs can be overlapping (one cell can belong to many different ROIs). In our workflow, the information about which cells belong to which ROIs is not included in the database but accounted for separately by running the `tm sm roi_tracking` command. The following command will calculate cell area for the ROI called 'cell_patch' and then output a movie for that ROI in the output_analysis folder within the same movie directory.
 
-### 1. Make a movie of cell area pattern plotted on the tissue for the *cell_patch* ROI
+
+If you have multiple ROIs, just write them next to each other separated by a space or a coma as you wish, but don't forget the quotes.
+
 
 * Copy-paste the following commands in the terminal (watch the quotes !):
 
@@ -24,6 +29,7 @@ tm "sm roi_tracking; cell_area_pattern.R . output_analysis 'cell_patch'"
 
 ### 2. Plot cell area distrubution and averages in each ROI
 
+A graph is even more powerful than a movie when you want to compare different regions. Here, we compare the average cell area or distributions of cell areas in different regions.
 
 * Copy-paste the following commands in the terminal:
 
