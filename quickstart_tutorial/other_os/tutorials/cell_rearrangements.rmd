@@ -6,10 +6,10 @@ output:
 
 # Cell rearrangement analysis
 
-Cell neighbor changes are calculated from the database using a dedicated routine included in the automated workflow. Therefore, on top of building the database, we also run this routine with the command `sm topo_countt1`
-
-
 ### 1. Make a video of the cell rearrangement coarse-grained pattern plotted on the tissue
+
+We want to calculate the orientation of cell neighbor changes averaged in each element of a square grid, and we want plot the orientation axes (unit nematics) on the tissue. We need a database, but we also need to run the `tm sm topo_countt1` command, which will take information from the database and detect cell neighbor changes (using a routine that is included in the automated workflow). Of note, the `tm sm topo_countt1` command will also build the database if not yet present. The next command on the right runs the analysis and makes the video we want. It outputs the data in the output_analysis folder within the same movie directory.
+
 
 * Copy-paste the following commands in the terminal:
 
@@ -44,6 +44,9 @@ mqf_cg_grid_unit_nematics_T1(movieDir, rois="raw", gridSize = 90, kernSize = 11)
 
 
 ### 2. Plot cell neighbor change rate
+
+Now, we want to make a graph that shows the average cell neighbor change rate per cell. The `tm sm topo_countt1` command will detect cell neighbor changes (or return "Nothing to be done" if already computed before). The next command on the right does the plot and saves it in the output_analysis folder within the same movie directory.
+
 * Copy-paste the following commands in the terminal:
 
 ```
@@ -77,6 +80,10 @@ ggplot(T1rateByTimeIntervals, aes(dev_time, avgT1rate, color=movie)) +
 [Back to tutorial list](../tm_qs_example_data.md#3-select-the-analysis-you-are-interested-in)
 
 ### 3. Plot average cell neighbor change orientation as a function of time
+
+We now want to plot the average cell neighbor change orientation as a function of time in a circular diagram. The time is color coded.
+
+
 * Copy-paste the following commands in the terminal:
 
 ```
