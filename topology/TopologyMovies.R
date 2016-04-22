@@ -107,13 +107,13 @@ if(F){ #### DEBUG
 t1SummarySmooth <- subset(t1SummarySmooth, frame <25)
 }
 
-# print("rendering t1 event movie...")
-# 
-# render_movie(t1SummarySmooth, "t1_rates_smoothed.mp4", list(
-#     geom_tile(aes(xGrid, yGrid, fill=t1_rate_trimmed, alpha=t1_rate_trimmed)),
-#     scale_fill_gradient(name="t1/min", low="black", high="red", limits=t1SmoothRateRange),
-#     scale_alpha(range=c(0.1,0.9), na.value=0),
-#     guides(alpha=FALSE)
-# ))
-# 
-# print("rate t1 rate rendering done")
+print("rendering t1 event movie...")
+
+render_movie(t1SummarySmooth, "t1_rates_smoothed.mp4", list(
+    geom_tile(aes(xGrid, yGrid, fill=t1_rate_trimmed, alpha=t1_rate_trimmed)),
+    scale_fill_gradient(name="t1/min", low="black", high="red", limits=t1SmoothRateRange),
+    scale_alpha(range=c(0.1,0.9), na.value=0),
+    guides(alpha=FALSE)
+))
+
+print("rate t1 rate rendering done")
