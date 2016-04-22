@@ -43,7 +43,7 @@ Here, we propose some streamlined quickstart tutorials.
 * [Cell contributions to tissue shear](tutorials/cell_contributions_to_tissue_shear.md#cell-contributions-to-tissue-shear-analysis)
 * [Cell contributions to tissue area changes](tutorials/cell_contributions_to_tissue_area_changes.md#cell-contributions-to-tissue-area-change-analysis)
 
-All tutorials can be used to compare between different regions of interest. Here, we give an example with cell area
+All tutorials can be used to compare between **different regions of interest**. Here, we give an example with cell area
 
 * [Compare cell area in different ROI's](tutorials/cell_area_ROI.md#cell-area-analysis-in-multiple-rois)
 
