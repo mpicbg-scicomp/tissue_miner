@@ -43,21 +43,38 @@ daughterInfo <- cdByDaughters(db)
 t1GainOrigID <-t1DataFilt %>%
     ## just keep gain events
     filter(!isNeighbor.t) %>%
-    select(-c(isNeighbor.t, dbond_id, left_dbond_id, isNeighbor.tp1)) %>%
+    select(-c(isNeighbor.t, dbond_id, left_dbond_id, isNeighbor.tp1))
 
-    ## some of them will be fake mother cells so replace them with the original IDs
-    rename(cell_or_mother_id=cell_id) %>%
-    dt.merge(daughterInfo %>% transmute(daughter_cell=cell_id, cell_or_mother_id=mother_cell_id, frame=first_occ-1), by=c("cell_or_mother_id", "frame"), all.x=T, allow.cartesian=TRUE)  %>%
-    mutate(cell_id=ifelse(is.na(daughter_cell), cell_or_mother_id, daughter_cell)) %>%
-
-    ## remove unused columns
-    select(-c(cell_or_mother_id, daughter_cell))
-
-# filter by connectivity (and make sure to correct for incorrect frame)
-t1OrigContact <- t1GainOrigID %>%
+# Insure presence of T1
+if (!identical(row.names(t1GainOrigID), character(0))){
+  
+  ## some of them will be fake mother cells so replace them with the original IDs if presence of divisions
+  if (!identical(row.names(daughterInfo), character(0))) {
+    t1GainOrigID %<>% rename(cell_or_mother_id=cell_id) %>%
+      dt.merge(daughterInfo %>% transmute(daughter_cell=cell_id, cell_or_mother_id=mother_cell_id, frame=first_occ-1), by=c("cell_or_mother_id", "frame"), all.x=T, allow.cartesian=TRUE)  %>%
+      mutate(cell_id=ifelse(is.na(daughter_cell), cell_or_mother_id, daughter_cell)) %>%
+      
+      ## remove unused columns and keep the structure 
+      select(-c(cell_or_mother_id, daughter_cell))
+  }
+  
+  # filter by connectivity (and make sure to correct for incorrect frame) if presence of T1
+  
+  t1OrigContact <- t1GainOrigID %>%
     mutate(frame=frame+1) %>%
     dt.merge(cellNeighbors, by=c("cell_id", "frame", "neighbor_cell_id")) %>%
     select(frame, cell_id, neighbor_cell_id)
+  
+} else {
+  
+  print("No cell neighbor change detected.")
+  # create a table with no value for further rbind()
+  t1OrigContact <- data.frame(frame = numeric(0), cell_id = integer(0), neighbor_cell_id = integer(0))
+  
+}
+
+  
+
 
 #tt <- filter(t1GainOrigID, is.na(cell_id))
 #unlen(tt$cell_or_mother_id)
@@ -73,6 +90,8 @@ cdLoss <- dbGetQuery(db, "select * from cell_histories") %>%
     transmute(cell_id, frame=last_occ) %>%
     dt.merge(cellNeighbors,  by=c("cell_id", "frame"), allow.cartesian=TRUE)
 
+if (identical(row.names(cdLoss), character(0))){print("No division detected.")}
+
 cdGain <- dbGetQuery(db, "select * from cell_histories") %>%
     filter(appears_by=="Division") %>%
     transmute(cell_id, frame=first_occ) %>%
@@ -85,49 +104,67 @@ catCellPairs <- rbind_list(
         mutate(cdGain, type="cdGain")
     )
 
+
+
+
 ## DEBUG start
 if(F){
 dupEntries <- catCellPairs %>% group_by(cell_id, frame) %>% tally() %>% filter(n>1)
 triList  %>% group_by(cell_id, frame) %>% tally() %>% filter(n>1) %>% head()
 }
 ## DEBUG end
-
 # DEBUG: catCellPairs %>%  ggplot(aes(frame)) + geom_bar() +facet_wrap(~type)
 # DEBUG: catCellPairs %>%  ggplot(aes(type)) + geom_bar()
 
 
-## load triangle data and merge
-triList <- local(get(load(file.path(movieDir, "shear_contrib","triList.RData"))))
 
-## merge with trianguation...
-eventTriangles <- catCellPairs %>%
+
+## Insure presence of at least T1 or CD 
+if (!identical(row.names(catCellPairs), character(0))){
+  ## load triangle data and merge
+  triList <- local(get(load(file.path(movieDir, "shear_contrib","triList.RData"))))
+  
+  ## merge with trianguation...
+  eventTriangles <- catCellPairs %>%
     mutate(pair_id=1:n()) %>%
     melt(id.vars=c("type", "frame", "pair_id"), value.name="cell_id") %>% #print_head() %>%
     select(-variable) %>%
-
+    
     ## merge in the triangles
     dt.merge(triList, by=c("cell_id", "frame"), allow.cartesian=T) %>%
     arrange(type, tri_id, pair_id) #%>% print_head() # just needed for debugging
-
-
-## ... and just keep triangles in each category where both cells are part of ...
-twoOutOfThree <- eventTriangles %>%
+  
+  ## ... and just keep triangles in each category where both cells are part of ...
+  twoOutOfThree <- eventTriangles %>%
     group_by(type, pair_id, tri_id) %>%
     filter(n()==2) %>%
     ungroup()
+  
+  ## ... and simplify it
+  triangleCategories <- twoOutOfThree %>% distinct(tri_id, type) %>% select(tri_id, type)
+  
+  triangleCategories %>% ggplot(aes(type)) + geom_bar()
+  
+  ## todo pick examples for each category --> color in cells in frame+1, frame and show triangle)
+  ## test at the end of movie (frame==160)
+  
+  save(triangleCategories, file="triangleCategories.RData")
+  # triangleCategories <- local(get(load("triangleCategories.RData")))
+  
+} else {
+  
+  print("No topological change detected: triangleCategories.RData does not contain any topological category (empty).")
+  
+  # create a table with no value for validating the snakemake rule "tri_categorize"
+  triangleCategories <- data.frame(tri_id = numeric(0), type = character(0))
+  
+  save(triangleCategories, file="triangleCategories.RData")
+  # triangleCategories <- local(get(load("triangleCategories.RData")))
+  
+}
 
-## ... and simplify it
-triangleCategories <- twoOutOfThree %>% distinct(tri_id, type) %>% select(tri_id, type)
 
-triangleCategories %>% ggplot(aes(type)) + geom_bar()
-
-## todo pick examples for each category --> color in cells in frame+1, frame and show triangle)
-## test at the end of movie (frame==160)
-
-save(triangleCategories, file="triangleCategories.RData")
-# triangleCategories <- local(get(load("triangleCategories.RData")))
-
-echo("done")
+echo("CategorizeTriangles done !")
 quit(save="no")
 
 ########################################################################################################################
