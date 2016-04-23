@@ -1,6 +1,5 @@
 ## Define where the TissueMiner directory is located
 TM_HOME="/tissue_miner/"
-TUTORIAL_DATA="/home/rstudio/movie_repository"
-
+TM_CONFIG="/tissue_miner/config/default_config.R"
 
 

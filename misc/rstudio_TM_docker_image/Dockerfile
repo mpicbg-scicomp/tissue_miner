@@ -100,7 +100,7 @@ RUN cd /tissue_miner && git pull origin && cd parser && make clean all
 RUN  /bin/bash -c "export TM_HOME='/tissue_miner'; /tissue_miner/misc/rstudio_TM_docker_image/RstudioSetup.R | tee ${TM_HOME}/.tm_install_rstudio_setup.log"
 
 # Step 20
-RUN ln -s /tissue_miner /home/rstudio/tissue_miner
+# RUN ln -s /tissue_miner /home/rstudio/tissue_miner
 
 # Step 21
 EXPOSE 8787
