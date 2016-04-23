@@ -129,17 +129,17 @@ get_vertex_properties <- function(movieDir){
 
 
 # mqf_cell_count <- function(movieDir){
-  # Basic example to implement multi-query function
-  # Description: count number of cells in a movie
-
-  movieDb <- openMovieDb(movieDir)
-
-  numCells <- dbGetQuery(movieDb, "select * from cell_histories where cell_id!=10000") %>% distinct(cell_id) %>% nrow
-
-  dbDisconnect(movieDb)
-
-  return(data_frame(movie=basename(movieDir), num_cells=numCells))
-}
+#   # Basic example to implement multi-query function
+#   # Description: count number of cells in a movie
+# 
+#   movieDb <- openMovieDb(movieDir)
+# 
+#   numCells <- dbGetQuery(movieDb, "select * from cell_histories where cell_id!=10000") %>% distinct(cell_id) %>% nrow
+# 
+#   dbDisconnect(movieDb)
+# 
+#   return(data_frame(movie=basename(movieDir), num_cells=numCells))
+# }
 
 ## mqf_cg_roi_cell_count ####
 mqf_cg_roi_cell_count <- function(movieDir, rois=c()){
