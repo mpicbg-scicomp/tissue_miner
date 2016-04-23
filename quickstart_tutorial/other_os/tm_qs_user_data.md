@@ -119,7 +119,7 @@ All tutorials can be used to compare between **different regions of interest**. 
 Here, run an entire analysis of a single movie
 
 ```
-tm "sm shear_calculate topo_countt1 polygon_class tri_categorize; analyze_movie.R . output_analysis""
+tm "sm shear_calculate topo_countt1 polygon_class tri_categorize; analyze_movie.R . output_analysis"
 ```
 
 
