@@ -1,6 +1,7 @@
 ## Define R packages location
 R_LIBS_USER="/root/R/x86_64-pc-linux-gnu-library/3.2"
 R_LIBS_SITE="/root/R/x86_64-pc-linux-gnu-library/3.2"
+R_HOME="/root/R"
 
 ## Define where the TissueMiner directory is located
 TM_HOME="/tissue_miner/"
