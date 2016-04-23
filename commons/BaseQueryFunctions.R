@@ -128,10 +128,26 @@ get_vertex_properties <- function(movieDir){
 
 
 
+# mqf_cell_count <- function(movieDir){
+  # Basic example to implement multi-query function
+  # Description: count number of cells in a movie
+
+  movieDb <- openMovieDb(movieDir)
+
+  numCells <- dbGetQuery(movieDb, "select * from cell_histories where cell_id!=10000") %>% distinct(cell_id) %>% nrow
+
+  dbDisconnect(movieDb)
+
+  return(data_frame(movie=basename(movieDir), num_cells=numCells))
+}
+
 ## mqf_cg_roi_cell_count ####
 mqf_cg_roi_cell_count <- function(movieDir, rois=c()){
+  
   # Description: count number of cells per frame, in ROIs
-
+  # Usage: mqf_cg_roi_cell_area(movieDir)
+  # Arguments: movieDir = path to movie directory, rois = selected rois (all by default)
+  # Output: a dataframe
   movieDb <- openMovieDb(movieDir)
   
   queryResult <- dbGetQuery(movieDb, "select cell_id, frame from cells where frame & cell_id!=10000") %>%
@@ -146,29 +162,13 @@ mqf_cg_roi_cell_count <- function(movieDir, rois=c()){
   
   return(cellCount)
 }
-
-
-mqf_cell_count <- function(movieDir){
-  # Basic example to implement multi-query function
-  # Description: count number of cells in a movie
-
-  movieDb <- openMovieDb(movieDir)
-
-  numCells <- dbGetQuery(movieDb, "select * from cell_histories where cell_id!=10000") %>% distinct(cell_id) %>% nrow
-
-  dbDisconnect(movieDb)
-
-  return(data_frame(movie=basename(movieDir), num_cells=numCells))
-}
-
-
 ## Master function to query multiple movies for comparison ####
-multi_db_query <- function(movieDirectories, queryFun=mqf_cell_count, ...){
+multi_db_query <- function(movieDirectories, queryFun=mqf_cg_roi_cell_count, ...){
   ## todo get hash of range and function and cache the results somewhere
   #    require.auto(foreach); require.auto(doMC); registerDoMC(cores=6)
   
   # Description: query multiple databases and aggregate data into a dataframe
-  # Usage: in combination with mqf_* functions, ex: multi_db_query(movieDirs, mqf_cell_count, selectedRois)
+  # Usage: in combination with mqf_* functions, ex: multi_db_query(movieDirs, mqf_cg_roi_cell_count, selectedRois)
   # Arguments: movieDirs = list of paths to a given movie folder, 
   #            queryFun = the definition of a query function to apply,
   #            selectedRois = the user-defined ROIs (all ROIs by default)
@@ -268,8 +268,8 @@ addRois <-function(data, movieDir, rois=c()){
 mqf_fg_nematics_cell_elong <- function(movieDir, rois=c(), cellContour=F, displayFactor=default_cell_display_factor(movieDir)){
   
   # Description: retrieve cell elongation nematics from the DB
-  # Usage: get_nematics_DBelong(movieDir, displayFactor) where displayFactor is optional
-  # Arguments: movieDir = path to movie directory, displayFactor = display factor that is either user-defined or automatically calculated
+  # Usage: mqf_fg_nematics_cell_elong(movieDir) 
+  # Arguments: movieDir = path to movie directory, rois = selected rois (all by default), cellContour = for cell rendering, displayFactor = display factor that is either user-defined or automatically calculated
   # Output: a dataframe
   
   movieDb <- openMovieDb(movieDir)
@@ -304,8 +304,8 @@ mqf_fg_nematics_cell_elong <- function(movieDir, rois=c(), cellContour=F, displa
 mqf_fg_unit_nematics_CD <- function(movieDir, rois=c(), cellContour=F, displayFactor=2*default_cell_display_factor(movieDir)){
   
   # Description: retrieve cell division nematics from the DB
-  # Usage: get_nematics_CD(movieDir, displayFactor) where displayFactor is optional
-  # Arguments: movieDir = path to movie directory, displayFactor = display factor that is either user-defined or automatically calculated
+  # Usage: mqf_fg_unit_nematics_CD(movieDir)
+  # Arguments: movieDir = path to movie directory, rois = selected rois (all by default), cellContour = for cell rendering, displayFactor = display factor that is either user-defined or automatically calculated
   # Output: a dataframe
   
   movieDb <- openMovieDb(movieDir)
@@ -374,9 +374,9 @@ mqf_fg_unit_nematics_CD <- function(movieDir, rois=c(), cellContour=F, displayFa
 mqf_fg_unit_nematics_T1 <- function(movieDir, rois=c(), cellContour = F, displayFactor=default_cell_display_factor(movieDir)){
   
   # Description: retrieve cell division nematics from the DB
-  # Usage: mqf_unit_nematics_T1(movieDir, rois=c(), displayFactor=default_cell_display_factor(movieDir)) where rois and displayFactor are optional
+  # Usage: mqf_fg_unit_nematics_T1(movieDir)
   # Arguments: movieDir = path to movie directory, 
-  #            rois = selected rois (all by default)
+  #            rois = selected rois (all by default), cellContour = for cell rendering
   #            displayFactor = display factor that is either user-defined or automatically calculated
   # Output: a dataframe
   
@@ -443,8 +443,9 @@ mqf_fg_unit_nematics_T1 <- function(movieDir, rois=c(), cellContour = F, display
 mqf_fg_cell_area <- function(movieDir, rois=c(), cellContour=F){
   
   # Description: get cell area per frame, in ROIs
-  # Usage: in combination with multi_db_query(), ex: multi_db_query(movieDirs, mqf_cell_area, selectedRois)
-  # Arguments: movieDb = opened DB connection,  movieDir = path to a given movie folder
+  # Usage: mqf_fg_cell_area(movieDir)
+  # Arguments: movieDir = path to movie directory,rois = selected rois (all by default), cellContour= for cell rendering
+  # Output: a dataframe
   
   movieDb <- openMovieDb(movieDir)
   
@@ -468,8 +469,9 @@ mqf_fg_cell_area <- function(movieDir, rois=c(), cellContour=F){
 mqf_fg_triangle_properties <- function(movieDir, rois=c(), triContour=F){
   
   # Description: get all triangle elongtation nematics per frame, in ROIs
-  # Usage: in combination with multi_db_query(), ex: multi_db_query(movieDirs, mqf_triangle_elong, selectedRois)
-  # Arguments: movieDb = opened DB connection,  movieDir = path to a given movie folder
+  # Usage: mqf_fg_triangle_properties(movieDir)
+  # Arguments: movieDir = path to movie directory, rois = selected rois (all by default), triContour= for triangle rendering
+  # Output: a dataframe
   
   movieDb <- openMovieDb(movieDir)
   
@@ -505,8 +507,8 @@ mqf_fg_triangle_properties <- function(movieDir, rois=c(), triContour=F){
 mqf_fg_bond_length <- function(movieDir, rois=c()){
   
   # Description: retrieve bond properties and positions from the DB
-  # Usage: get_bmqf_bond_length(movieDir, rois=c())
-  # Arguments: movieDir = path to movie directory, rois = select ROIs (all rois by default)
+  # Usage: mqf_fg_bond_length(movieDir)
+  # Arguments: movieDir = path to movie directory, rois = selected rois (all by default)
   # Output: a dataframe
   
   movieDb <- openMovieDb(movieDir)
@@ -547,11 +549,8 @@ mqf_fg_bond_length <- function(movieDir, rois=c()){
 mqf_fg_cell_neighbor_count <- function(movieDir, rois=c(), polygon_class_limit=c(4,8), cellContour=F){
   
   # Description: count cell neighbors and retrieve the ordered list of vertices 
-  # Usage: mqf_fg_cell_neighbor_count(movieDir, ...)
-  # Arguments: 
-      # movieDir = path to movie directory 
-      # rois = all ROIs by default
-      # cellContour=F
+  # Usage: mqf_fg_cell_neighbor_count(movieDir)
+  # Arguments: movieDir = path to movie directory, rois = selected rois (all by default), cellContour= for cell rendering
   # Output: a dataframe
   
   movieDb <- openMovieDb(movieDir)
@@ -588,8 +587,10 @@ mqf_fg_cell_neighbor_count <- function(movieDir, rois=c(), polygon_class_limit=c
 mqf_fg_dev_time <- function(movieDir, rois=c()){
   
   # Description: get developmental time regardless ROIs
-  # Usage: in combination with multi_db_query(), ex: multi_db_query(movieDirs, mqf_dev_time)
-  # Arguments: movieDb = opened DB connection,  movieDir = path to a given movie folder
+  # Usage: mqf_fg_dev_time(movieDir)
+  # Arguments: movieDir = path to movie directory, rois = selected rois (all by default)
+  # Output: a dataframe
+  
   movieDb <- openMovieDb(movieDir)
   
   dev_time <- dbGetQuery(movieDb, "select * from frames") %>% 
@@ -605,8 +606,9 @@ mqf_fg_dev_time <- function(movieDir, rois=c()){
 mqf_cg_roi_cell_area <- function(movieDir, rois=c()){
   
   # Description: calculate average cell area per frame, in ROIs
-  # Usage: in combination with multi_db_query(), ex: multi_db_query(movieDirs, mqf_avg_cell_area, selectedRois)
-  # Arguments: movieDb = opened DB connection,  movieDir = path to a given movie folder
+  # Usage: mqf_cg_roi_cell_area(movieDir)
+  # Arguments: movieDir = path to movie directory, rois = selected rois (all by default)
+  # Output: a dataframe
   
   movieDb <- openMovieDb(movieDir)
   
@@ -628,8 +630,9 @@ mqf_cg_roi_cell_area <- function(movieDir, rois=c()){
 mqf_cg_roi_cell_neighbor_count <- function(movieDir, rois=c(), cellContour=F){
   
   # Description: get averaged cell neighbor count per frame, in ROIs
-  # Usage: in combination with multi_db_query(), ex: multi_db_query(movieDirs, mqf_avg_cell_neighbor_counts, selectedRois)
-  # Arguments: movieDb = opened DB connection,  movieDir = path to a given movie folder
+  # Usage: mqf_cg_roi_cell_neighbor_count(movieDir)
+  # Arguments: movieDir = path to movie directory, rois = selected rois (all by default)
+  # Output: a dataframe
   
   movieDb <- openMovieDb(movieDir)
   
@@ -655,8 +658,9 @@ mqf_cg_roi_cell_neighbor_count <- function(movieDir, rois=c(), cellContour=F){
 mqf_cg_roi_polygon_class <- function(movieDir, rois=c()){
   
   # Description: count number of cells in each polygon class, per frame, in ROIs
-  # Usage: in combination with multi_db_query(), ex: multi_db_query(movieDirs, mqf_avg_polygon_class, selectedRois)
-  # Arguments: movieDb = opened DB connection,  movieDir = path to a given movie folder
+  # Usage: mqf_cg_roi_polygon_class(movieDir)
+  # Arguments: movieDir = path to movie directory, rois = selected rois (all by default)
+  # Output: a dataframe
   
   movieDb <- openMovieDb(movieDir)
   
@@ -679,8 +683,9 @@ mqf_cg_roi_polygon_class <- function(movieDir, rois=c()){
 mqf_cg_roi_triangle_elong <- function(movieDir, rois=c()){
   
   # Description: get averaged triangle elongtation nematics per frame, in ROIs
-  # Usage: in combination with multi_db_query(), ex: multi_db_query(movieDirs, mqf_avg_triangle_elong, selectedRois)
-  # Arguments: movieDb = opened DB connection,  movieDir = path to a given movie folder
+  # Usage: mqf_cg_roi_triangle_elong(movieDir)
+  # Arguments: movieDir = path to movie directory, rois = selected rois (all by default)
+  # Output: a dataframe
   
   movieDb <- openMovieDb(movieDir)
   
@@ -721,12 +726,12 @@ lossRate <- function(movieDb, movieDir, rois, lostType){
   
   return(lossSummary)
 }
-
 mqf_cg_roi_rate_CD <- function(movieDir, rois=c()){
   
   # Description: get cell division rate per frame, in ROIs
-  # Usage: in combination with multi_db_query(), ex: multi_db_query(movieDirs, mqf_rate_CD, selectedRois)
-  # Arguments: movieDb = opened DB connection,  movieDir = path to a given movie folder
+  # Usage: mqf_cg_roi_rate_CD(movieDir)
+  # Arguments: movieDir = path to movie directory, rois = selected rois (all by default)
+  # Output: a dataframe
   
   movieDb <- openMovieDb(movieDir)
   
@@ -740,8 +745,9 @@ mqf_cg_roi_rate_CD <- function(movieDir, rois=c()){
 mqf_cg_roi_rate_T2 <- function(movieDir, rois=c()){
   
   # Description: get cell extrusion rate per frame, in ROIs
-  # Usage: in combination with multi_db_query(), ex: multi_db_query(movieDirs, mqf_rate_T2, selectedRois)
-  # Arguments: movieDb = opened DB connection,  movieDir = path to a given movie folder
+  # Usage: mqf_cg_roi_rate_T2(movieDir)
+  # Arguments: movieDir = path to movie directory, rois = selected rois (all by default)
+  # Output: a dataframe
   
   movieDb <- openMovieDb(movieDir)
   
@@ -778,12 +784,12 @@ topoChangeRate <- function(movieDb, movieDir, rois, countExpr){
   
   return(topoSummary)
 }
-
 mqf_cg_roi_rate_T1 <- function(movieDir, rois=c()){
   
   # Description: get T1 rate per frame, in ROIs
-  # Usage: in combination with multi_db_query(), ex: multi_db_query(movieDirs, mqf_rate_T1, selectedRois)
-  # Arguments: movieDb = opened DB connection,  movieDir = path to a given movie folder
+  # Usage: mqf_cg_roi_rate_T1(movieDir)
+  # Arguments: movieDir = path to movie directory, rois = selected rois (all by default)
+  # Output: a dataframe
   
   movieDb <- openMovieDb(movieDir)
   
@@ -799,8 +805,9 @@ mqf_cg_roi_rate_T1 <- function(movieDir, rois=c()){
 mqf_cg_roi_rate_isotropic_contrib <- function(movieDir, rois=c()){
   
   # Description: compute the isotropic deformation of the tissue and its cellular contributions per frame, in ROIs
-  # Usage: in combination with multi_db_query(), ex: multi_db_query(movieDirs, mqf_rate_isotropic_contrib, selectedRois)
-  # Arguments: movieDb = opened DB connection,  movieDir = path to a given movie folder
+  # Usage: mqf_cg_roi_rate_isotropic_contrib(movieDir)
+  # Arguments: movieDir = path to movie directory, rois = selected rois (all by default)
+  # Output: a dataframe
   
   movieDb <- openMovieDb(movieDir)
   
@@ -875,8 +882,9 @@ mqf_cg_roi_rate_isotropic_contrib <- function(movieDir, rois=c()){
 mqf_cg_roi_rate_shear <- function(movieDir, rois=c()){
   
   # Description: compute the pure shear deformation of the tissue and its cellular contributions per frame, in ROIs
-  # Usage: in combination with multi_db_query(), ex: multi_db_query(movieDirs, mqf_rate_shear, selectedRois)
-  # Arguments: movieDb = opened DB connection,  movieDir = path to a given movie folder
+  # Usage: mqf_cg_roi_rate_shear(movieDir)
+  # Arguments: movieDir = path to movie directory, rois = selected rois (all by default)
+  # Output: a dataframe
   
   movieDb <- openMovieDb(movieDir)
   
@@ -911,8 +919,8 @@ mqf_cg_roi_rate_shear <- function(movieDir, rois=c()){
 mqf_cg_roi_nematics_cell_elong <- function(movieDir, rois=c(), kernSize=1, displayFactor=default_roi_display_factor(movieDir) ){
   
   # Description: retrieve cell elongation nematics from the DB and coarse-grain by ROI
-  # Usage: mqf_nematics_cell_elong_avg_roi(movieDir, rois=c(), kernSize=1, displayFactor=default_roi_display_factor(movieDir)) where gridSize, kernSize, displayFactor are optional
-  # Arguments: movieDir = path to movie directory, rois = list of ROIs (all ROIs by default),
+  # Usage: mqf_cg_roi_nematics_cell_elong(movieDir)
+  # Arguments: movieDir = path to movie directory, rois = selected rois (all by default),
   #            kernSize = time-window size in frames for time smoothing (no time smoothing by default),
   #            displayFactor = display factor that is either user-defined or automatically calculated (default)
   # Output: a dataframe
@@ -950,11 +958,11 @@ mqf_cg_roi_nematics_cell_elong <- function(movieDir, rois=c(), kernSize=1, displ
   return(cgNematicsSmooth)
 }
 ## mqf_cg_roi_unit_nematics_CD() ####
-## TODO: also nomalize by cell number in ROI and NOT by dividing cell number in ROI
+## TODO: also normalize by cell number in ROI and NOT by dividing cell number in ROI
 mqf_cg_roi_unit_nematics_CD <- function(movieDir, rois=c(), kernSize=11, displayFactor=default_roi_display_factor(movieDir)){
   
   # Description: retrieve and coarse-grain cell division nematics from the DB
-  # Usage: mqf_unit_nematics_CD_avg_roi(movieDir, kernSize=11, displayFactor=-1) where kernSize, displayFactor are optional
+  # Usage: mqf_cg_roi_unit_nematics_CD(movieDir, ...)
   # Arguments: movieDir = path to movie directory, gridSize = square-grid sides in pixels (128 by default),
   #            rois = selected ROIs (all by default)
   #            kernSize = time-window size in frames for time smoothing (+/- 5 frames by default),
@@ -998,7 +1006,7 @@ mqf_cg_roi_unit_nematics_CD <- function(movieDir, rois=c(), kernSize=11, display
 mqf_cg_roi_unit_nematics_T1 <- function(movieDir, rois=c(), kernSize=11, displayFactor=default_roi_display_factor(movieDir)){
   
   # Description: retrieve and coarse-grain T1 nematics by ROI
-  # Usage: mqf_unit_nematics_T1_avg_roi(movieDir, rois=c(), kernSize=11, displayFactor=default_roi_display_factor(movieDir)) where rois, kernSize, displayFactor are optional
+  # Usage: mqf_cg_roi_unit_nematics_T1(movieDir, ...)
   # Arguments: movieDir = path to movie directory,
   #            rois = select rois (all rois by default),
   #            kernSize = time-window size in frames for time smoothing (+/- 5 frames by default),
@@ -1041,8 +1049,8 @@ mqf_cg_roi_unit_nematics_T1 <- function(movieDir, rois=c(), kernSize=11, display
 mqf_cg_grid_nematics_cell_elong <- function(movieDir, rois="raw", gridSize=128, kernSize=1, displayFactor=-1){
   
   # Description: retrieve and coarse-grain cell elongation nematics from the DB
-  # Usage: get_nematics_DBelong_cg(movieDir, gridSize=128, kernSize=1, displayFactor=-1) where gridSize, kernSize, displayFactor are optional
-  # Arguments: movieDir = path to movie directory, gridSize = square-grid sides in pixels (128 by default),
+  # Usage: mqf_cg_grid_nematics_cell_elong(movieDir, ...)
+  # Arguments: movieDir = path to movie directory, rois= selected roi ("raw" by default), gridSize = square-grid sides in pixels (128 by default),
   #            kernSize = time-window size in frames for time smoothing (no smoothing by default),
   #            displayFactor = display factor that is either user-defined or automatically calculated (default)
   # Output: a dataframe
@@ -1087,8 +1095,8 @@ mqf_cg_grid_nematics_cell_elong <- function(movieDir, rois="raw", gridSize=128, 
 mqf_cg_grid_unit_nematics_CD <- function(movieDir, rois="raw", gridSize=128, kernSize=11, displayFactor=-1){
   
   # Description: retrieve and coarse-grain cell division nematics from the DB
-  # Usage: mqf_unit_nematics_CD_coarse_grid(movieDir, gridSize=128, kernSize=11, displayFactor=-1) where gridSize, kernSize, displayFactor are optional
-  # Arguments: movieDir = path to movie directory, gridSize = square-grid sides in pixels (128 by default),
+  # Usage: mqf_cg_grid_unit_nematics_CD(movieDir, ...)
+  # Arguments: movieDir = path to movie directory, rois = selected rois ("raw" by default), gridSize = square-grid sides in pixels (128 by default),
   #            kernSize = time-window size in frames for time smoothing (+/- 5 frames by default),
   #            displayFactor = display factor that is either user-defined or automatically calculated (default)
   # Output: a dataframe
@@ -1134,8 +1142,8 @@ mqf_cg_grid_unit_nematics_CD <- function(movieDir, rois="raw", gridSize=128, ker
 mqf_cg_grid_unit_nematics_T1 <- function(movieDir, rois="raw", gridSize=128, kernSize=11, displayFactor=-1){
   
   # Description: retrieve and coarse-grain T1 nematics 
-  # Usage: get_nematics_T1_cg(movieDir, gridSize=128, kernSize=11, displayFactor=-1) where gridSize, kernSize, displayFactor are optional
-  # Arguments: movieDir = path to movie directory, gridSize = square-grid sides in pixels (128 by default),
+  # Usage: mqf_cg_grid_unit_nematics_T1(movieDir, ...)
+  # Arguments: movieDir = path to movie directory, rois = selected rois ("raw" by default), gridSize = square-grid sides in pixels (128 by default),
   #            kernSize = time-window size in frames for time smoothing (+/- 5 frames by default),
   #            displayFactor = display factor that is either user-defined or automatically calculated (default)
   # Output: a dataframe
@@ -1177,7 +1185,7 @@ mqf_cg_grid_unit_nematics_T1 <- function(movieDir, rois="raw", gridSize=128, ker
 }
 ## mqf_cg_grid_rate_shear() ####
 mqf_cg_grid_rate_shear <- function(movieDir, rois="raw", gridSize=128, kernSize=11, displayFactor=-1){
-  
+  stop("mqf_cg_grid_rate_shear NOT YET implemented")
 }
 
 
