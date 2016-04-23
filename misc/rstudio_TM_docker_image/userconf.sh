@@ -37,4 +37,4 @@ fi
 ## add these to the global environment so they are avialable to the RStudio user 
 echo "HTTR_LOCALHOST=$HTTR_LOCALHOST" >> /etc/R/Renviron.site
 echo "HTTR_PORT=$HTTR_PORT" >> /etc/R/Renviron.site
-
+echo "R_LIBS_USER=/root/R/x86_64-pc-linux-gnu-library/3.2" >> /etc/R/Renviron.site
