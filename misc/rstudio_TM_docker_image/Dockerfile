@@ -101,6 +101,7 @@ RUN  /bin/bash -c "export TM_HOME='/tissue_miner'; /tissue_miner/misc/rstudio_TM
 
 # Step 20
 # RUN ln -s /tissue_miner /home/rstudio/tissue_miner
+RUN chmod -R ugo+w /root/R
 
 # Step 21
 EXPOSE 8787
