@@ -43,7 +43,7 @@ options(width=60)
 
 * **TissueMiner can easily be extended** by the user to address project-specific questions
 
-* **Tutorial layout**: the code is encapsulated in shaded grey boxes that delimit **code chunks**. The **results** are displayed immediately below in an open box in which all lines start with the ## sign. Within code chunks, **comments** are visible in green and are prefixed with at least a # sign. The comments indicate what the following code does. Here is an example:
+* **Tutorial layout**: the code is encapsulated in shaded grey boxes that delimit **code blocks**. The **results** are displayed immediately below in an open box in which all lines start with the ## sign. Within code blocks, **comments** are visible in green and are prefixed with at least a # sign. The comments indicate what the following code does. Here is an example:
 
 ```{r layout example, warning=FALSE, message=FALSE, echo=T}
 # This is a comment: the code below will print "Welcome to TissueMiner"
@@ -86,12 +86,13 @@ print("Welcome to TissueMiner")
 
 ### Requirements
 
-* **On Ubuntu:** you may install [Rstudio](https://www.rstudio.com/products/rstudio/) or another integrated environment for R programming. The TissueMiner API has already been installed and configured during the installation procedure.
+On Ubuntu and even on MacOSX, the dockerized TissueMiner isn't necessary for running the API because the dependencies can be installed directly on the computer.
+
+--- **On Ubuntu (docker is NOT necessary):** you may install [Rstudio](https://www.rstudio.com/products/rstudio/) or another integrated environment for R programming. The TissueMiner API has already been installed and configured during the installation procedure of TissueMiner.
 
 ***
 
-* **On MacOS:** we provide a TissueMiner API installer that includes an Rstudio installation.
-Run this in a Terminal:
+--- **On MacOS (docker is NOT necessary):** we provide a TissueMiner API installer/updater that includes an Rstudio installation if not yet present. Run this in a simple Terminal:
 ```{bash osx tm-api-installation, warning=FALSE, message=FALSE, echo=T, eval=F}
 /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
 brew update
@@ -103,72 +104,113 @@ ${TM_HOME}/installation/osx/install_tm_api.sh
 
 ***
 
-* **On any systems with the Docker toolbox:** you can use the Rstudio server from the provided docker image that includes all necessary R packages
-    + open a docker terminal and start the rstudio server with the following commands
+--- **On any systems with the Docker toolbox:** you can use the **Rstudio server** from the provided docker image that includes all necessary R packages. 
+
+* open a Docker QuickStart Terminal and start the RStudio server: **edit the following command** with the appropriate path (run it only once please !)
 ```{bash rocker, warning=FALSE, message=FALSE, echo=T, eval=F}
-docker run -d -p 8787:8787 -e USER=rstudio -e PASSWORD=rstudio -v $HOME:/home/rstudio/share etournay/tissue_miner
+# First, define the path to the movie repository (ex: /media/fileserver/movie_repository)
+
+docker run -d -p 8787:8787 -e USER=rstudio -e PASSWORD=rstudio \
+-v /media/fileserver/movie_repository:/home/rstudio/movie_repository \
+etournay/tissue_miner
 ```
-*    + mount other folders into the dockerized TissueMiner using the `-v` option. Example:
-```{bash rocker mount example, warning=FALSE, message=FALSE, echo=T, eval=F}
--v $HOME/my_R_scripts:/home/rstudio/scripts -v /media/fileserver/movie_repository:/home/rstudio/movies
-```
-*    + get the URL to reach the Rstudio server 
+
+* get the URL to reach the Rstudio server (run it each time you need to get the URL, or better bookmark the web page in your web browser)
 ```{bash rocker in web browser, warning=FALSE, message=FALSE, echo=T, eval=F}
 echo "http://$(docker-machine ip default):8787"
 ```
-*    + **Copy and paste the resulting URL onto a web browser:** login: rstudio, password: rstudio
+* **copy and paste the resulting URL onto a web browser:** login: rstudio, password: rstudio
 
+* now, you can enjoy R programming in the RStudio server !
+
+* to stop the Rstudio server, open the Docker QuickStart Terminal and follow these steps sequentially:
+```{bash docker ps, warning=FALSE, message=FALSE, echo=T, eval=F}
+docker ps
+```
+output example: ![](../readme_screenshots/docker_ps_cmd.jpg)
+
+```{bash docker stop container, warning=FALSE, message=FALSE, echo=T, eval=F}
+# In this example, I stop the RStudio server by running 
+docker stop 171906d9e728 # where the last argument is the CONTAINER ID that is just displayed above
+```
+
+***
+
+* mount other folders into the dockerized TissueMiner using the `-v` option (make sure that the dockerized Rstudio server isn't already running by using `docker ps`). Example:
+```{bash rocker mount example, warning=FALSE, message=FALSE, echo=T, eval=F}
+# First, define the path to the movie repository (ex: /media/fileserver/movie_repository)
+# Second, define the path to your own R scripts (ex: $HOME/my_R_scripts)
+# Third, you may also define the path to your entire home folder (ex: $HOME)
+
+docker run -d -p 8787:8787 -e USER=rstudio -e PASSWORD=rstudio \
+-v /media/fileserver/movie_repository:/home/rstudio/movie_repository \
+-v $HOME/my_R_scripts:/home/rstudio/scripts \
+-v $HOME:/home/rstudio/home_share \
+etournay/tissue_miner
+```
 
 ### TissueMiner configuration
 
-* We provide two **configuration files to setup the global TissueMiner environement**: **[default_config.R](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/config/default_config.R)** and **[flywing_tm_config.R](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/config/flywing_tm_config.R)**:
-    + define graphics theme
-    + define a common color scheme for known quantities. Ex: color of shear curves
-    + define time offsets for comparing multiple movies in time, using the `algnModel` variable
-    + define a time offset to display the developmental time. Ex: 54000 seconds for 16 hAPF
-    + define default parameters. Ex: movie grid size, default ROI name, ...  
+--- We provide two **configuration files to set up the global TissueMiner environment**: **[default_config.R](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/config/default_config.R)** and **[flywing_tm_config.R](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/config/flywing_tm_config.R)**:
+
+* define graphics theme
+* define a common color scheme for known quantities. Ex: color of shear curves
+* define time offsets for comparing multiple movies in time, using the `algnModel` variable
+* define a time offset to display the developmental time. Ex: 54000 seconds for 16 hAPF
+* define default parameters. Ex: movie grid size, default ROI name, ...  
 
 ***
 
-* **If you use Rstudio, let's set up the gloval environment variables to run examples of the present User Manual**
-    + Ubuntu, Linux and MacOS
-```{bash RStudio startup Ubuntu, Linux and MacOS, warning=FALSE, message=FALSE, echo=T, eval=F}
-# To define the location of TissueMiner scripts and configuration file, just open a terminal and type in:
+--- Configure Rstudio when used **without** Docker: 
+
+* set up the path to the TissueMiner API scripts ( Ubuntu, Linux and MacOS)
+```{bash RStudio TM path, Linux and MacOS, warning=FALSE, message=FALSE, echo=T, eval=F}
 echo "TM_HOME=~/tissue_miner" >> ~/.Renviron
+```
+
+* set up the path to the configuration file to run examples of the **present User Manual**
+```{bash RStudio config path, Linux and MacOS, warning=FALSE, message=FALSE, echo=T, eval=F}
 echo "TM_CONFIG=~/tissue_miner/config/flywing_tm_config.R" >> ~/.Renviron
 ```
-*    + Windows
-```{bash RStudio startup Windows, warning=FALSE, message=FALSE, echo=T, eval=F}
-# On Windows, TM_HOME and TM_CONFIG must be defined in the .Renviron file.
-# Jut type in: help("Startup") in a R session (Rstudio), and follow the manual
-```
 
-***
-
-* **Configure Rstudio to run your own scripts**
-    + You may use the [default configuration](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/config/default_config.R)  
+* **or** you may use the [default configuration](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/config/default_config.R)  
 ```{bash RStudio startup default, warning=FALSE, message=FALSE, echo=T, eval=F}
-# To define the location of TissueMiner scripts and configuration file, just open a terminal and type in:
-echo "TM_HOME=~/tissue_miner" >> ~/.Renviron
 echo "TM_CONFIG=~/tissue_miner/config/default_config.R" >> ~/.Renviron
 ```    
-*    + You may create your own configuration file
-```{bash RStudio startup user config, warning=FALSE, message=FALSE, echo=T, eval=F}
-# To define the location of TissueMiner scripts and configuration file, just open a terminal and type in:
-echo "TM_HOME=~/tissue_miner" >> ~/.Renviron
 
+* **or** you may create your **own configuration** file
+```{bash RStudio startup user config, warning=FALSE, message=FALSE, echo=T, eval=F}
 # Here provide the path to your configuration file
 echo "TM_CONFIG=path_to_my_config_file" >> ~/.Renviron
 ``` 
 
-    
-### Header of all your scripts: load the TissueMiner API in R (Rstudio)
-* We assume you already have downloaded the [example data](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/docs/quickstart/ubuntu/tm_qs_example_data.md#2-download-the-example-data-set-100-mb)
-* **Please modify the paths (first chunk below) according to the data location**
-* **Always execute the two chuncks below before running any analysis**: this will load all the necessary functions in the memory of the computer.
+* **edit your .Renviron file**: in Rstudio, click on the "Files" panel (right side), then click the "Home" panel and finally click the .Renviron file that you can now edit in Rstudio.
 
 ***
 
+--- Configure the **dockerized RStudio**:
+
+* in this context, the .Renviron file cannot be modified permanently: we use an alternative method described below.
+* the `TM_HOME` variable is already set up to take into account the dockerized TissueMiner scripts.
+* the `TM_CONFIG` variable is set up by default to use the `default_config.R` of the dockerized TissueMiner.
+* you can transiently overwrite these variables by using a dedicated R command `Sys.setenv()` that you should always add at the begining of your scripts. Examples:
+
+```{r set up config and script path, eval=FALSE}
+# Example 1: home_share is the mount point to access you data (see above)
+Sys.setenv(TM_CONFIG="/home/rstudio/home_share/tm_config/my_favorite_config.R")
+
+# Example 2: assuming that the user has cloned the TM git repository in his home folder 
+Sys.setenv(TM_HOME="/home/rstudio/home_share/tissue_miner/")
+
+```
+
+### Header of all your scripts: load the TissueMiner API in R (Rstudio)
+* We assume you already have downloaded the [example data](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/docs/quickstart/ubuntu/tm_qs_example_data.md#2-download-the-example-data-set-100-mb)
+* **Please modify the paths (first code block below) according to the data location**
+* **Always execute the two blocks below before running any analysis**: this will load all the necessary functions in the memory of the computer.
+
+***
+Please, do not forget to **edit the path** below to set up your data location in the `movieDbBaseDir` variable !
 ```{r Setup IN/OUT, warning=FALSE, message=FALSE, echo=T,results='hide'}
 # Define path to all processed movies: MUST BE EDITED BY THE USER
 movieDbBaseDir="/Users/retourna/example_data"
@@ -239,6 +281,8 @@ db <- openMovieDb(movieDir)
 # Close the connection
 dbDisconnect(db)
 ```
+
+Please, keep the **connection open** to run the tutorial !
 
 ***
 
