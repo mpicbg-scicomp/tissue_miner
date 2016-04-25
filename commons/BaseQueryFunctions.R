@@ -309,7 +309,7 @@ mqf_fg_unit_nematics_CD <- function(movieDir, rois=c(), cellContour=F, displayFa
   # Output: a dataframe
   
   movieDb <- openMovieDb(movieDir)
-
+  
   # Get cell division events including mother and daughter cells and frame of cytokinesis
   cdEvents <- dbGetQuery(movieDb, "select cell_id as mother_cell_id, last_occ, left_daughter_cell_id, disappears_by, right_daughter_cell_id from cell_histories") %>%
     filter(disappears_by=="Division")  %>%
@@ -324,42 +324,49 @@ mqf_fg_unit_nematics_CD <- function(movieDir, rois=c(), cellContour=F, displayFa
   cells <- dbGetQuery(movieDb, "select cell_id, frame, center_x, center_y, area from cells where cell_id!=10000")
   
   # Calculate cell division nematics with their respective positions
-  cdNematics <- cdEvents %>%
-    dt.merge(cells %>% select(frame, cell_id, matches("center")) %>% dplyr::rename(first_daughter_occ=frame)) %>%
-    group_by(mother_cell_id) %>%
-    # remove cases in which not both daughers are present
-    filter(n()==2) %>%
-    mutate(daughter=c("left","right")) %>%
-    dplyr::rename(daughter_cell_id=cell_id) %>%
-    # select(-cell_id) %>% 
-    ungroup() %>% 
-    # reshape to get divided cells into single row for nematics calculation
-    melt(id.vars=c("first_daughter_occ","mother_cell_id", "daughter")) %>% 
-    dcast(mother_cell_id+first_daughter_occ ~ daughter+variable) %>% 
-    dplyr::rename(frame=first_daughter_occ, cell_id=mother_cell_id) %>%
-    # add Roi definitions on by cell_id
-    addRois(movieDir, rois) %>% 
-    # restore 'mother_cell_id' for clarity
-    dplyr::rename(mother_cell_id=cell_id) %>%
-    # calculate division axis nematics based on daughter cell positions
-    mutate(CDxx=0.5*((left_center_x-right_center_x)^2 - (left_center_y-right_center_y)^2),
-           CDxy=(left_center_x-right_center_x)*(left_center_y-right_center_y),
-           normCDxx=(1/sqrt(CDxx^2+CDxy^2))*CDxx,
-           normCDxy=(1/sqrt(CDxx^2+CDxy^2))*CDxy,
-           phi=mod2pi(0.5*(atan2(normCDxy, normCDxx)))) %>%
-    # calculate nematic center position and coordinates
-    mutate(center_x=0.5*(left_center_x+right_center_x),
-           center_y=0.5*(left_center_y+right_center_y),
-           x1=center_x-0.5*displayFactor*cos(phi),
-           y1=center_y-0.5*displayFactor*sin(phi),
-           x2=center_x+0.5*displayFactor*cos(phi),
-           y2=center_y+0.5*displayFactor*sin(phi)) %>%
-    # remove unnecessary columns
-    select(-c(left_center_x,left_center_y,right_center_x,right_center_y,CDxx,CDxy)) %>%
-    addTimeFunc(movieDb, .) %>% 
-    mutate(movie=basename(movieDir)) %>% add_dev_time()
+  if (!identical(row.names(cdEvents), character(0))){
+    cdNematics <- cdEvents %>%
+      dt.merge(cells %>% select(frame, cell_id, matches("center")) %>% dplyr::rename(first_daughter_occ=frame)) %>%
+      group_by(mother_cell_id) %>%
+      # remove cases in which not both daughers are present
+      filter(n()==2) %>%
+      mutate(daughter=c("left","right")) %>%
+      dplyr::rename(daughter_cell_id=cell_id) %>%
+      # select(-cell_id) %>% 
+      ungroup() %>% 
+      # reshape to get divided cells into single row for nematics calculation
+      melt(id.vars=c("first_daughter_occ","mother_cell_id", "daughter")) %>% 
+      dcast(mother_cell_id+first_daughter_occ ~ daughter+variable) %>% 
+      dplyr::rename(frame=first_daughter_occ, cell_id=mother_cell_id) %>%
+      # add Roi definitions on by cell_id
+      addRois(movieDir, rois) %>% 
+      # restore 'mother_cell_id' for clarity
+      dplyr::rename(mother_cell_id=cell_id) %>%
+      # calculate division axis nematics based on daughter cell positions
+      mutate(CDxx=0.5*((left_center_x-right_center_x)^2 - (left_center_y-right_center_y)^2),
+             CDxy=(left_center_x-right_center_x)*(left_center_y-right_center_y),
+             normCDxx=(1/sqrt(CDxx^2+CDxy^2))*CDxx,
+             normCDxy=(1/sqrt(CDxx^2+CDxy^2))*CDxy,
+             phi=mod2pi(0.5*(atan2(normCDxy, normCDxx)))) %>%
+      # calculate nematic center position and coordinates
+      mutate(center_x=0.5*(left_center_x+right_center_x),
+             center_y=0.5*(left_center_y+right_center_y),
+             x1=center_x-0.5*displayFactor*cos(phi),
+             y1=center_y-0.5*displayFactor*sin(phi),
+             x2=center_x+0.5*displayFactor*cos(phi),
+             y2=center_y+0.5*displayFactor*sin(phi)) %>%
+      # remove unnecessary columns
+      select(-c(left_center_x,left_center_y,right_center_x,right_center_y,CDxx,CDxy)) %>%
+      addTimeFunc(movieDb, .) %>% 
+      mutate(movie=basename(movieDir)) %>% add_dev_time()
+  } else {
+    print("No division detected !")
+    cdNematics <- data.frame(frame = numeric(0), cell_id = numeric(0), movie = character(0), mother_cell_id = numeric(0), roi = character(0), normCDxx = numeric(0), normCDxy = numeric(0), phi = numeric(0),
+                             center_x = numeric(0), center_y = numeric(0), x1 = numeric(0), y1 = numeric(0), x2 = numeric(0), y2 = numeric(0), time_sec = numeric(0), timeInt_sec = numeric(0),
+                             time_shift = numeric(0), dev_time = numeric(0), variable = character(0), x_pos = numeric(0), y_pos = numeric(0), bond_order = numeric(0))
+  }
   
-  if (cellContour) {
+  if (cellContour & !identical(row.names(cdNematics), character(0))) {
     cdNematics %<>%
       melt(measure.vars = c("left_daughter_cell_id", "right_daughter_cell_id"), value.name="cell_id") %>% 
       dt.merge(locload(file.path(movieDir, "cellshapes.RData")), by = c("frame","cell_id"), allow.cartesian=TRUE) %>%
@@ -384,10 +391,7 @@ mqf_fg_unit_nematics_T1 <- function(movieDir, rois=c(), cellContour = F, display
   
   cells <- dbGetQuery(movieDb, "select cell_id, frame, center_x, center_y from cells where cell_id!=10000")
   
-  t1DataFilt <- locload(file.path(movieDir, "topochanges/t1DataFilt.RData"))
-  
-  ## Extract actual t1 events with corresponding nematics
-  T1Nematics <- t1DataFilt %>% 
+  neighborChanges <- locload(file.path(movieDir, "topochanges/t1DataFilt.RData")) %>% 
     # Just keep one instance of each event and discard potential cells in contact with themself
     filter(neighbor_cell_id>cell_id) %>% 
     # Flag half T1 gain and loss
@@ -399,30 +403,39 @@ mqf_fg_unit_nematics_T1 <- function(movieDir, rois=c(), cellContour = F, display
     dt.merge(cells, by=c("frame","cell_id")) %>%
     dt.merge(cells %>% dplyr::rename(neighbor_cell_id=cell_id),
              by=c("frame","neighbor_cell_id"),
-             suffixes=c(".1",".2")) %>% 
-    # add roi on "cell_id", thus including ~half of T1 events in a ROI at its interface = fair enough
-    addRois(., movieDir, rois) %>%
-    # calculate T1 nematics and positions at time t
-    mutate(T1xx=0.5*((center_x.2-center_x.1)^2 - (center_y.2-center_y.1)^2),
-           T1xy=(center_x.2-center_x.1)*(center_y.2-center_y.1),
-           normfact = sqrt(T1xx^2+T1xy^2),
-           # defines the T1 nematic parallel to gained bonds
-           unit_T1xx = ifelse(type=="gain", -(1/normfact)*T1xx, (1/normfact)*T1xx),
-           unit_T1xy = ifelse(type=="gain", -(1/normfact)*T1xy, (1/normfact)*T1xy),
-           phi = mod2pi(0.5*(atan2(unit_T1xy, unit_T1xx)))) %>% 
-    # calculate nematic center position and coordinates
-    mutate(center_x=0.5*(center_x.1+center_x.2),
-           center_y=0.5*(center_y.1+center_y.2),
-           x1=center_x-0.5*displayFactor*cos(phi),
-           y1=center_y-0.5*displayFactor*sin(phi),
-           x2=center_x+0.5*displayFactor*cos(phi),
-           y2=center_y+0.5*displayFactor*sin(phi)) %>%
-    # remove unnecessary columns
-    select(-c(T1xx,T1xy,normfact,center_x.1,center_x.2,center_y.1,center_y.2,dbond_id,left_dbond_id,isNeighbor.t,isNeighbor.tp1)) %>% 
-    addTimeFunc(movieDb,.) %>%
-    mutate(movie=basename(movieDir)) %>% add_dev_time()
+             suffixes=c(".1",".2"))
   
-  if (cellContour) {
+  ## Extract actual t1 events with corresponding nematics
+  if (!identical(row.names(neighborChanges), character(0))){
+    T1Nematics <- neighborChanges  %>% 
+      # add roi on "cell_id", thus including ~half of T1 events in a ROI at its interface = fair enough
+      addRois(., movieDir, rois) %>%
+      # calculate T1 nematics and positions at time t
+      mutate(T1xx=0.5*((center_x.2-center_x.1)^2 - (center_y.2-center_y.1)^2),
+             T1xy=(center_x.2-center_x.1)*(center_y.2-center_y.1),
+             normfact = sqrt(T1xx^2+T1xy^2),
+             # defines the T1 nematic parallel to gained bonds
+             unit_T1xx = ifelse(type=="gain", -(1/normfact)*T1xx, (1/normfact)*T1xx),
+             unit_T1xy = ifelse(type=="gain", -(1/normfact)*T1xy, (1/normfact)*T1xy),
+             phi = mod2pi(0.5*(atan2(unit_T1xy, unit_T1xx)))) %>% 
+      # calculate nematic center position and coordinates
+      mutate(center_x=0.5*(center_x.1+center_x.2),
+             center_y=0.5*(center_y.1+center_y.2),
+             x1=center_x-0.5*displayFactor*cos(phi),
+             y1=center_y-0.5*displayFactor*sin(phi),
+             x2=center_x+0.5*displayFactor*cos(phi),
+             y2=center_y+0.5*displayFactor*sin(phi)) %>%
+      # remove unnecessary columns
+      select(-c(T1xx,T1xy,normfact,center_x.1,center_x.2,center_y.1,center_y.2,dbond_id,left_dbond_id,isNeighbor.t,isNeighbor.tp1)) %>% 
+      addTimeFunc(movieDb,.) %>%
+      mutate(movie=basename(movieDir)) %>% add_dev_time()
+  } else {
+    T1Nematics <- data.frame(frame = numeric(0), cell_id = numeric(0), movie = character(0), type = character(0), roi = character(0), unit_T1xx = numeric(0), unit_T1xy = numeric(0), phi = numeric(0),
+                             center_x = numeric(0), center_y = numeric(0), x1 = numeric(0), y1 = numeric(0), x2 = numeric(0), y2 = numeric(0), time_sec = numeric(0), timeInt_sec = numeric(0),
+                             time_shift = numeric(0), dev_time = numeric(0), variable = character(0), t1_type = character(0), x_pos = numeric(0), y_pos = numeric(0), bond_order = numeric(0))
+  }
+  
+  if (cellContour & !identical(row.names(neighborChanges), character(0))) {
     topoChangeSummary  <- locload(file.path(movieDir, "topochanges/topoChangeSummary.RData")) %>%
       filter(num_t1_gained>0 |  num_t1_lost>0) %>%
       mutate(t1_type=ifelse(num_t1_gained>0, ifelse(num_t1_lost>0, "gain_and_loss", "gain"), "loss")) %>% 
@@ -707,23 +720,24 @@ mqf_cg_roi_triangle_elong <- function(movieDir, rois=c()){
 lossRate <- function(movieDb, movieDir, rois, lostType){
   
   cellsInFrame   <- dbGetQuery(movieDb, "select cell_id, frame, area from cells where cell_id!=10000")
-  cellinfo <- dbGetQuery(movieDb, "select * from cell_histories")
+  lossEvents <- dbGetQuery(movieDb, "select * from cell_histories") %>% filter(disappears_by==lostType) 
   
-  lossEvents <- with(subset(cellinfo, disappears_by==lostType), data.frame(cell_id, frame=last_occ, is_loss_next_frame=T))
-  lossEventsInFrame <- dt.merge(cellsInFrame, lossEvents, all.x=T)
-  
-  lossEventsByRoi <- addRois(lossEventsInFrame, movieDir, rois)
-  
-  
-  #   lossSummary <- as.df(group_by(lossEventsByRoi, roi, frame) %>% summarise(num_cells=length(cell_id), num_loss=sum(is_loss_next_frame, na.rm=T)))
-  lossSummary <- as.df(data.table(lossEventsByRoi)[, list(num_cells=length(cell_id), num_loss=sum(is_loss_next_frame, na.rm=T), avg_cell_area=mean(area)), by=c("roi","frame")])
-  lossSummary <- addTimeFunc(movieDb, lossSummary)
-  lossSummary <- arrange(lossSummary, roi, frame)
-  lossSummary <- as.df(data.table(lossSummary)[, ":=" (cell_loss_rate=num_loss/(num_cells*timeInt_sec/3600), # [per cell, per hour]
-                                                       cell_loss_rate.ma=ma(num_loss)/(num_cells*ma(timeInt_sec)/3600), # [per cell, per hour]
-                                                       loss_rate.ma=ma(num_loss)/(ma(timeInt_sec)/3600) # [per hour]
-  ), by=c("roi")])
-  
+  #lossEvents <- with(subset(cellinfo, disappears_by==lostType), data.frame(cell_id, frame=last_occ, is_loss_next_frame=T))
+  if (!identical(row.names(lossEvents), character(0))){
+    lossEventsByRoi <- lossEvents %>%
+      transmute(cell_id, frame=last_occ, is_loss_next_frame=T) %>%
+      dt.merge(cellsInFrame, ., all.x=T) %>%
+      addRois(., movieDir, rois)
+    # lossSummary <- as.df(group_by(lossEventsByRoi, roi, frame) %>% summarise(num_cells=length(cell_id), num_loss=sum(is_loss_next_frame, na.rm=T)))
+    lossSummary <- as.df(data.table(lossEventsByRoi)[, list(num_cells=length(cell_id), num_loss=sum(is_loss_next_frame, na.rm=T), avg_cell_area=mean(area)), by=c("roi","frame")])
+    lossSummary <- addTimeFunc(movieDb, lossSummary)
+    lossSummary <- arrange(lossSummary, roi, frame)
+    lossSummary <- as.df(data.table(lossSummary)[, ":=" (cell_loss_rate=num_loss/(num_cells*timeInt_sec/3600), # [per cell, per hour]
+                                                         cell_loss_rate.ma=ma(num_loss)/(num_cells*ma(timeInt_sec)/3600), # [per cell, per hour]
+                                                         loss_rate.ma=ma(num_loss)/(ma(timeInt_sec)/3600) # [per hour]
+    ), by=c("roi")])
+    
+  } else {lossSummary <- data.frame(empty = character(0))}
   return(lossSummary)
 }
 mqf_cg_roi_rate_CD <- function(movieDir, rois=c()){
@@ -735,13 +749,18 @@ mqf_cg_roi_rate_CD <- function(movieDir, rois=c()){
   
   movieDb <- openMovieDb(movieDir)
   
-  results <- lossRate(movieDb, movieDir, rois, "Division") %>% 
-    mutate(movie=basename(movieDir)) %>% add_dev_time()
+  lossEvents <- lossRate(movieDb, movieDir, rois, "Division") 
+  if (!identical(row.names(lossEvents), character(0))){
+    results <- lossEvents %>% mutate(movie=basename(movieDir)) %>% add_dev_time()
+  } else {
+    results <- data.frame(movie = character(0), frame = numeric(0), roi = character(0), num_cells = numeric(0), num_loss = numeric(0), avg_cell_area = numeric(0),
+                          time_sec = numeric(0), timeInt_sec = numeric(0), cell_loss_rate = numeric(0), cell_loss_rate.ma = numeric(0), loss_rate.ma = numeric(0), time_shift = numeric(0), dev_time = numeric(0))
+  }
   
   dbDisconnect(movieDb)
   return(results)
   
-  }
+}
 mqf_cg_roi_rate_T2 <- function(movieDir, rois=c()){
   
   # Description: get cell extrusion rate per frame, in ROIs
@@ -751,8 +770,13 @@ mqf_cg_roi_rate_T2 <- function(movieDir, rois=c()){
   
   movieDb <- openMovieDb(movieDir)
   
-  results <- lossRate(movieDb, movieDir, rois, "Apoptosis") %>% 
-    mutate(movie=basename(movieDir)) %>% add_dev_time()
+  lossEvents <- lossRate(movieDb, movieDir, rois, "Apoptosis") 
+  if (!identical(row.names(lossEvents), character(0))){
+    results <- lossEvents %>% mutate(movie=basename(movieDir)) %>% add_dev_time()
+  } else {
+    results <- data.frame(movie = character(0), frame = numeric(0), roi = character(0), num_cells = numeric(0), num_loss = numeric(0), avg_cell_area = numeric(0),
+                          time_sec = numeric(0), timeInt_sec = numeric(0), cell_loss_rate = numeric(0), cell_loss_rate.ma = numeric(0), loss_rate.ma = numeric(0), time_shift = numeric(0), dev_time = numeric(0))
+  }
   
   dbDisconnect(movieDb)
   
@@ -971,31 +995,36 @@ mqf_cg_roi_unit_nematics_CD <- function(movieDir, rois=c(), kernSize=11, display
   
   movieDb <- openMovieDb(movieDir)
   
-  cgCDnematics <- mqf_fg_unit_nematics_CD(movieDir, rois) %>%
-    # average nematics in each frame and grid element
-    group_by(frame, roi) %>%
-    summarise(cgCDxx=mean(normCDxx),
-              cgCDxy=mean(normCDxy),
-              roi_center_x=mean(center_x),
-              roi_center_y=mean(center_y))
+  cgCDnematics <- mqf_fg_unit_nematics_CD(movieDir, rois) 
   
-  # do a time averaging over N frames in each roi
-  cgCDnematicsSmooth <- cgCDnematics %>%
-    smooth_tissue(cgCDxx, kernel_size=kernSize, by="roi", gap_fill = 0, global_min_max = T) %>%
-    smooth_tissue(cgCDxy, kernel_size=kernSize, by="roi", gap_fill = 0, global_min_max = T) %>%
-    # calculate the angle and norm of coarse-grained nematics
-    mutate(phi=mod2pi(0.5*(atan2(cgCDxy_smooth, cgCDxx_smooth))),
-           norm=sqrt(cgCDxy_smooth^2+cgCDxx_smooth^2)) %>%
-    # automatic scaling to grig size and nematic coordinates
-    mutate(x1=roi_center_x-0.5*norm*displayFactor*cos(phi),
-           y1=roi_center_y-0.5*norm*displayFactor*sin(phi),
-           x2=roi_center_x+0.5*norm*displayFactor*cos(phi),
-           y2=roi_center_y+0.5*norm*displayFactor*sin(phi)) %>%
-    # remove unnnecessary columns
-    select(-c(cgCDxx,cgCDxy)) %>%
-    # add time and movie name
-    addTimeFunc(movieDb, .) %>% 
-    mutate(movie=basename(movieDir)) %>% add_dev_time()
+  if (!identical(row.names(cgCDnematics), character(0))){
+    cgCDnematics %<>% 
+      # average nematics in each frame and grid element
+      group_by(frame, roi) %>%
+      summarise(cgCDxx=mean(normCDxx),
+                cgCDxy=mean(normCDxy),
+                roi_center_x=mean(center_x),
+                roi_center_y=mean(center_y))
+    
+    # do a time averaging over N frames in each roi
+    cgCDnematicsSmooth <- cgCDnematics %>%
+      smooth_tissue(cgCDxx, kernel_size=kernSize, by="roi", gap_fill = 0, global_min_max = T) %>%
+      smooth_tissue(cgCDxy, kernel_size=kernSize, by="roi", gap_fill = 0, global_min_max = T) %>%
+      # calculate the angle and norm of coarse-grained nematics
+      mutate(phi=mod2pi(0.5*(atan2(cgCDxy_smooth, cgCDxx_smooth))),
+             norm=sqrt(cgCDxy_smooth^2+cgCDxx_smooth^2)) %>%
+      # automatic scaling to grig size and nematic coordinates
+      mutate(x1=roi_center_x-0.5*norm*displayFactor*cos(phi),
+             y1=roi_center_y-0.5*norm*displayFactor*sin(phi),
+             x2=roi_center_x+0.5*norm*displayFactor*cos(phi),
+             y2=roi_center_y+0.5*norm*displayFactor*sin(phi)) %>%
+      # remove unnnecessary columns
+      select(-c(cgCDxx,cgCDxy)) %>%
+      # add time and movie name
+      addTimeFunc(movieDb, .) %>% 
+      mutate(movie=basename(movieDir)) %>% add_dev_time()
+  } else {cgCDnematicsSmooth <- data.frame(movie = character(0), frame = numeric(0), roi = character(0), roi_center_x = numeric(0), roi_center_y = numeric(0), cgCDxx_smooth = numeric(0), cgCDxy_smooth = numeric(0),
+                                           phi = numeric(0), norm = numeric(0), x1 = numeric(0), y1 = numeric(0), x2 = numeric(0), y2 = numeric(0), time_sec = numeric(0), timeInt_sec = numeric(0), time_shift = numeric(0), dev_time = numeric(0))}
   
   dbDisconnect(movieDb)
   
@@ -1014,30 +1043,36 @@ mqf_cg_roi_unit_nematics_T1 <- function(movieDir, rois=c(), kernSize=11, display
   # Output: a dataframe
   
   movieDb <- openMovieDb(movieDir)
-  cgT1nematics <- mqf_fg_unit_nematics_T1(movieDir, rois) %>% 
-    # average nematics in each frame and grid element
-    group_by(frame, roi) %>%
-    summarise(cgT1xx=mean(unit_T1xx),
-              cgT1xy=mean(unit_T1xy),
-              roi_center_x=mean(center_x),
-              roi_center_y=mean(center_y))
   
-  # do a time averaging over 11 frames in each grid element
-  cgT1nematicsSmooth <- cgT1nematics %>%
-    smooth_tissue(cgT1xx, kernel_size=kernSize, by="roi", gap_fill = 0, global_min_max = F) %>%
-    smooth_tissue(cgT1xy, kernel_size=kernSize, by="roi", gap_fill = 0, global_min_max = F) %>%
-    # calculate the coarse-grained nematic angle and norm
-    mutate(phi=mod2pi(0.5*(atan2(cgT1xy_smooth, cgT1xx_smooth))),
-           norm=sqrt(cgT1xy_smooth^2+cgT1xx_smooth^2)) %>%
-    # calculate the nematic coordinates
-    mutate(x1=roi_center_x-0.5*norm*displayFactor*cos(phi),
-           y1=roi_center_y-0.5*norm*displayFactor*sin(phi),
-           x2=roi_center_x+0.5*norm*displayFactor*cos(phi),
-           y2=roi_center_y+0.5*norm*displayFactor*sin(phi)) %>%
-    # remove unnecessary columns
-    select(-c(cgT1xx,cgT1xy)) %>%
-    addTimeFunc(movieDb, .) %>% 
-    mutate(movie=basename(movieDir)) %>% add_dev_time()
+  cgT1nematics <- mqf_fg_unit_nematics_T1(movieDir, rois) 
+  
+  if (!identical(row.names(cgT1nematics), character(0))){
+    # average nematics in each frame and grid element
+    cgT1nematics %<>%
+      group_by(frame, roi) %>%
+      summarise(cgT1xx=mean(unit_T1xx),
+                cgT1xy=mean(unit_T1xy),
+                roi_center_x=mean(center_x),
+                roi_center_y=mean(center_y))
+    
+    # do a time averaging over 11 frames in each grid element
+    cgT1nematicsSmooth <- cgT1nematics %>%
+      smooth_tissue(cgT1xx, kernel_size=kernSize, by="roi", gap_fill = 0, global_min_max = F) %>%
+      smooth_tissue(cgT1xy, kernel_size=kernSize, by="roi", gap_fill = 0, global_min_max = F) %>%
+      # calculate the coarse-grained nematic angle and norm
+      mutate(phi=mod2pi(0.5*(atan2(cgT1xy_smooth, cgT1xx_smooth))),
+             norm=sqrt(cgT1xy_smooth^2+cgT1xx_smooth^2)) %>%
+      # calculate the nematic coordinates
+      mutate(x1=roi_center_x-0.5*norm*displayFactor*cos(phi),
+             y1=roi_center_y-0.5*norm*displayFactor*sin(phi),
+             x2=roi_center_x+0.5*norm*displayFactor*cos(phi),
+             y2=roi_center_y+0.5*norm*displayFactor*sin(phi)) %>%
+      # remove unnecessary columns
+      select(-c(cgT1xx,cgT1xy)) %>%
+      addTimeFunc(movieDb, .) %>% 
+      mutate(movie=basename(movieDir)) %>% add_dev_time()
+  } else {cgT1nematicsSmooth <- data.frame(movie = character(0), frame = numeric(0), roi = character(0), roi_center_x = numeric(0), roi_center_y = numeric(0), cgT1xx_smooth = numeric(0), cgT1xy_smooth = numeric(0),
+                                           phi = numeric(0), norm = numeric(0), x1 = numeric(0), y1 = numeric(0), x2 = numeric(0), y2 = numeric(0), time_sec = numeric(0), timeInt_sec = numeric(0), time_shift = numeric(0), dev_time = numeric(0))}
   
   dbDisconnect(movieDb)
   
@@ -1105,34 +1140,38 @@ mqf_cg_grid_unit_nematics_CD <- function(movieDir, rois="raw", gridSize=128, ker
   
   if (displayFactor==-1) autoscale=T else autoscale=F
   
-  cgCDnematics <- mqf_fg_unit_nematics_CD(movieDir, rois=rois) %>%
-    coarseGrid(gridSize) %>%
-    # remove grid elements that overlap the margin cell
-    removeBckndGridOvlp(getBckndGridElements(movieDb, gridSize)) %>%
-    # sum nematics in each frame and grid element
-    group_by(frame, roi, xGrid, yGrid) %>%
-    summarise(cgCDxx=sum(normCDxx),
-              cgCDxy=sum(normCDxy))
+  cgCDnematics <- mqf_fg_unit_nematics_CD(movieDir, rois=rois)
   
-  # do a time averaging over N frames in each grid element
-  cgCDnematicsSmooth <- cgCDnematics %>%
-    smooth_tissue(cgCDxx, kernel_size=kernSize, gap_fill = 0, global_min_max = T) %>%
-    smooth_tissue(cgCDxy, kernel_size=kernSize, gap_fill = 0, global_min_max = T) %>%
-    # calculate the angle and norm of coarse-grained nematics
-    mutate(phi=mod2pi(0.5*(atan2(cgCDxy_smooth, cgCDxx_smooth))),
-           norm=sqrt(cgCDxy_smooth^2+cgCDxx_smooth^2)) %>%
-    # automatic scaling to grig size and nematic coordinates
-    mutate(scaledFact=ifelse(autoscale, gridSize/quantile(norm, na.rm=T, probs=0.99),displayFactor),
-           x1=xGrid-0.5*norm*scaledFact*cos(phi),
-           y1=yGrid-0.5*norm*scaledFact*sin(phi),
-           x2=xGrid+0.5*norm*scaledFact*cos(phi),
-           y2=yGrid+0.5*norm*scaledFact*sin(phi)) %>%
-    # remove unnecessary columns
-    select(-c(cgCDxx,cgCDxy)) %>%
-    # add time and movie name
-    addTimeFunc(movieDb, .) %>% 
-    mutate(movie=basename(movieDir)) %>% add_dev_time()
-  
+  if (!identical(row.names(cgCDnematics), character(0))){
+    cgCDnematics %<>%
+      coarseGrid(gridSize) %>%
+      # remove grid elements that overlap the margin cell
+      removeBckndGridOvlp(getBckndGridElements(movieDb, gridSize)) %>%
+      # sum nematics in each frame and grid element
+      group_by(frame, roi, xGrid, yGrid) %>%
+      summarise(cgCDxx=sum(normCDxx),
+                cgCDxy=sum(normCDxy))
+    
+    # do a time averaging over N frames in each grid element
+    cgCDnematicsSmooth <- cgCDnematics %>%
+      smooth_tissue(cgCDxx, kernel_size=kernSize, gap_fill = 0, global_min_max = T) %>%
+      smooth_tissue(cgCDxy, kernel_size=kernSize, gap_fill = 0, global_min_max = T) %>%
+      # calculate the angle and norm of coarse-grained nematics
+      mutate(phi=mod2pi(0.5*(atan2(cgCDxy_smooth, cgCDxx_smooth))),
+             norm=sqrt(cgCDxy_smooth^2+cgCDxx_smooth^2)) %>%
+      # automatic scaling to grig size and nematic coordinates
+      mutate(scaledFact=ifelse(autoscale, gridSize/quantile(norm, na.rm=T, probs=0.99),displayFactor),
+             x1=xGrid-0.5*norm*scaledFact*cos(phi),
+             y1=yGrid-0.5*norm*scaledFact*sin(phi),
+             x2=xGrid+0.5*norm*scaledFact*cos(phi),
+             y2=yGrid+0.5*norm*scaledFact*sin(phi)) %>%
+      # remove unnecessary columns
+      select(-c(cgCDxx,cgCDxy)) %>%
+      # add time and movie name
+      addTimeFunc(movieDb, .) %>% 
+      mutate(movie=basename(movieDir)) %>% add_dev_time()
+  } else {cgCDnematicsSmooth <- data.frame(movie = character(0), frame = numeric(0), xGrid = numeric(0), yGrid = numeric(0), roi = character(0),cgCDxx_smooth = numeric(0), cgCDxy_smooth = numeric(0),
+                                           phi = numeric(0), norm = numeric(0), scaledFact = numeric(0), x1 = numeric(0), y1 = numeric(0), x2 = numeric(0), y2 = numeric(0), time_sec = numeric(0), timeInt_sec = numeric(0), time_shift = numeric(0), dev_time = numeric(0))}
   dbDisconnect(movieDb)
   
   return(cgCDnematicsSmooth)
@@ -1149,35 +1188,39 @@ mqf_cg_grid_unit_nematics_T1 <- function(movieDir, rois="raw", gridSize=128, ker
   # Output: a dataframe
   
   if (displayFactor==-1) autoscale=T else autoscale=F
-  
   movieDb <- openMovieDb(movieDir)
-  cgT1nematics <- mqf_fg_unit_nematics_T1(movieDir, rois = rois) %>% 
-    # coarse-grain nematics (assume the presence of center_x and center_y in the data)
-    coarseGrid(gridSize) %>%
-    # remove grid elements that overlap the margin cell
-    removeBckndGridOvlp(getBckndGridElements(movieDb, gridSize)) %>%
-    # average nematics in each frame and grid element
-    group_by(frame, roi, xGrid, yGrid) %>%
-    summarise(cgT1xx=sum(unit_T1xx),
-              cgT1xy=sum(unit_T1xy))
+  cgT1nematics <- mqf_fg_unit_nematics_T1(movieDir, rois = rois)
   
-  # do a time averaging over 11 frames in each grid element
-  cgT1nematicsSmooth <- cgT1nematics %>%
-    smooth_tissue(cgT1xx, kernel_size=kernSize, gap_fill = 0, global_min_max = F) %>%
-    smooth_tissue(cgT1xy, kernel_size=kernSize, gap_fill = 0, global_min_max = F) %>%
-    # calculate the coarse-grained nematic angle and norm
-    mutate(phi=mod2pi(0.5*(atan2(cgT1xy_smooth, cgT1xx_smooth))),
-           norm=sqrt(cgT1xy_smooth^2+cgT1xx_smooth^2)) %>%
-    # calculate the nematic coordinates
-    mutate(scaledFact=ifelse(autoscale,gridSize/quantile(norm, na.rm=T, probs=0.95),displayFactor),
-           x1=xGrid-0.5*norm*scaledFact*cos(phi),
-           y1=yGrid-0.5*norm*scaledFact*sin(phi),
-           x2=xGrid+0.5*norm*scaledFact*cos(phi),
-           y2=yGrid+0.5*norm*scaledFact*sin(phi)) %>%
-    # remove unnecessary columns
-    select(-c(cgT1xx,cgT1xy)) %>%
-    addTimeFunc(movieDb, .) %>% 
-    mutate(movie=basename(movieDir)) %>% add_dev_time()
+  if (!identical(row.names(cgT1nematics), character(0))){
+    # coarse-grain nematics (assume the presence of center_x and center_y in the data)
+    cgT1nematics %<>%
+      coarseGrid(gridSize) %>%
+      # remove grid elements that overlap the margin cell
+      removeBckndGridOvlp(getBckndGridElements(movieDb, gridSize)) %>%
+      # average nematics in each frame and grid element
+      group_by(frame, roi, xGrid, yGrid) %>%
+      summarise(cgT1xx=sum(unit_T1xx),
+                cgT1xy=sum(unit_T1xy))
+    
+    # do a time averaging over 11 frames in each grid element
+    cgT1nematicsSmooth <- cgT1nematics %>%
+      smooth_tissue(cgT1xx, kernel_size=kernSize, gap_fill = 0, global_min_max = F) %>%
+      smooth_tissue(cgT1xy, kernel_size=kernSize, gap_fill = 0, global_min_max = F) %>%
+      # calculate the coarse-grained nematic angle and norm
+      mutate(phi=mod2pi(0.5*(atan2(cgT1xy_smooth, cgT1xx_smooth))),
+             norm=sqrt(cgT1xy_smooth^2+cgT1xx_smooth^2)) %>%
+      # calculate the nematic coordinates
+      mutate(scaledFact=ifelse(autoscale,gridSize/quantile(norm, na.rm=T, probs=0.95),displayFactor),
+             x1=xGrid-0.5*norm*scaledFact*cos(phi),
+             y1=yGrid-0.5*norm*scaledFact*sin(phi),
+             x2=xGrid+0.5*norm*scaledFact*cos(phi),
+             y2=yGrid+0.5*norm*scaledFact*sin(phi)) %>%
+      # remove unnecessary columns
+      select(-c(cgT1xx,cgT1xy)) %>%
+      addTimeFunc(movieDb, .) %>% 
+      mutate(movie=basename(movieDir)) %>% add_dev_time()
+  } else {cgT1nematicsSmooth <- data.frame(movie = character(0), frame = numeric(0), xGrid = numeric(0), yGrid = numeric(0), roi = character(0), cgT1xx_smooth = numeric(0), cgT1xy_smooth = numeric(0),
+                                           phi = numeric(0), norm = numeric(0), x1 = numeric(0), y1 = numeric(0), x2 = numeric(0), y2 = numeric(0), time_sec = numeric(0), timeInt_sec = numeric(0), time_shift = numeric(0), dev_time = numeric(0))}
   
   dbDisconnect(movieDb)
   
