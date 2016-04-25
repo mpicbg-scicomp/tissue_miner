@@ -34,35 +34,38 @@ db <- openMovieDb(movieDir)
 
 print("")
 print("Querying the DB...")
-T1Nematics <- mqf_cg_roi_unit_nematics_T1(movieDir, rois = ROIlist) %>% 
-  group_by(movie) %>%
-  mutate(maxnormByMovie=max(norm,na.rm=T)) %>% 
-  group_by(movie,roi) %>%
-  mutate(maxnormByRoi=max(norm,na.rm=T)) %>% print_head() 
+T1Nematics <- mqf_cg_roi_unit_nematics_T1(movieDir, rois = ROIlist)
 
-print("")
-print("Save plot: avg_cell_rearrangement_nematics.pdf")
-ggsave2(ggplot(T1Nematics , aes()) + 
-          geom_segment(aes(x=phi, y=0, xend=phi, yend=(norm), color=dev_time),size=1, alpha=0.5) +
-          geom_segment(aes(x=mod2pi(phi+pi), y=0, xend=mod2pi(phi+pi), yend=(norm),
-                           color=dev_time), size=1, alpha=0.5) +
-          scale_color_gradientn(name="Time [h]",
-                                colours=c("black", "blue", "green", "yellow", "red"),
-                                limits=c(min(T1Nematics$dev_time),max(T1Nematics$dev_time)),
-                                na.value = "red") +
-          coord_polar(start=-pi/2,direction=+1)+
-          scale_x_continuous(breaks=seq(0,3*pi/2,pi/2), 
-                             labels=c(expression(pi),expression(paste(pi/2," Ant")),
-                                      expression(0),expression(-pi/2)),
-                             limits=c(0,2*pi)) +
-          xlab("") +
-          ylab("nematic norm") +
-          facet_wrap(~roi) +
-          ggtitle("avg_cell_rearrangement_nematics"), outputFormat = "pdf")
-
-print("")
-print("Your output results are located here:")
-print(outDir)
-
-open_file(outDir)
-
+if (!identical(row.names(T1Nematics), character(0))){
+  T1Nematics %<>%
+    group_by(movie) %>%
+    mutate(maxnormByMovie=max(norm,na.rm=T)) %>% 
+    group_by(movie,roi) %>%
+    mutate(maxnormByRoi=max(norm,na.rm=T)) %>% print_head() 
+  
+  print("")
+  print("Save plot: avg_cell_rearrangement_nematics.pdf")
+  ggsave2(ggplot(T1Nematics , aes()) + 
+            geom_segment(aes(x=phi, y=0, xend=phi, yend=(norm), color=dev_time),size=1, alpha=0.5) +
+            geom_segment(aes(x=mod2pi(phi+pi), y=0, xend=mod2pi(phi+pi), yend=(norm),
+                             color=dev_time), size=1, alpha=0.5) +
+            scale_color_gradientn(name="Time [h]",
+                                  colours=c("black", "blue", "green", "yellow", "red"),
+                                  limits=c(min(T1Nematics$dev_time),max(T1Nematics$dev_time)),
+                                  na.value = "red") +
+            coord_polar(start=-pi/2,direction=+1)+
+            scale_x_continuous(breaks=seq(0,3*pi/2,pi/2), 
+                               labels=c(expression(pi),expression(paste(pi/2," Ant")),
+                                        expression(0),expression(-pi/2)),
+                               limits=c(0,2*pi)) +
+            xlab("") +
+            ylab("nematic norm") +
+            facet_wrap(~roi) +
+            ggtitle("avg_cell_rearrangement_nematics"), outputFormat = "pdf")
+  
+  print("")
+  print("Your output results are located here:")
+  print(outDir)
+  
+  open_file(outDir)
+} else {print("No neighbor exchange detected, skipping...")}

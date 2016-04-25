@@ -38,6 +38,8 @@ print("Creating cell_division_orientation_pattern.mp4...")
 
 data_to_plot <- mqf_cg_grid_unit_nematics_CD(movieDir, rois = ROIlist, gridSize = 90, kernSize = 11) 
 
+if (!identical(row.names(data_to_plot), character(0))){
+  
 l_ply(ROIlist, function(current_roi){
   data_to_plot %>% filter(roi == current_roi) %>%
   render_movie(paste0("cell_division_orientation_pattern_", current_roi, ".mp4"), list(
@@ -51,4 +53,4 @@ print("Your output results are located here:")
 print(outDir)
 
 open_file(outDir)
-
+} else {print("No division detected, skipping...")}

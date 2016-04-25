@@ -35,27 +35,34 @@ db <- openMovieDb(movieDir)
 
 print("")
 print("Querying the DB...")
-CDrateByTimeIntervals <- mqf_cg_roi_rate_CD(movieDir, rois = ROIlist) %>%
-  chunk_time_into_intervals(3600) %>%
-  group_by(movie, roi,interval_mid) %>%
-  summarise(avgCDrate=mean(cell_loss_rate),
-            semCD=se(cell_loss_rate),
-            time_sec=interval_mid[1],
-            dev_time=mean(dev_time))
+CDrate <- mqf_cg_roi_rate_CD(movieDir, rois = ROIlist)
 
-print("")
-print("Save plot: cell_division_rate.pdf")
-ggsave2(ggplot(CDrateByTimeIntervals, aes(dev_time, avgCDrate, color=movie)) + 
-          geom_line()+
-          geom_point(size=1, color="black") +
-          geom_errorbar(aes(ymin=(avgCDrate-semCD), ymax=(avgCDrate+semCD)),
-                        size=0.3, width=0.4, color="black") +
-          ylab(expression(paste("CD rate [", cell^-1, h^-1,"]"))) +
-          facet_wrap(~roi) +
-          ggtitle("cell_division_rate"), outputFormat = "pdf")
+if (!identical(row.names(CDrate), character(0))){
+  
+  CDrateByTimeIntervals <-  CDrate %>%
+    chunk_time_into_intervals(3600) %>%
+    group_by(movie, roi,interval_mid) %>%
+    summarise(avgCDrate=mean(cell_loss_rate),
+              semCD=se(cell_loss_rate),
+              time_sec=interval_mid[1],
+              dev_time=mean(dev_time))
+  
+  print("")
+  print("Save plot: cell_division_rate.pdf")
+  ggsave2(ggplot(CDrateByTimeIntervals, aes(dev_time, avgCDrate, color=movie)) + 
+            geom_line()+
+            geom_point(size=1, color="black") +
+            geom_errorbar(aes(ymin=(avgCDrate-semCD), ymax=(avgCDrate+semCD)),
+                          size=0.3, width=0.4, color="black") +
+            ylab(expression(paste("CD rate [", cell^-1, h^-1,"]"))) +
+            facet_wrap(~roi) +
+            ggtitle("cell_division_rate"), outputFormat = "pdf")
+  
+  print("")
+  print("Your output results are located here:")
+  print(outDir)
+  
+  open_file(outDir)
 
-print("")
-print("Your output results are located here:")
-print(outDir)
+  } else {print("No division detected, skipping...")}
 
-open_file(outDir)

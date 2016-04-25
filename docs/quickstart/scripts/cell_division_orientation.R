@@ -34,35 +34,40 @@ db <- openMovieDb(movieDir)
 
 print("")
 print("Querying the DB...")
-CDNematics <- mqf_cg_roi_unit_nematics_CD(movieDir, rois = ROIlist) %>% 
-  group_by(movie) %>%
-  mutate(maxnormByMovie=max(norm,na.rm=T)) %>% 
-  group_by(movie,roi) %>%
-  mutate(maxnormByRoi=max(norm,na.rm=T)) 
+CDNematics <- mqf_cg_roi_unit_nematics_CD(movieDir, rois = ROIlist)
 
-print("")
-print("Save plot: avg_CD_nematics.pdf")
-ggsave2(ggplot(CDNematics , aes()) + 
-          geom_segment(aes(x=phi, y=0, xend=phi, yend=(norm), color=dev_time),size=1, alpha=0.5) +
-          geom_segment(aes(x=mod2pi(phi+pi), y=0, xend=mod2pi(phi+pi), yend=(norm),
-                           color=dev_time), size=1, alpha=0.5) +
-          scale_color_gradientn(name="Time [h]",
-                                colours=c("black", "blue", "green", "yellow", "red"),
-                                limits=c(min(CDNematics$dev_time),max(CDNematics$dev_time)),
-                                na.value = "red") +
-          coord_polar(start=-pi/2,direction=+1)+
-          scale_x_continuous(breaks=seq(0,3*pi/2,pi/2), 
-                             labels=c(expression(pi),expression(paste(pi/2," Ant")),
-                                      expression(0),expression(-pi/2)),
-                             limits=c(0,2*pi)) +
-          xlab("") +
-          ylab("CD nematic norm") +
-          facet_wrap(~roi) +
-          ggtitle("avg_CD_nematics"), outputFormat = "pdf")
-
-print("")
-print("Your output results are located here:")
-print(outDir)
-
-open_file(outDir)
-
+if (!identical(row.names(CDNematics), character(0))){
+  
+  CDNematics %<>% 
+    group_by(movie) %>%
+    mutate(maxnormByMovie=max(norm,na.rm=T)) %>% 
+    group_by(movie,roi) %>%
+    mutate(maxnormByRoi=max(norm,na.rm=T)) 
+  
+  print("")
+  print("Save plot: avg_CD_nematics.pdf")
+  ggsave2(ggplot(CDNematics , aes()) + 
+            geom_segment(aes(x=phi, y=0, xend=phi, yend=(norm), color=dev_time),size=1, alpha=0.5) +
+            geom_segment(aes(x=mod2pi(phi+pi), y=0, xend=mod2pi(phi+pi), yend=(norm),
+                             color=dev_time), size=1, alpha=0.5) +
+            scale_color_gradientn(name="Time [h]",
+                                  colours=c("black", "blue", "green", "yellow", "red"),
+                                  limits=c(min(CDNematics$dev_time),max(CDNematics$dev_time)),
+                                  na.value = "red") +
+            coord_polar(start=-pi/2,direction=+1)+
+            scale_x_continuous(breaks=seq(0,3*pi/2,pi/2), 
+                               labels=c(expression(pi),expression(paste(pi/2," Ant")),
+                                        expression(0),expression(-pi/2)),
+                               limits=c(0,2*pi)) +
+            xlab("") +
+            ylab("CD nematic norm") +
+            facet_wrap(~roi) +
+            ggtitle("avg_CD_nematics"), outputFormat = "pdf")
+  
+  print("")
+  print("Your output results are located here:")
+  print(outDir)
+  
+  open_file(outDir)
+  
+} else {print("No division detected, skipping...")}
