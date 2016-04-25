@@ -559,7 +559,7 @@ mqf_fg_bond_length <- function(movieDir, rois=c()){
   return(bond_2vx)
 }
 ## mqf_fg_cell_neighbor_count() ####
-mqf_fg_cell_neighbor_count <- function(movieDir, rois=c(), polygon_class_limit=c(4,8), cellContour=F){
+mqf_fg_cell_neighbor_count <- function(movieDir, rois=c(), polygon_class_limit=c(3,9), cellContour=F){
   
   # Description: count cell neighbors and retrieve the ordered list of vertices 
   # Usage: mqf_fg_cell_neighbor_count(movieDir)
@@ -640,32 +640,25 @@ mqf_cg_roi_cell_area <- function(movieDir, rois=c()){
   return(area)
 }
 ## mqf_cg_roi_cell_neighbor_count ####
-mqf_cg_roi_cell_neighbor_count <- function(movieDir, rois=c(), cellContour=F){
+mqf_cg_roi_cell_neighbor_count <- function(movieDir, rois=c(), polygon_class_limit=c(3,9)){
   
   # Description: get averaged cell neighbor count per frame, in ROIs
   # Usage: mqf_cg_roi_cell_neighbor_count(movieDir)
-  # Arguments: movieDir = path to movie directory, rois = selected rois (all by default)
+  # Arguments: movieDir = path to movie directory, rois = selected rois (all by default), polygon_class_limit = restricts polygon class
   # Output: a dataframe
   
   movieDb <- openMovieDb(movieDir)
   
-  queryResult <- locload(file.path(movieDir, "topochanges/topoChangeSummary.RData")) %>%
-    addRois(., movieDir, rois)
-
-  neighborCount <- queryResult %>%
-    group_by(roi,frame) %>%
-    summarise(avg_num_neighbors=mean(num_neighbors_t)) %>%
+  avg_cellPolygonClass <- mqf_fg_cell_neighbor_count(movieDir, rois, cellContour = F, polygon_class_limit) %>%
+    group_by(roi,frame) %>% 
+    summarise(avg_num_neighbors=mean(neighbor_number), avg_polygon_class_trimmed=mean(polygon_class_trimmed)) %>% 
     addTimeFunc(movieDb, .) %>% 
-    mutate(movie=basename(movieDir)) %>% add_dev_time()
-  
-  if (cellContour) {
-    neighborCount %<>% dt.merge(locload(file.path(movieDir, "cellshapes.RData")), by = c("frame","cell_id"), allow.cartesian=TRUE) %>%
-      arrange(frame, roi, cell_id, bond_order) 
-  } 
+    mutate(movie=basename(movieDir)) %>% add_dev_time() %>%
+    print_head()
   
   dbDisconnect(movieDb)
   
-  return(neighborCount)
+  return(avg_cellPolygonClass)
 }
 ## mqf_cg_roi_polygon_class ADD TRIM ARG ####
 mqf_cg_roi_polygon_class <- function(movieDir, rois=c()){
