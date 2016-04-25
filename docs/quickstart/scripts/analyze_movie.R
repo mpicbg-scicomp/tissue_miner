@@ -296,32 +296,34 @@ if (!identical(row.names(CDNematics), character(0))){
 ## Cell neighbor changes ####
 print("")
 print("Querying the DB...")
-T1rate <- mqf_cg_roi_rate_T1(movieDir, rois = ROIlist)
+T1rateByTimeIntervals <- mqf_cg_roi_rate_T1(movieDir, rois = ROIlist) %>%
+  chunk_time_into_intervals(deltaT = 3600) %>%
+  group_by(movie, roi,interval_mid) %>%
+  summarise(avgT1rate=mean(cell_topo_rate),
+            semT1=se(cell_topo_rate),
+            time_sec=interval_mid[1],
+            dev_time=mean(dev_time))
 
-if (!identical(row.names(T1rate), character(0))){
-  T1rateByTimeIntervals <- T1rate %>%
-    chunk_time_into_intervals(deltaT = 3600) %>%
-    group_by(movie, roi,interval_mid) %>%
-    summarise(avgT1rate=mean(cell_topo_rate),
-              semT1=se(cell_topo_rate),
-              time_sec=interval_mid[1],
-              dev_time=mean(dev_time))
+print("")
+print("Save plot: cell_neighbor_change_rate.pdf")
+ggsave2(ggplot(T1rateByTimeIntervals, aes(dev_time, avgT1rate, color=movie)) + 
+          geom_line()+
+          geom_point(size=1, color="black") +
+          geom_errorbar(aes(ymin=(avgT1rate-semT1), ymax=(avgT1rate+semT1)),
+                        size=0.3, width=0.4, color="black") +
+          ylab(expression(paste("T1 rate [", cell^-1, h^-1,"]"))) + 
+          ylim(c(0.2,2.3)) +
+          facet_wrap(~roi) +
+          ggtitle("cell_neighbor_change_rate"),outputFormat = "pdf")
+
+rm(T1rateByTimeIntervals)
+print("")
+print("Querying the DB...")
+
+T1Nematics <- mqf_cg_roi_unit_nematics_T1(movieDir, rois = ROIlist) 
+if (!identical(row.names(T1Nematics), character(0))){
   
-  print("")
-  print("Save plot: cell_neighbor_change_rate.pdf")
-  ggsave2(ggplot(T1rateByTimeIntervals, aes(dev_time, avgT1rate, color=movie)) + 
-            geom_line()+
-            geom_point(size=1, color="black") +
-            geom_errorbar(aes(ymin=(avgT1rate-semT1), ymax=(avgT1rate+semT1)),
-                          size=0.3, width=0.4, color="black") +
-            ylab(expression(paste("T1 rate [", cell^-1, h^-1,"]"))) + 
-            ylim(c(0.2,2.3)) +
-            facet_wrap(~roi) +
-            ggtitle("cell_neighbor_change_rate"),outputFormat = "pdf")
-  
-  print("")
-  print("Querying the DB...")
-  T1Nematics <- mqf_cg_roi_unit_nematics_T1(movieDir, rois = ROIlist) %>% 
+  T1Nematics %<>% 
     group_by(movie) %>%
     mutate(maxnormByMovie=max(norm,na.rm=T)) %>% 
     group_by(movie,roi) %>%
@@ -357,7 +359,7 @@ if (!identical(row.names(T1rate), character(0))){
         geom_segment(aes(x=x1,y=y1,xend=x2,yend=y2),  size=2, alpha=0.7, lineend="round", color="red", na.rm=T)
       ))
   }, .inform = T)
-  rm(T1_rate, T1Nematics, data_to_plot, T1rateByTimeIntervals)
+  rm(T1Nematics, data_to_plot)
 } else {print("No neighbor exchange detected, skipping...")}
 ## Cell contributions to tissue area changes ####
 print("")
