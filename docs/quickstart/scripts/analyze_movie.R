@@ -162,7 +162,7 @@ rm(cellElongNematicsCG)
 cellPolygonClass <- mqf_fg_cell_neighbor_count(movieDir, rois = ROIlist, cellContour = T)
 
 # Define a discrete color palette of polygon class
-polygonClassColors <- c("2"="white","3"="black", "4"="green",
+polygonClassColors <- c("2"="white","3"="cyan", "4"="green",
                         "5"="yellow", "6"="grey", "7"="blue",
                         "8"="red", "9"="purple", ">9"="black")
 
@@ -196,7 +196,7 @@ print("Save plot: cell_neighbor_number_distribution.pdf")
 ggsave2(mqf_fg_cell_neighbor_count(movieDir, rois = ROIlist, polygon_class_limit=c(3,9)) %>%
           ggplot(aes(ac(polygon_class_trimmed), fill=as.factor(polygon_class_trimmed))) +
           geom_bar(color="white") +
-          scale_fill_manual(values=c("3"="black", "4"="green", "5"="yellow", "6"="grey", "7"="blue", "8"="red","9"="purple"), name="polygon class") + 
+          scale_fill_manual(values=c("3"="cyan", "4"="green", "5"="yellow", "6"="grey", "7"="blue", "8"="red","9"="purple"), name="polygon class") + 
           xlab("Cell neighbor number")  +
           facet_wrap(~roi) +
           ggtitle("cell_neighbor_number_distribution"),outputFormat = "pdf")
