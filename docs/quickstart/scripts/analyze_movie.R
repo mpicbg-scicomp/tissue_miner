@@ -43,7 +43,7 @@ print("Creating cell_area_pattern.mp4...")
 l_ply(ROIlist, function(current_roi){
   cellArea %>% filter(roi == current_roi) %>%
     render_movie(paste0("cell_area_pattern_",current_roi,".mp4"), list(
-      geom_polygon(aes(x_pos, y_pos, group=cell_id, fill=area)),
+      geom_polygon(aes(x_pos, y_pos, group=cell_id, fill=area), alpha=0.7),
       scale_fill_gradientn(name="area (px)",
                            colours=c("black", "blue", "green", "yellow", "red"),
                            limits=c(0,quantile(cellArea$area, probs = 99.9/100)),
@@ -90,7 +90,6 @@ ggsave2(mqf_fg_cell_area(movieDir, rois = ROIlist) %>%
           facet_wrap(~roi) +
           ggtitle("cell_area_violin"), outputFormat = "pdf")
 ## 
-
 ## Cell Elongation ####
 print("")
 print("Save plot: averaged_cell_elongation_norm.pdf")
@@ -139,7 +138,7 @@ print("Creating cell_elongation_magnitude_pattern.mp4...")
 l_ply(ROIlist, function(current_roi){
   cellElongNematics %>% filter(roi == current_roi) %>%
     render_movie(paste0("cell_elongation_magnitude_pattern_", current_roi, ".mp4"), list(
-      geom_polygon(aes(x_pos, y_pos, group=cell_id, fill=norm)), 
+      geom_polygon(aes(x_pos, y_pos, group=cell_id, fill=norm), alpha=0.7), 
       scale_fill_gradientn(name="elongation",
                            colours=c("black", "blue", "green", "yellow", "red"),
                            limits=c(0,1),

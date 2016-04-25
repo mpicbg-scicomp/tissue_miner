@@ -39,7 +39,7 @@ print("Creating cell_elongation_magnitude_pattern.mp4...")
 l_ply(ROIlist, function(current_roi){
   cellElongNematics %>% filter(roi == current_roi) %>%
     render_movie(paste0("cell_elongation_magnitude_pattern_", current_roi, ".mp4"), list(
-      geom_polygon(aes(x_pos, y_pos, group=cell_id, fill=norm)), 
+      geom_polygon(aes(x_pos, y_pos, group=cell_id, fill=norm), alpha=0.7), 
       scale_fill_gradientn(name="elongation",
                            colours=c("black", "blue", "green", "yellow", "red"),
                            limits=c(0,1),

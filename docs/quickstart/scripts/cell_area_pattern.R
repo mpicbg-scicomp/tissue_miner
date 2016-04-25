@@ -41,7 +41,7 @@ print("Creating cell_area_pattern.mp4...")
 l_ply(ROIlist, function(current_roi){
   cellArea %>% filter(roi == current_roi) %>%
     render_movie(paste0("cell_area_pattern_",current_roi,".mp4"), list(
-      geom_polygon(aes(x_pos, y_pos, group=cell_id, fill=area)),
+      geom_polygon(aes(x_pos, y_pos, group=cell_id, fill=area), alpha=0.7),
       scale_fill_gradientn(name="area (px)",
                            colours=c("black", "blue", "green", "yellow", "red"),
                            limits=c(0,quantile(cellArea$area, probs = 99.9/100)),
