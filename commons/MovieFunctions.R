@@ -101,7 +101,6 @@ render_frame <- function(overlayData, frameOI=overlayData$frame[1], ...){
 }
 
 
-
 render_movie <- function(celldata, fileName, cellLayers, sampleRate=1, createZip=F, createSvgZip=F,
             # specify rendering dimensions of movies either by using config variable or by using default
             out_width=ifelse(exists("movie_render_dim"), movie_render_dim$width, 12),
@@ -169,8 +168,8 @@ render_movie <- function(celldata, fileName, cellLayers, sampleRate=1, createZip
         }
 
 #        outputFile
-    }, .progress="text", .parallel=T, .drop=F)
-
+    }, .progress="text", .parallel=!(Sys.info()["sysname"]=="Darwin"), .drop=F)
+ 
     ## compress images if necessary
     if(createZip){
         system(paste0("(curWD=$(pwd); cd ",filePrefix,"; tar cvf $curWD/",fileName,"_png.tar *.png)"))
