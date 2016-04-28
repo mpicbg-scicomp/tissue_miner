@@ -113,7 +113,27 @@ Datasets
 ================
 We provide four datasets:
 * 1 demo sample (~35 Mb) to run [Quickstart R Tutorials](https://github.com/mpicbg-scicomp/tissue_miner/blob/gh-pages/quickstart_tutorial/tm_quickstart_landing_page.md#first-use-of-tissueminer)
+
+```{bash}
+## In your terminal, type in the command below to download and extract the Demo data
+curl https://cloud.mpi-cbg.de/index.php/s/vC0VqD2Wy4A6uqu/download  | tar -zxvf -
+```
+
 * 3 big datasets (~800Mb each) to explore more advanced capabilities of TissueMiner described in the [TM R User Manual](https://mpicbg-scicomp.github.io/tissue_miner/user_manual/TM_R-UserManual.html)
+
+```{bash}
+# In your unix terminal (or Docker QuickStart Terminal), type in:
+
+# Dataset WT_1 (~800Mb)
+curl https://cloud.mpi-cbg.de/index.php/s/SgxxQk5CkIpTLPW/download  | tar -zxvf -
+
+# Dataset WT_2 (~800Mb)
+curl https://cloud.mpi-cbg.de/index.php/s/Z6ZR1b0sGWnC8Cj/download  | tar -zxvf -
+
+# Dataset WT_3 (~600Mb)
+curl https://cloud.mpi-cbg.de/index.php/s/4BJiyxnCS7HFyKB/download  | tar -zxvf -
+```
+
 
 Support
 =========
