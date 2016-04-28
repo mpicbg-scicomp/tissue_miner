@@ -115,7 +115,7 @@ We provide four datasets:
 * 1 demo sample (~35 Mb) to run [Quickstart R Tutorials](https://github.com/mpicbg-scicomp/tissue_miner/blob/gh-pages/quickstart_tutorial/tm_quickstart_landing_page.md#first-use-of-tissueminer)
 
 ```{bash}
-## In your terminal, type in the command below to download and extract the Demo data
+# In your unix terminal (or Docker QuickStart Terminal), type in:
 curl https://cloud.mpi-cbg.de/index.php/s/vC0VqD2Wy4A6uqu/download  | tar -zxvf -
 ```
 
