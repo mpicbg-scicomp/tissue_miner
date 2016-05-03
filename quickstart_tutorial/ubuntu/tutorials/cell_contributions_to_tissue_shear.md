@@ -1,10 +1,9 @@
 
 # Cell contributions to tissue shear analysis
 
-Cell contributions to tissue shear (change in aspect-ratio or pure shear) are calculated from the database using a dedicated routine included in the automated workflow. Therefore, on top of building the database, we also run this routine with the command `sm shear_calculate`.
-
-
 ### 1. Plot the rate of tissue shear and its cellular contributions
+
+To plot cellular contributions to tissue shear (change in aspect-ratio or pure shear), we need a database, but we also need to run the `sm shear_calculate` command, which will take information from the database and calculate shear (using a routine that is included in the automated workflow). This command will also build the database if not yet present. The next command below pools the calculated data and makes the plot we want. It takes the current movie directory `.` as an input and it outputs the results in the `output_analysis` folder within the same movie directory.
 
 * Copy-paste the following commands in the terminal:
 

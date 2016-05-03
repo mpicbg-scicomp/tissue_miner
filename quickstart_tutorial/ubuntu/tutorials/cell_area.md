@@ -1,10 +1,9 @@
 
 # Cell area analysis
 
-Cell area is stored in the database.
-
-
 ### 1. Make a movie of cell area pattern plotted on the tissue
+
+We want to colour code the movie by cell area.  The `sm make_db` command will first build a database from the segmented data (or return "Nothing to be done" if the database is already present). The next command below will run the cell area analysis and make the video we want. It takes the current movie directory `.` as an input and it outputs the results in the `output_analysis` folder within the same movie directory.
 
 * Copy-paste the following commands in the terminal:
 
@@ -19,6 +18,9 @@ cell_area_pattern.R . output_analysis
 [Back to tutorial list](../tm_qs_example_data.md#3-select-the-analysis-you-are-interested-in)
 
 ### 2. Plot cell area distrubution and averages
+
+Now, instead of colour coding the cells for visualisation purposes, we want to make some graphs that demonstrate how the distributions of cell area behave in the movie. For example, we will make a graph to show how the cell area on average changes over time. The `sm make_db` command builds the database if not yet present (or returns "Nothing to be done" if the database is present). The next command does the plots. It takes the current movie directory `.` as an input and it outputs the results in the `output_analysis` folder within the same movie directory.
+
 * Copy-paste the following commands in the terminal:
 
 ```

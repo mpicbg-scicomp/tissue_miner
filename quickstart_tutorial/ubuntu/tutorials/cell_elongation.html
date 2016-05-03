@@ -113,9 +113,9 @@ $(document).ready(function () {
 
 <div id="cell-elongation-analysis" class="section level1">
 <h1>Cell elongation analysis</h1>
-<p>Cell elongation is stored in the database. It is therefore sufficient to build the database only.</p>
 <div id="make-a-movie-of-cell-elongation-magnitude-pattern-plotted-on-the-tissue" class="section level3">
 <h3>1. Make a movie of cell elongation magnitude pattern plotted on the tissue</h3>
+<p>We want to colour code the movie by cell shape anisotropy (elongation magnitude). The <code>sm make_db</code> command will first build a database from the segmented data (or return “Nothing to be done” if the database is already present). The next command below will run the cell elongation analysis and make the video we want. It takes the current movie directory <code>.</code> as an input and it outputs the results in the <code>output_analysis</code> folder within the same movie directory.</p>
 <ul>
 <li>Copy-paste the following commands in the terminal:</li>
 </ul>
@@ -126,6 +126,7 @@ cell_elongation_magnitude_pattern.R . output_analysis</code></pre>
 </div>
 <div id="make-a-movie-of-coarse-grained-cell-elongation-nematics-plotted-on-the-tissue" class="section level3">
 <h3>2. Make a movie of coarse-grained cell elongation nematics plotted on the tissue</h3>
+<p>We want to calculate the coarse-grained cell shape anisotropy, <em>e.g</em> averaged in each element of a square grid, and we want to overlay the orientation axes (elongation nematics) on the tissue. The <code>sm make_db</code> command will first build a database from the segmented data (or return “Nothing to be done” if the database is already present). The next command then runs the cell elongation orientation analysis and makes the video we want. It takes the current movie directory <code>.</code> as an input and it outputs the results in the <code>output_analysis</code> folder within the same movie directory.</p>
 <ul>
 <li>Copy-paste the following commands in the terminal:</li>
 </ul>
@@ -136,6 +137,7 @@ cell_elongation_nematic_cg_pattern.R . output_analysis</code></pre>
 </div>
 <div id="plot-cell-elongation-distrubution-and-averages" class="section level3">
 <h3>3. Plot cell elongation distrubution and averages</h3>
+<p>We now want to make some graphs that show how the distributions of cell elongation behave in the movie. For example, we will make a graph to show how the cell elongation on average changes over time. The <code>sm make_db</code> command builds the database if not yet present (or returns “Nothing to be done” if the database is present). The next command does the plots. It takes the current movie directory <code>.</code> as an input and it outputs the results in the <code>output_analysis</code> folder within the same movie directory.</p>
 <ul>
 <li>Copy-paste the following commands in the terminal:</li>
 </ul>

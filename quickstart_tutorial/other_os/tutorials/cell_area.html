@@ -115,7 +115,7 @@ $(document).ready(function () {
 <h1>Cell area analysis</h1>
 <div id="make-a-movie-of-cell-area-pattern-plotted-on-the-tissue" class="section level3">
 <h3>1. Make a movie of cell area pattern plotted on the tissue</h3>
-<p>We want to colour code the movie by cell area. The <code>tm sm make_db</code> command will first build a database from the segmented data (or return “Nothing to be done” if the database is already present). The next command on the right will run the cell area analysis and make the video we want. It outputs the data in the output_analysis folder within the same movie directory.</p>
+<p>We want to colour code the movie by cell area. The <code>tm sm make_db</code> command will first build a database from the segmented data (or return “Nothing to be done” if the database is already present). The next command on the right will run the cell area analysis and make the video we want. It takes the current movie directory <code>.</code> as an input and it outputs the results in the <code>output_analysis</code> folder within the same movie directory.</p>
 <ul>
 <li>Copy-paste the following commands in the terminal:</li>
 </ul>
@@ -125,7 +125,7 @@ $(document).ready(function () {
 </div>
 <div id="plot-cell-area-distrubution-and-averages" class="section level3">
 <h3>2. Plot cell area distrubution and averages</h3>
-<p>Now, instead of colour coding the cells for visualisation purposes, we want to make some graphs that demonstrate how the distributions of cell area behave in the movie. For example, we will make a graph to show how the cell area on average changes over time. The <code>tm sm make_db</code> command builds the database if not yet present (or returns “Nothing to be done” if the database is present). The next command does the plots and saves them in the output_analysis folder within the same movie directory.</p>
+<p>Now, instead of colour coding the cells for visualisation purposes, we want to make some graphs that demonstrate how the distributions of cell area behave in the movie. For example, we will make a graph to show how the cell area on average changes over time. The <code>tm sm make_db</code> command builds the database if not yet present (or returns “Nothing to be done” if the database is present). The next command does the plots. It takes the current movie directory <code>.</code> as an input and it outputs the results in the <code>output_analysis</code> folder within the same movie directory.</p>
 <ul>
 <li>Copy-paste the following commands in the terminal:</li>
 </ul>

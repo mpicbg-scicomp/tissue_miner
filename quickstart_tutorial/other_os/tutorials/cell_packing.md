@@ -3,7 +3,7 @@
 
 ### 1. Make a video of color-coded cell neighbor number plotted on the tissue
 
-We want to colour code the movie by cell neighbor number.  The `tm sm make_db` command will first build a database from the segmented data (or return "Nothing to be done" if the database is already present). The next command on the right will run the cell neighbor number analysis and make the video we want. It outputs the data in the output_analysis folder within the same movie directory.
+We want to colour code the movie by cell neighbor number.  The `tm sm make_db` command will first build a database from the segmented data (or return "Nothing to be done" if the database is already present). The next command on the right will run the cell neighbor number analysis and make the video we want. It takes the current movie directory `.` as an input and it outputs the results in the `output_analysis` folder within the same movie directory.
 
 
 * Copy-paste the following commands in the terminal:
@@ -19,7 +19,7 @@ tm sm make_db; tm cell_neighbor_number_pattern.R . output_analysis
 
 ### 2. Plot cell neighbor count and averages
 
-We now want to make some graphs that demonstrate how the distributions of cell neighbor number behave in the movie. For example, we will make a graph to show how the averaged neighbor number changes over time.  We need a database, but we also need to run the `tm sm topo_countt1` command, which will take information from the database and detect cell neighbor changes (using a routine that is included in the automated workflow). Of note, the `tm sm topo_countt1` command will also build the database if not yet present. The next command on the right runs the analysis and makes the video we want. It outputs the data in the output_analysis folder within the same movie directory.
+We now want to make some graphs that demonstrate how the distributions of cell neighbor number behave in the movie. For example, we will make a graph to show how the averaged neighbor number changes over time.  We need a database, but we also need to run the `tm sm topo_countt1` command, which will take information from the database and detect cell neighbor changes (using a routine that is included in the automated workflow). This command will also build the database if not yet present. The next command on the right runs the analysis and makes the video we want. It takes the current movie directory `.` as an input and it outputs the results in the `output_analysis` folder within the same movie directory.
 
 * Copy-paste the following commands in the terminal:
 

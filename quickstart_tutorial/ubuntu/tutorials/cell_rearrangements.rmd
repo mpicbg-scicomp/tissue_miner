@@ -6,10 +6,10 @@ output:
 
 # Cell rearrangement analysis
 
-Cell neighbor changes are calculated from the database using a dedicated routine included in the automated workflow. Therefore, on top of building the database, we also run this routine with the command `sm topo_countt1`
-
-
 ### 1. Make a video of the cell rearrangement coarse-grained pattern plotted on the tissue
+
+We want to calculate the coarse-grained orientation of cell neighbor changes, _e.g_ averaged in each element of a square grid, and we want to overlay the orientation axes (unit nematics) on the tissue. We need the database, but we also need to run the `sm topo_countt1` command, which will take information from the database and detect cell neighbor changes (using a routine that is included in the automated workflow). This command will also build the database if not yet present. The next command below runs the analysis and makes the video we want. It takes the current movie directory `.` as an input and it outputs the results in the `output_analysis` folder within the same movie directory.
+
 
 * Copy-paste the following commands in the terminal:
 
@@ -45,6 +45,9 @@ mqf_cg_grid_unit_nematics_T1(movieDir, rois="raw", gridSize = 90, kernSize = 11)
 
 
 ### 2. Plot cell neighbor change rate
+
+Now, we want to make a graph that shows the average cell neighbor change rate per cell. The `sm topo_countt1` command will take information from the database and detect cell neighbor changes (or return "Nothing to be done" if already computed before). This command will also build the database if not yet present. The next command below does the plot. It takes the current movie directory `.` as an input and it outputs the results in the `output_analysis` folder within the same movie directory.
+
 * Copy-paste the following commands in the terminal:
 
 ```
@@ -79,6 +82,9 @@ ggplot(T1rateByTimeIntervals, aes(dev_time, avgT1rate, color=movie)) +
 [Back to tutorial list](../tm_qs_example_data.md#3-select-the-analysis-you-are-interested-in)
 
 ### 3. Plot average cell neighbor change orientation as a function of time
+
+We now want to plot the average cell neighbor change orientation as a function of time in a circular diagram. The time is color coded. The `sm topo_countt1` command will take information from the database and detect cell neighbor changes (or return "Nothing to be done" if already computed before). This command will also build the database if not yet present. The next command below does the plot. It takes the current movie directory `.` as an input and it outputs the results in the `output_analysis` folder within the same movie directory.
+
 * Copy-paste the following commands in the terminal:
 
 ```

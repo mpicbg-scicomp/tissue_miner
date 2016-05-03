@@ -1,10 +1,9 @@
 
 # Cell contributions to tissue area change analysis
 
-Cell contributions to tissue area changes are easily calculated from the database. It is therefore sufficient to build the database only.
-
-
 ### 1. Plot the rate of tissue area changes and its cellular contributions
+
+We want to plot cellular contributions to tissue area changes. The `sm make_db` command will first build a database from the segmented data (or return "Nothing to be done" if the database is already present). The next command below will run the analysis and make the video we want. It takes the current movie directory `.` as an input and it outputs the results in the `output_analysis` folder within the same movie directory.
 
 * Copy-paste the following commands in the terminal:
 
