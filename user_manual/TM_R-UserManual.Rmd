@@ -68,7 +68,7 @@ where %03d represents a frame number padded with 3 digits. The number of digits 
 
 Here, is an example: movieSegmentation/demo/Segmentation/demo_000.png
 
-![alt tag](https://github.com/mpicbg-scicomp/tissue_miner/blob/gh-pages/readme_screenshots/data_organization.png)
+![alt tag](../readme_screenshots/data_organization.png)
 
 * The image type should be **8-bit** or **RGB**.
 * The image format should be **png** or **tiff**
@@ -473,12 +473,12 @@ mqf_**fg**_* functions | Description
 --------------|-------------
 ***[mqf_fg_nematics_cell_elong](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/commons/BaseQueryFunctions.R#L267)*** | get cell elongation nematics from the DB 
 ***[mqf_fg_unit_nematics_CD](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/commons/BaseQueryFunctions.R#L303)*** | calculate cell division unit nematics 
-***[mqf_fg_unit_nematics_T1](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/commons/BaseQueryFunctions.R#L373)*** | calculate cell neighbor change unit nematics 
-***[mqf_fg_cell_area](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/commons/BaseQueryFunctions.R#L442)*** | get cell area from the DB 
-***[mqf_fg_triangle_properties](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/commons/BaseQueryFunctions.R#L468)*** | get calculated triangle state properties 
-***[mqf_fg_bond_length](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/commons/BaseQueryFunctions.R#L506)*** | get bond length and positions from the DB 
-***[mqf_fg_cell_neighbor_count](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/commons/BaseQueryFunctions.R#L548)*** | calculate cell neighbor number from the DB 
-***[mqf_fg_dev_time](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/commons/BaseQueryFunctions.R#586)*** | get developmental time from the configuration file 
+***[mqf_fg_unit_nematics_T1](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/commons/BaseQueryFunctions.R#L380)*** | calculate cell neighbor change unit nematics 
+***[mqf_fg_cell_area](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/commons/BaseQueryFunctions.R#L455)*** | get cell area from the DB 
+***[mqf_fg_triangle_properties](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/commons/BaseQueryFunctions.R#L481)*** | get calculated triangle state properties 
+***[mqf_fg_bond_length](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/commons/BaseQueryFunctions.R#L519)*** | get bond length and positions from the DB 
+***[mqf_fg_cell_neighbor_count](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/commons/BaseQueryFunctions.R#L561)*** | calculate cell neighbor number from the DB 
+***[mqf_fg_dev_time](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/commons/BaseQueryFunctions.R#599)*** | get developmental time from the configuration file 
 
 ***
 
@@ -491,18 +491,18 @@ mqf_**fg**_* functions | Description
 mqf_cg_roi_* functions | Description 
 --------------|-------------|-------------
 ***[mqf_cg_roi_cell_count](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/commons/BaseQueryFunctions.R#144)*** | count cell number 
-***[mqf_cg_roi_cell_area](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/commons/BaseQueryFunctions.R#L605)*** | coarse-grain cell area 
-***[mqf_cg_roi_cell_neighbor_count](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/commons/BaseQueryFunctions.R#L629)*** | average cell neighbor count 
-***[mqf_cg_roi_polygon_class](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/commons/BaseQueryFunctions.R#L657)*** | average and trim cell polygon class 
-***[mqf_cg_roi_triangle_elong](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/commons/BaseQueryFunctions.R#L682)*** | coarse-grain cell elongation using triangles as a proxy 
-***[mqf_cg_roi_rate_CD](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/commons/BaseQueryFunctions.R#L729)*** | average cell division rate 
-***[mqf_cg_roi_rate_T2](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/commons/BaseQueryFunctions.R#L745)*** | average extrusion rate 
-***[mqf_cg_roi_rate_T1](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/commons/BaseQueryFunctions.R#L761)*** | average neighbor change rate 
-***[mqf_cg_roi_rate_isotropic_contrib](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/commons/BaseQueryFunctions.R#L804)*** | coarse-grain **isotropic** tissue deformation and its cellular contributions 
-***[mqf_cg_roi_rate_shear](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/commons/BaseQueryFunctions.R#L881)*** | coarse-grain **anisotropic** tissue deformation and its cellular contributions 
-***[mqf_cg_roi_nematics_cell_elong](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/commons/BaseQueryFunctions.R#L918)*** |  coarse-grain cell elongation nematics by ROI 
-***[mqf_cg_roi_unit_nematics_CD](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/commons/BaseQueryFunctions.R#L960)*** | coarse-grain division unit nematics
-***[mqf_cd_roi_unit_nematics_T1](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/commons/BaseQueryFunctions.R#L1005)*** | coarse-grain neighbor change unit nematics 
+***[mqf_cg_roi_cell_area](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/commons/BaseQueryFunctions.R#L618)*** | coarse-grain cell area 
+***[mqf_cg_roi_cell_neighbor_count](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/commons/BaseQueryFunctions.R#L642)*** | average cell neighbor count 
+***[mqf_cg_roi_polygon_class](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/commons/BaseQueryFunctions.R#L663)*** | average and trim cell polygon class 
+***[mqf_cg_roi_triangle_elong](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/commons/BaseQueryFunctions.R#L688)*** | coarse-grain cell elongation using triangles as a proxy 
+***[mqf_cg_roi_rate_CD](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/commons/BaseQueryFunctions.R#L736)*** | average cell division rate 
+***[mqf_cg_roi_rate_T2](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/commons/BaseQueryFunctions.R#L757)*** | average extrusion rate 
+***[mqf_cg_roi_rate_T1](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/commons/BaseQueryFunctions.R#L804)*** | average neighbor change rate 
+***[mqf_cg_roi_rate_isotropic_contrib](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/commons/BaseQueryFunctions.R#L822)*** | coarse-grain **isotropic** tissue deformation and its cellular contributions 
+***[mqf_cg_roi_rate_shear](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/commons/BaseQueryFunctions.R#L898)*** | coarse-grain **anisotropic** tissue deformation and its cellular contributions 
+***[mqf_cg_roi_nematics_cell_elong](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/commons/BaseQueryFunctions.R#L935)*** |  coarse-grain cell elongation nematics by ROI 
+***[mqf_cg_roi_unit_nematics_CD](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/commons/BaseQueryFunctions.R#L977)*** | coarse-grain division unit nematics
+***[mqf_cd_roi_unit_nematics_T1](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/commons/BaseQueryFunctions.R#L1027)*** | coarse-grain neighbor change unit nematics 
 
 ***
 
@@ -514,9 +514,9 @@ mqf_cg_roi_* functions | Description
 
 mqf_cg_grid_* functions | Description
 --------------|-------------|-------------
-***[mqf_cg_grid_nematics_cell_elong](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/commons/BaseQueryFunctions.R#L1048)*** | coarse-grain cell elongation nematics (DB)
-***[mqf_cg_grid_unit_nematics_CD](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/commons/BaseQueryFunctions.R#L1094)*** | coarse-grain division unit nematics 
-***[mqf_cg_grid_unit_nematics_T1](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/commons/BaseQueryFunctions.R#1141)*** | coarse-grain neighbor change unit nematics
+***[mqf_cg_grid_nematics_cell_elong](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/commons/BaseQueryFunctions.R#L1076)*** | coarse-grain cell elongation nematics (DB)
+***[mqf_cg_grid_unit_nematics_CD](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/commons/BaseQueryFunctions.R#L1122)*** | coarse-grain division unit nematics 
+***[mqf_cg_grid_unit_nematics_T1](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/commons/BaseQueryFunctions.R#1173)*** | coarse-grain neighbor change unit nematics
 
 ***
 
@@ -532,7 +532,7 @@ To render cell bonds one must get bonds and their respective positions. Here, is
 * Bond length is mapped onto a color gradient scale for a color-coded visualization
 
 
-For the sake of clarity, we built a dedicated **[mqf_fg_bond_length()](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/commons/BaseQueryFunctions.R#L506)** function to get bond properties along with bond positions for plotting.
+For the sake of clarity, we built a dedicated **[mqf_fg_bond_length()](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/commons/BaseQueryFunctions.R#L519)** function to get bond properties along with bond positions for plotting.
 
 ***
 
@@ -757,7 +757,7 @@ rm(cellElongNematics)
 
 * TissueMiner provides more specific routines using this **coarseGrid()** function to average nematics in space and time. Concerning cell elongtation, the **mqf_cg_grid_nematics_cell_elong()** TissueMiner function allows the user to directly get coarse-grained nematics that are automatically scaled for display on the original image. The display factor can also be manually defined.
 
-* The **[mqf_cg_grid_nematics_cell_elong()](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/commons/BaseQueryFunctions.R#L1048)** from the TissueMiner grammar does the following:
+* The **[mqf_cg_grid_nematics_cell_elong()](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/commons/BaseQueryFunctions.R#L1076)** from the TissueMiner grammar does the following:
     + it assigns grid elements to cells and get the cell elongation tensors from the database. 
     + it averages nematics in each grid element.
     + it scales nematics for display on the image (automatic scaling by default)
@@ -803,7 +803,7 @@ rm(cellElongNematicsCG)
 
 * Using the **TissueMiner grammar**, one can get the cell neighbor count for plotting in one step
 
-* The **[mqf_fg_cell_neighbor_count()](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/commons/BaseQueryFunctions.R#L548)** does the following:
+* The **[mqf_fg_cell_neighbor_count()](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/commons/BaseQueryFunctions.R#L561)** does the following:
     + it establishes all cell-cell contact from the database. 
     + it counts the number of cell-cell contact for each cell
     + it trims the neighbor count between 4 and 8 neighbors for display
@@ -947,7 +947,7 @@ rm(cdNematics)
 
 * Using the **TissueMiner grammar**, one can coarse-grain cell division unit nematics for plotting in one step
 
-* The **[mqf_cg_grid_unit_nematics_CD()](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/commons/BaseQueryFunctions.R#L1094)** does the following:
+* The **[mqf_cg_grid_unit_nematics_CD()](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/commons/BaseQueryFunctions.R#L1122)** does the following:
     + it assigns grid elements to cells and calculate the cell division unit nematics
     + it averages nematics in each grid element.
     + it scales nematics for display on the image (automatic scaling by default)
@@ -1042,7 +1042,7 @@ rm(topoChangeSummary,csWithTopoT1)
 
 * Using the **TissueMiner grammar**, one can get T1 unit nematics for plotting in one step
 
-* The **[mqf_fg_unit_nematics_T1()](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/commons/BaseQueryFunctions.R#L373)** does the following:
+* The **[mqf_fg_unit_nematics_T1()](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/commons/BaseQueryFunctions.R#L380)** does the following:
     + it uses the cell center of mass of cells gaining or losing contact to calculate a unit nematic 
     + it flips (90°) nematics of cells gaining contact so that all nematics would add up upon a T1 transition or cancel out if the T1 event is reversed
     + it scales nematics for display on the image (automatic scaling by default)
@@ -1078,7 +1078,7 @@ rm(t1nematics)
 
 * Using the **TissueMiner grammar**, one can coarse-grain T1 unit nematics for plotting in one step
 
-* The **[mqf_cg_grid_unit_nematics_T1()](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/commons/BaseQueryFunctions.R#L1141)** does the following:
+* The **[mqf_cg_grid_unit_nematics_T1()](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/commons/BaseQueryFunctions.R#L1173)** does the following:
     + it assigns grid elements to cells and calculate T1 unit nematics
     + it averages nematics in each grid element.
     + it scales nematics for display on the image (automatic scaling by default)
