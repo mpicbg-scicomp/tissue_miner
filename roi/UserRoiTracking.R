@@ -418,7 +418,7 @@ fixRoiInFrame <- function(curRoi, neighborsFilt){
 ## 3/ Assign missing cells (not labeled as "SegErrAppearance" or "Apoptosis") to the border ROI
 ## loop over frames to speed up processing
 roiCellsBT <- ddply(dbonds, .(frame), function(dbondsFrame){
-  # DEBUG dbondsFrame <- subset(dbonds, frame==72)
+  
   echo("fixing missing inner ROI cells in frame", dbondsFrame$frame[1])
   
   neighbors <- dbondsFrame %>%
@@ -430,25 +430,18 @@ roiCellsBT <- ddply(dbonds, .(frame), function(dbondsFrame){
   #    return(ddply(borderCellRoiByLineages, .(roi), fixRoiInFrame, neighborsFilt, .parallel=T))
   return(roiCellsBTRaw %>% group_by(roi) %>% do(fixRoiInFrame(., neighborsFilt)))
 }, .parallel=T, .inform = T)
-#roiCellsBTdebug <- roiCellsBT
+
 
 ## 4/ Define the whole_tissue ROI as the complement of the border ROI 
 roiCellsBT %<>% rbind(dt.merge(select(cellLineages, cell_id), dbGetQuery(db, "select cell_id, frame from cells"), by = "cell_id") %>% 
                         mutate(roi="whole_tissue")) %>%
   select(-frame) %>% distinct(roi, cell_id)
 
+save(roiCellsBT, file="roiCellsBT.RData")
+# roiCellsBT <- local(get(load("roiCellsBT.RData")))
+
+
 ## 5/ Remove border lineages from all user ROIs (also remove border ROI)
-if(T){
-  # watch border cell lineages
-  cellContours <- local(get(load(file.path(movieDir, "cellshapes.RData"))))
-  filter(roiCellsBT, roi=="border") %>% 
-    dt.merge(cellContours, by = "cell_id") %>% 
-    render_movie("DEBUG_corrected_border.mp4", list(
-      geom_polygon(aes(x_pos, y_pos, group=cell_id), fill="chocolate", alpha=0.7)
-    ))
-}
-
-
 lgRoiSmoothed <- roiCellsBT %>% 
   anti_join(filter(roiCellsBT, roi=="border"), by = "cell_id")
 
@@ -456,19 +449,3 @@ lgRoiSmoothed <- roiCellsBT %>%
 save(lgRoiSmoothed, file="lgRoiSmoothed.RData")
 # lgRoiSmoothed <- local(get(load("lgRoiSmoothed.RData")))
 
-## DEBUG Watch the correction ####
-if(T){
-  ## Load cell contour for display
-  cellContours <- local(get(load(file.path(movieDir, "cellshapes.RData"))))
-  
-  ## watch all corrected ROIs
-  #l_ply(unique(lgRoiSmoothed$roi), function(current_roi){
-  l_ply(c("blade", "whole_tissue"), function(current_roi){
-    lgRoiSmoothed %>% filter(roi == current_roi) %>%
-      dt.merge(cellContours, by = "cell_id") %>% 
-      render_movie(paste0("DEBUG_corrected_lineages_",current_roi,".mp4"), list(
-        geom_polygon(aes(x_pos, y_pos, group=cell_id), fill="chocolate", alpha=0.7)
-      ))
-  }, .inform = T)
-}
-## DEBUG END

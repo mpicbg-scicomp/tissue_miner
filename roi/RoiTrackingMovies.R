@@ -32,10 +32,38 @@ require.auto(sp)
 mcdir(file.path(movieDir, "roi_bt"))
 
 
-cellshapes <- local(get(load(file.path(movieDir, "cellshapes.RData"))))
+# cellshapes <- local(get(load(file.path(movieDir, "cellshapes.RData"))))
+cellContours <- local(get(load(file.path(movieDir, "cellshapes.RData"))))
 
-## todo disable
-#skip_existing_movies<-T
+#### watch border cell lineages ####
+roiCellsBT <- local(get(load("roiCellsBT.RData")))
+
+filter(roiCellsBT, roi=="border") %>% 
+  dt.merge(cellContours, by = "cell_id") %>% 
+  render_movie("corrected_border.mp4", list(
+    geom_polygon(aes(x_pos, y_pos, group=cell_id), fill="chocolate", alpha=0.7)
+  ))
+
+#### watch the corrected ROIs ####
+lgRoiSmoothed <- local(get(load("lgRoiSmoothed.RData")))
+
+l_ply(unique(lgRoiSmoothed$roi), function(current_roi){
+  # DEBUG l_ply(c("blade", "whole_tissue"), function(current_roi){
+  lgRoiSmoothed %>% filter(roi == current_roi) %>%
+    dt.merge(cellContours, by = "cell_id") %>% 
+    render_movie(paste0("corrected_lineages_",current_roi,".mp4"), list(
+      geom_polygon(aes(x_pos, y_pos, group=cell_id), fill="chocolate", alpha=0.7)
+    ))
+}, .inform = T)
+
+
+
+
+
+echo("ROI movies done !")
+q(save="no")
+
+stop("should never reach this line")
 
 ########################################################################################################################
 #### Render simple cell tracking movie excluding blade to avoid overplotting
