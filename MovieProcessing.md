@@ -31,7 +31,7 @@ Fiji macros can be found in your local TissueMiner installation or [here](https:
 * draw_n_get_ROIcoord.ijm
 * orient_tissue.ijm
 
-Both macros automatically save a text file (LastFrameRoi.txt and transformation.txt, respectively). If these files are present, TissueMiner will take them into account for further precessing steps.
+Both macros automatically save a text file (UserFrameRoi.txt and transformation.txt, respectively). If these files are present, TissueMiner will take them into account for further precessing steps.
 
 NB: by default, Tissue Miner will always create two ROI's: 
 * "raw": corresponds to all segmented and tracked cells

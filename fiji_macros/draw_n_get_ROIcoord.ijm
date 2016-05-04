@@ -65,7 +65,7 @@ function extract_ROIcoord(filePath, ROIpath){
 	open(filePath);
 	imID=getImageID();
 	parentFolder=File.getParent(ROIpath)+File.separator();
-	outputFile=parentFolder+"LastFrameRoi.txt";
+	outputFile=parentFolder+"UserFrameRoi.txt";
 	
 	imgFileName=File.getName(filePath);
 	timefield=substring(imgFileName, lastIndexOf(imgFileName, "_")+1, lengthOf(imgFileName)-4);

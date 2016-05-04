@@ -61,9 +61,9 @@ rule make_db:
 
 rule roi_tracking:
     params: name="roi_tracking"
-    input: DB, "Segmentation/LastFrameRoi.txt"
+    input: DB
     output: TRACKED_ROIS
-    shell: "LastFrameRoiBT.R "  + movieDbDir
+    shell: "UserRoiTracking.R "  + movieDbDir
 
 
 rule roi_movies:

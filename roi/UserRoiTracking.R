@@ -3,7 +3,7 @@
 
 argv = commandArgs(TRUE)
 if(length(argv) != 1){
-  stop("Usage: LastFrameRoiBT.R  <movie_db_directory>")
+  stop("Usage: UserRoiTracking.R  <movie_db_directory>")
 }else{
   movieDir=normalizePath(argv[1])
   if(is.na(file.info(movieDir)$isdir)) stop(paste("movie directory does not exist"))
@@ -16,6 +16,7 @@ if(length(argv) != 1){
 # movieDir <- "/Users/retourna/MovieDB/WT_25deg_111102"
 # movieDir <- "/home/etournay/RawData/WT_25deg_111102"
 # movieDir <- "/media/project_raphael@fileserver/movieSegmentation/MTdp_25deg_140222"
+# movieDir <- "/Users/retourna/MovieDB/WT_3"
 
 
 #### SETUP #####
@@ -452,9 +453,8 @@ lgRoiSmoothed <- roiCellsBT %>%
   anti_join(filter(roiCellsBT, roi=="border"), by = "cell_id")
 
 ## 6/ Save the ROI definition
-# save(lgRoiSmoothed, file="lgRoiSmoothed.RData")
+save(lgRoiSmoothed, file="lgRoiSmoothed.RData")
 # lgRoiSmoothed <- local(get(load("lgRoiSmoothed.RData")))
-
 
 ## DEBUG Watch the correction ####
 if(T){
@@ -462,8 +462,8 @@ if(T){
   cellContours <- local(get(load(file.path(movieDir, "cellshapes.RData"))))
   
   ## watch all corrected ROIs
-  l_ply(unique(lgRoiSmoothed$roi), function(current_roi){
-  #l_ply(c("blade"), function(current_roi){
+  #l_ply(unique(lgRoiSmoothed$roi), function(current_roi){
+  l_ply(c("blade", "whole_tissue"), function(current_roi){
     lgRoiSmoothed %>% filter(roi == current_roi) %>%
       dt.merge(cellContours, by = "cell_id") %>% 
       render_movie(paste0("DEBUG_corrected_lineages_",current_roi,".mp4"), list(

@@ -12,7 +12,7 @@ imageParser $(dirname {$movieDbDir}) $(basename {$movieDbDir}) %03d
 CreateDbFromParser.R $movieDbDir
 
 ## roi tracking
-LastFrameRoiBT.R $movieDbDir
+UserRoiTracking.R $movieDbDir
 RoiDeformation.R $movieDbDir
 
 ## analyze lineage
