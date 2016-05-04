@@ -44,7 +44,7 @@ echo("Reading parser output in:", movieDir)
 
 # cells <- read.delim("./cell_in_frame.dat", header=T)
 
-cells <- as.df(fread("cell_in_frame.dat"))
+cells <- as.df(fread("cell_in_frame.dat", skip = 1L))
 
 
 # cells <- cells[, 1:10]
@@ -81,15 +81,15 @@ if (buggyParser){
 # with(cells, as.data.frame(table(as.factor(trans_after))))
 ## DEBUG END
 
-dbonds <- as.df(fread("directedBond_in_frame.dat"))
+dbonds <- as.df(fread("directedBond_in_frame.dat", skip=1L))
 names(dbonds) <- c("frame", "dbond_id", "conj_dbond_id", "bond_id", "tissue_analyzer_group_id", "vertex_id", "left_dbond_id")
 
 
 ## todo we need more bond properties here (like length)
-ubonds <- as.df(fread("undirectedBond_in_frame.dat"))
+ubonds <- as.df(fread("undirectedBond_in_frame.dat", skip=1L))
 names(ubonds) <- c("frame", "bond_id", "bond_length")
 
-vertices <- as.df(fread("vertex_in_frame.dat"))
+vertices <- as.df(fread("vertex_in_frame.dat", skip=1L))
 names(vertices) <- c("frame", "vertex_id", "x_pos", "y_pos")
 
 save(cells, dbonds, ubonds, vertices, file="cells_dbonds_ubonds_vertices.RData")
