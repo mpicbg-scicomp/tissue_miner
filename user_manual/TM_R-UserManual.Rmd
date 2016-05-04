@@ -182,7 +182,8 @@ ${TM_HOME}/installation/osx/install_tm_api.sh
 
 * open a Docker QuickStart Terminal and start the RStudio server: **edit the following command** with the appropriate path (run it only once please !)
 ```{bash rocker, warning=FALSE, message=FALSE, echo=T, eval=F}
-# First, define the path to the movie repository. Ex: replace /media/fileserver/movie_repository by the path to your movie repository
+# First, define the path to the movie repository. 
+# Ex: replace /media/fileserver/movie_repository by the path to your movie repository
 
 docker run -d -p 8787:8787 -e USER=rstudio -e PASSWORD=rstudio \
 -v /media/fileserver/movie_repository:/home/rstudio/movie_repository \
