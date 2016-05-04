@@ -265,11 +265,29 @@ rm(cells) ## cleanup
 print("replacing cell IDs in dbonds...")
 
 ## build to table to transform other tables as well
-cellMinMax <- as.df(data.table(cells2)[, list(first_occ=min(frame), last_occ=max(frame)), by="tissue_analyzer_group_id,cell_id"])
+#cellMinMax <- as.df(data.table(cells2)[, list(first_occ=min(frame), last_occ=max(frame)), by="tissue_analyzer_group_id,cell_id"])
+cellMinMax <- cells2 %>%
+     group_by(tissue_analyzer_group_id, cell_id) %>%
+     summarize(first_occ=min(frame), last_occ=max(frame))
 
 # cellMinMax <- read.delim("cellMinMax.txt")
-frames4merge <- unlist(apply(with(cellMinMax, cbind(first_occ, last_occ)), 1, function(x) seq(x[1],x[2])))
+frames4merge <- as.vector(unlist((apply(with(cellMinMax, cbind(first_occ, last_occ)), 1, function(x) seq(x[1],x[2])))))
+
+#frames4mergeOLD <- unlist((apply(with(cellMinMax, cbind(first_occ, last_occ)), 1, function(x) seq(x[1],x[2]))))
+#str(frames4merge)
+#str(frames4mergeOLD)
+#any(frames4merge != frames4mergeOLD)
+#identical(frames4merge, frames4mergeOLD)
+
 cellMinMaxByFrame <- with(cellMinMax, data.frame(tissue_analyzer_group_id=rep(tissue_analyzer_group_id, last_occ-first_occ+1), cell_id=rep(cell_id, last_occ-first_occ+1), frame=frames4merge))
+
+
+## works as well but is much bit slower tha unlist+apply+seq
+#expand_to_livespan <- function(oneCellMiMa){
+#    #    oneCellMiMa <- cellMinMax[1,]
+#    oneCellMiMa %$% data_frame(tissue_analyzer_group_id, cell_id, frame=first_occ:last_occ)
+#}
+#cellMinMaxByFrame <- cellMinMax %>% rowwise() %>% do(expand_to_livespan(.))
 
 
 dbonds2 <- dt.merge(cellMinMaxByFrame, dbonds, by=c("tissue_analyzer_group_id", "frame"), allow.cartesian=TRUE)
