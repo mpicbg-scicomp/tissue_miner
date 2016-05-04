@@ -52,7 +52,7 @@ The data organization is summarized as follow:
 `<movie_repository>/<movie_directory>/Segmentation/<movie_directory_name>_%03d.png`
 
 
-where %03d represents a frame number padded with 3 digits. The number of digits can be modified, see [FAQ](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/faq.md).
+where %03d represents a frame number padded with 3 digits. The number of digits can be modified, see [FAQ](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/faq.md#how-to-change-the-number-of-digits-used-for-padding-).
 
 
 Here, is an example: movieSegmentation/demo/Segmentation/demo_000.png
@@ -278,7 +278,7 @@ Sys.setenv(TM_HOME="/home/rstudio/home_share/tissue_miner/")
 ```
 
 ### Header of all your scripts: load the TissueMiner API in R (Rstudio)
-* We assume you already have downloaded the [example data](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/docs/quickstart/ubuntu/tm_qs_example_data.md#2-download-the-example-data-set-100-mb)
+* We assume you already have downloaded the [example data](https://github.com/mpicbg-scicomp/tissue_miner#datasets)
 * **Please modify the paths (first code block below) according to the data location**
 * **Always execute the two blocks below before running any analysis**: this will load all the necessary functions in the memory of the computer.
 
@@ -364,7 +364,7 @@ Please, keep the **connection open** to run the tutorial !
 
 ### Example: overlay cells and vertices on the image
 
-We can now overlay cells and vertices on the movie image. To do so, we built a dedicated **[render_frame()]((https://github.com/mpicbg-scicomp/tissue_miner/blob/master/commons/MovieFunctions.R#L99))** function that loads the specified frame of the time-lapse. This function takes the cell contour table and a desired frame as input variables. The **render_frame()** function alone returns the first layers of the graph that consists of a raster image of the wing and additional specifications such as the Y-axis flipping - **scale_y_continuous(trans = "reverse")** - and the iso-scaling of the X and Y axes - **coord_equal()**. Additional options are appended using the `+` sign.
+We can now overlay cells and vertices on the movie image. To do so, we built a dedicated **[render_frame()](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/commons/MovieFunctions.R#L99)** function that loads the specified frame of the time-lapse. This function takes the cell contour table and a desired frame as input variables. The **render_frame()** function alone returns the first layers of the graph that consists of a raster image of the wing and additional specifications such as the Y-axis flipping - **scale_y_continuous(trans = "reverse")** - and the iso-scaling of the X and Y axes - **coord_equal()**. Additional options are appended using the `+` sign.
 
 
 
@@ -413,7 +413,7 @@ cellshapes %>%
     + **raw**: this ROI corresponds to all tracked cells contained in the DB
     + **whole_tissue**: this ROI corresponds to the largest population of cells that is visible throughout the movie. It's a subset of **raw** obtained by the lineage-browser algorithm that is part of the automated workflow of TissueMiner
 
-* Other regions of interest can be manually defined by the user in Fiji ([see Fiji macro](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/fiji_macros/draw_n_get_ROIcoord.ijm)). Of note, these additional ROIs are only taken into account if they were defined **before** running the automated workflow. Then force the automated workflow to rerun with the `-R` option, e.g `tm sm -R roi_tracking` that updates all previously performed calculations from the tracking of ROIs.
+* Other regions of interest can be manually defined by the user in Fiji ([see Fiji macro](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/fiji_macros/draw_n_get_ROIcoord.ijm)). Of note, these additional ROIs are only taken into account if they were defined **before** running the automated workflow. Then force the automated workflow to rerun with the `-R` option, e.g `sm -R roi_tracking` that updates all previously performed calculations from the tracking of ROIs (the docker command is `tm sm -R roi_tracking`).
 
 * The automated workflow includes routines to browse the cell lineage and to follow ROIs in time once defined on a given image of the time-lapse. Please note that cells in contact with the margin are discarded because the segmentation and tracking quality isn't optimum near the margin.
 
@@ -459,10 +459,10 @@ render_frame(cellshapesWithRoi, 50) +
 ## Make videos 
 **Videos are helpful to visualize the time evolution of patterns**
 
-Here, we use a parallelized loop over all frames of the time-lapse. The well-known avconv (formerly ffmpeg) program to create videos must be installed on your computer, see [API requirements](#tissueminer-api-configuration) above.
+Here, we use a parallelized loop over all frames of the time-lapse. The well-known avconv (formerly ffmpeg) program to create videos must be installed on your computer, see API requirements above.
 
 * To simplify the procedure of creating videos, we built a dedicated function **render_movie()** that takes a list of ggplot layers as an input argument.
-* Please, read the current definition of the **[render_movie()](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/commons/MovieFunctions.R#L105)** function.
+* Please, read the current definition of the **[render_movie()](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/commons/MovieFunctions.R#L104)** function.
 
 ```r
 # Make a video of the ROI on the wing
@@ -511,7 +511,7 @@ mqf_**fg**_* functions | Description
 ***[mqf_fg_triangle_properties](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/commons/BaseQueryFunctions.R#L481)*** | get calculated triangle state properties 
 ***[mqf_fg_bond_length](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/commons/BaseQueryFunctions.R#L519)*** | get bond length and positions from the DB 
 ***[mqf_fg_cell_neighbor_count](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/commons/BaseQueryFunctions.R#L561)*** | calculate cell neighbor number from the DB 
-***[mqf_fg_dev_time](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/commons/BaseQueryFunctions.R#599)*** | get developmental time from the configuration file 
+***[mqf_fg_dev_time](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/commons/BaseQueryFunctions.R#L599)*** | get developmental time from the configuration file 
 
 ***
 
@@ -523,7 +523,7 @@ mqf_**fg**_* functions | Description
 
 mqf_cg_roi_* functions | Description 
 --------------|-------------|-------------
-***[mqf_cg_roi_cell_count](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/commons/BaseQueryFunctions.R#144)*** | count cell number 
+***[mqf_cg_roi_cell_count](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/commons/BaseQueryFunctions.R#L144)*** | count cell number 
 ***[mqf_cg_roi_cell_area](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/commons/BaseQueryFunctions.R#L618)*** | coarse-grain cell area 
 ***[mqf_cg_roi_cell_neighbor_count](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/commons/BaseQueryFunctions.R#L642)*** | average cell neighbor count 
 ***[mqf_cg_roi_polygon_class](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/commons/BaseQueryFunctions.R#L663)*** | average and trim cell polygon class 
@@ -549,7 +549,7 @@ mqf_cg_grid_* functions | Description
 --------------|-------------|-------------
 ***[mqf_cg_grid_nematics_cell_elong](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/commons/BaseQueryFunctions.R#L1076)*** | coarse-grain cell elongation nematics (DB)
 ***[mqf_cg_grid_unit_nematics_CD](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/commons/BaseQueryFunctions.R#L1122)*** | coarse-grain division unit nematics 
-***[mqf_cg_grid_unit_nematics_T1](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/commons/BaseQueryFunctions.R#1173)*** | coarse-grain neighbor change unit nematics
+***[mqf_cg_grid_unit_nematics_T1](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/commons/BaseQueryFunctions.R#L1173)*** | coarse-grain neighbor change unit nematics
 
 ***
 
@@ -571,6 +571,9 @@ For the sake of clarity, we built a dedicated **[mqf_fg_bond_length()](https://g
 
 ### Get and manipulate data for plotting
 
+We now use the TissueMiner mqf_fg_bond_length() function to get all bond positions in one step for all cells (raw ROI).
+
+
 ```r
 # we use the movieDir variable defined above
 bond_with_vx <- mqf_fg_bond_length(movieDir, "raw") %>% print_head()
@@ -590,6 +593,12 @@ bond_with_vx <- mqf_fg_bond_length(movieDir, "raw") %>% print_head()
 ***
 
 ### Plot the color-coded bond-length pattern
+
+To overlay bonds on the tissue, we use the TissueMiner `render_frame()` function to display a given image of the tissue in the cartesian coordinate system, and we add specific layers (see the ggplot2 grammar of graphics):
+* `geom_segment()`: to plot bonds as straight lines
+* `scale_color_gradientn()`: to color-code the bonds according to their length, up to the limit of 99% of the bond length distribution 
+* `ggtitle()`: to add a title to the plot
+
 
 ```r
 bond_with_vx %>%
@@ -612,6 +621,12 @@ bond_with_vx %>%
 
 ### Make a video of the color-coded bond-length pattern
 
+To create an animation of the color-coded bond length pattern, we use the TissueMiner `render_movie()` function. This function takes a few arguments:
+* the input data `bond_with_vx`
+* the name of the output video to be created
+* a list of ggplot2 layers (same layers as in the previou paragraph)
+
+
 ```r
 # Here use the render_movie function
 render_movie(bond_with_vx, "BondLengthPattern.mp4", list(
@@ -629,6 +644,8 @@ render_movie(bond_with_vx, "BondLengthPattern.mp4", list(
 ## Cell area 
 
 ### Get and manipulate the data for plotting
+
+To get the area of all individual cells, we use the TissueMiner function `mqf_fg_cell_area()`. In order to overlay the color-coded cell area pattern on the tissue, we set the boolean variable `cellContour = TRUE` to also get the coordinates of cell contours to be plotted. The principle for plotting and creating videos is the same as for the bond length pattern above.
 
 * Using the **TissueMiner grammar**, one can get all cell properties and cell contours in one step
 
@@ -652,6 +669,9 @@ cellArea <- dbGetQuery(db,"select cell_id, frame, area from cells where cell_id!
 ***
 
 ### Plot the color-coded cell area pattern
+
+We represent cells as polygons using the `geom_polygon()` ggplot2 layer.
+
 
 ```r
 cellArea %>%
@@ -737,6 +757,8 @@ cellAreaInROI %>%
 
 ### Get and manipulate the data for plotting
 
+Similarly to the cell area pattern section, we now plot the cell elongation pattern on the tissue. We use the TissueMiner `mqf_fg_nematics_cell_elong()` function to retrieve the data, and the `render_frame()` and `render_movie()` functions to overlay the quantified data on the tissue and create a video.
+
 * Using the **TissueMiner grammar**, one can get all cell properties and cell contours in one step
 
 
@@ -809,6 +831,8 @@ render_movie(cellShapesElong, "CellElongationPattern.mp4", list(
     + it calculates nematic angle and norm.
     + it scales nematics for display on the image (automatic scaling by default)
 
+* We use the TissueMiner `mqf_fg_nematics_cell_elong()` function to retrieve the data, and the `render_frame()` and `render_movie()` functions to overlay the quantified data on the tissue and create a video.
+
 
 ```r
 cellElongNematics <- mqf_fg_nematics_cell_elong(movieDir, "raw") %>% print_head()
@@ -836,7 +860,7 @@ cellElongNematics <- mqf_fg_nematics_cell_elong(movieDir, "raw") %>% print_head(
 
 ### Plot the elongation nematics on each cell
 
-* We plot nematics as segments on the original image
+* We plot nematics as segments on the original image using the `geom_segment()` layer.
 
 
 ```r
@@ -868,6 +892,9 @@ cellElongNematics %>%
     + it averages nematics in each grid element.
     + it scales nematics for display on the image (automatic scaling by default)
 
+* We use the TissueMiner `mqf_cg_grid_nematics_cell_elong()` function to retrieve the data, and the `render_frame()` and `render_movie()` functions to overlay the quantified data on the tissue and create a video.
+
+
 
 ```r
 cellElongNematicsCG <- mqf_cg_grid_nematics_cell_elong(movieDir, gridSize = 96) %>%
@@ -895,7 +922,7 @@ cellElongNematicsCG <- mqf_cg_grid_nematics_cell_elong(movieDir, gridSize = 96) 
 ***
 
 ### Plot coarse-grained cell elongation nematics
-* We plot nematics as segments on the original image
+* We plot nematics as segments on the original image using the `geom_segment()` layer.
 
 
 ```r
@@ -932,6 +959,8 @@ render_movie(cellElongNematicsCG, "CellElongationNematicPattern.mp4", list(
     + it counts the number of cell-cell contact for each cell
     + it trims the neighbor count between 4 and 8 neighbors for display
     + it retrieves cell contours for display
+
+* We use the TissueMiner `mqf_fg_cell_neighbor_count()` function to retrieve the data, and the `render_frame()` and `render_movie()` functions to overlay the quantified data on the tissue and create a video.
 
 
 ```r
@@ -1328,7 +1357,7 @@ render_movie(cgT1nematics, "cgT1nematics.mp4", list(
 
 **CAUTION**: Cumulative quantities are strongly influenced by the developmental time. Therefore, movies must be aligned in time prior to comparison between movies. We have aligned the three WT wing movies in time by aligning the peaks of their respective average cell elongation curves as a function of time. One movie is used as a reference and time shifts are applied to other movies. These time shifts must be stored in a configuration file containing the *algnModel* table as defined [here](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/config/flywing_tm_config.R).
 
-**TIP**: We developed a template script [compare_multiple_movies.R](https://github.com/mpicbg-scicomp/tissue_miner/tree/master/docs/quickstart/scripts) to compare cell dynamics between movies and between ROIs. This script must be edited by the user in order to set the movies and ROIs to be compared. The easiest way is to load the script in Rstudio, edit it and run it directly in Rstudio.
+**TIP**: We developed a template script [compare_multiple_movies.R](https://github.com/mpicbg-scicomp/tissue_miner/tree/master/docs/quickstart/scripts/compare_multiple_movies.R) to compare cell dynamics between movies and between ROIs. This script must be edited by the user in order to set the movies and ROIs to be compared. The easiest way is to load the script in Rstudio, edit it and run it directly in Rstudio.
 
 ***
 
@@ -1350,7 +1379,7 @@ curl https://cloud.mpi-cbg.de/index.php/s/Z6ZR1b0sGWnC8Cj/download  | tar -zxvf 
 curl https://cloud.mpi-cbg.de/index.php/s/4BJiyxnCS7HFyKB/download  | tar -zxvf -
 ```
 
-* Then you need to define the path to this datasets
+* Then you need to define the path to this datasets, **please edit this path**
 
 
 ```r
@@ -1533,7 +1562,8 @@ selectedRois=c("whole_tissue","interL2-L3", "distL3")
 
 ## Averaged cell area
 
-We now query multiple databases to extract the information about cell area averaged over the selected ROIs.
+We now query multiple databases using the TissueMiner `multi_db_query()` function in combination with the `mqf_cg_roi_cell_area` function definition to extract the information about cell area averaged over the selected ROIs.
+
 
 ```r
 avgCellArea <- multi_db_query(movieDirs, mqf_cg_roi_cell_area, selectedRois) %>% print_head()
@@ -1550,7 +1580,8 @@ avgCellArea <- multi_db_query(movieDirs, mqf_cg_roi_cell_area, selectedRois) %>%
 ## [1] 1206
 ```
 
-Next, we plot the average cell area as a function of time for each movie and each ROI on the same graph for comparison.
+Next, we plot the average cell area as a function of time for each movie and each ROI on the same graph for comparison. We use the `facet_wrap()` ggplot2 layer to combine the graphs corresponding the different ROIs in one single graph.
+
 
 ```r
 ggplot(avgCellArea, aes(dev_time, area.avg*(0.208^2), color=movie)) +
@@ -1569,7 +1600,7 @@ ggplot(avgCellArea, aes(dev_time, area.avg*(0.208^2), color=movie)) +
 
 ## Averaged cell elongation
 
-We now query multiple databases to extract the information about cell elongation nematics averaged over the selected ROIs.
+We now query multiple databases using the TissueMiner `multi_db_query()` function in combination with the `mqf_cg_roi_nematics_cell_elong` function definition to extract the information about cell elongation nematics averaged over the selected ROIs.
 
 
 ```r
@@ -1614,7 +1645,7 @@ ggplot(avgCellElong, aes(dev_time, norm, color=movie)) +
 ***
 
 ## Averaged cell neighbor number
-We now query multiple databases to extract the information about cell neighbor number averaged over the selected ROIs.
+We now query multiple databases using the TissueMiner `multi_db_query()` function in combination with the `mqf_cg_roi_cell_neighbor_count` function definition to extract the information about cell neighbor number averaged over the selected ROIs.
 
 
 ```r
@@ -1652,7 +1683,9 @@ Next, we plot the average cell neighbor number as a function of time for each mo
 ***
 
 ## Average cell neighbor number by class of polygons
-We now query multiple databases to extract the information about cell neighbor number for each individual cell for all selected ROIs.
+
+We now query multiple databases using the TissueMiner `multi_db_query()` function in combination with the `mqf_fg_cell_neighbor_count` function definition to extract the information about cell neighbor number for each individual cell for all selected ROIs.
+
 
 ```r
 avgPgClass <- multi_db_query(movieDirs, mqf_fg_cell_neighbor_count, selectedRois, polygon_class_limit=c(3,9)) %>% print_head() 
@@ -1685,7 +1718,9 @@ ggplot(avgPgClass, aes(ac(polygon_class_trimmed), fill=as.factor(polygon_class_t
 ***
 
 ## Cell division rate
+
 To plot the cell division rate, after querying the databases, we chunk the time into discrete intervals of 1hour and average the division rates within each interval to smooth the data.
+
 
 ```r
 CDrateByTimeIntervals <- multi_db_query(movieDirs, mqf_cg_roi_rate_CD, selectedRois) %>% 
@@ -1718,7 +1753,9 @@ ggplot(CDrateByTimeIntervals, aes(dev_time, avgCDrate, color=movie)) +
 ***
 
 ## Cell neighbor change rate
+
 To plot the cell neighbor change rate, after querying the databases, we chunk the time into discrete intervals of 1hour and average these rates within each interval to smooth the data.
+
 
 ```r
 T1rate <- multi_db_query(movieDirs, mqf_cg_roi_rate_T1, selectedRois) %>% 
@@ -1731,6 +1768,7 @@ T1rate <- multi_db_query(movieDirs, mqf_cg_roi_rate_T1, selectedRois) %>%
 ```
 
 Next, we plot the neighbor change rate normalized per cell
+
 
 ```r
 ggplot(T1rate, aes(dev_time, avgT1rate, color=movie)) + 
@@ -1753,7 +1791,9 @@ ggplot(T1rate, aes(dev_time, avgT1rate, color=movie)) +
 ***
 
 ## Cell neighbor change orientation (circular diagram)
+
 We now query multiple databases to extract the information about cell neighbor change orientation averaged for the "whole_tissue" ROI.
+
 
 ```r
 selectedRois=c("whole_tissue")
@@ -1789,7 +1829,9 @@ T1Nematics$roi <- factor(T1Nematics$roi, levels=c("whole_tissue","distL3"))
 ```
 
 ***
+
 We render the average cell neighbor change orientation in a circular diagram. A similar plot can be done for the average cell division orientation (see the QuickStart tutorials).
+
 
 ```r
 ggplot(T1Nematics , aes()) + 
@@ -1866,6 +1908,7 @@ avgIsoDefRateSummary <- avgIsoDefRateInterpolated %>%
 
 We now plot the isotropic deformation rate averaged in each ROI and further averaged between movies. We also plot the standard deviation between movies.
 
+
 ```r
 # Plot average of iso contribution rates in 3 WT and their respective standard deviation
 ggplot(avgIsoDefRateSummary, aes(dev_time, value.avg, color=isoContrib)) +
@@ -1886,7 +1929,9 @@ ggplot(avgIsoDefRateSummary, aes(dev_time, value.avg, color=isoContrib)) +
 
 
 ***
+
 We next calculate the cumulative isotropic deformation that we further average between movies. 
+
 
 ```r
 avgIsoDefCum <- avgIsoDefRateInterpolated %>%
@@ -1928,7 +1973,7 @@ ggplot(avgIsoDefCum, aes(dev_time, cumsum.avg, color=isoContrib)) +
 
 #### Triangulation of the cell network
 
-The changes in aspect ratio of cells and tissue correspond the pure shear that we term shear. The tissue decomposition into each type of cellular contributions is obtained by the triangulation method that we published elsewhere (Etournay *et al.*, 2015). Here, we show the triangulation of the cell network.
+The changes in aspect ratio of cells and tissue correspond the pure shear that we term shear. The tissue shear decomposition into each type of cellular contribution is obtained by the triangulation method that we published elsewhere (Etournay *et al.*, 2015). Here, we show a triangulation of the cell network.
 
 
 ```r
@@ -1988,7 +2033,9 @@ triProperties %>%
 ***
 
 #### Pure shear deformation
+
 To optimally compare the pure shear deformation curves between movies, one can interpolate the data in time instead of relying on the supposedly constant frame rate of the microscope.
+
 
 ```r
 # query multiple databases
@@ -2031,7 +2078,9 @@ shearRateSummary <- shearRateInterpolated %>%
 ```
 
 ***
+
 We now plot the pure shear deformation averaged in each ROI and further averaged between movies. We also plot the standard deviation between movies.
+
 
 ```r
 # Plot avg and standard deviation for each tensor among 3 WT
@@ -2054,6 +2103,7 @@ ggplot(shearRateSummary, aes(dev_time,xx.avg*100, color=tensor)) +
 
 We next calculate the cumulative pure shear deformation that we further average between movies. 
 
+
 ```r
 shearCumSumSummary <- shearRateInterpolated %>%
   group_by(movie, roi, tensor) %>%
@@ -2063,6 +2113,7 @@ shearCumSumSummary <- shearRateInterpolated %>%
 ```
 
 ***
+
 We now plot the cumulative pure shear deformation further averaged between movies. We also plot the standard deviation between movies.  
 
 **CAUTION: movies must be well registered in time to get an optimal comparison between movies**
