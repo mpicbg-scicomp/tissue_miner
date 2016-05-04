@@ -70,7 +70,7 @@ By default, TissueMiner always creates two ROI's:
 * a script editor opens automatically
 * click **RUN** and define the tissue axis to be aligned on x or y. 
 
-Both programs automatically save a text file (LastFrameRoi.txt and transformation.txt, respectively). If these files are present, TissueMiner will take them into account for further precessing steps.
+Both programs automatically save a text file (UserFrameRoi.txt and transformation.txt, respectively). If these files are present, TissueMiner will take them into account for further precessing steps.
 
 
 ### 4. Open a Docker QuickStart Terminal
