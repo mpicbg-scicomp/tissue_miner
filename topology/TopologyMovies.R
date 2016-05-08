@@ -70,6 +70,11 @@ scale_fill_manual(values = cols, drop = FALSE)
 
 gridSize=60
 
+cells0 <- dbGetQuery(db, "select center_x, center_y from cells where frame=0 and cell_id != 10000")
+maxGridSize <- ceiling(0.33*min(max(cells0$center_x), max(cells0$center_y)))
+
+if (gridSize>maxGridSize) {gridSize <- maxGridSize}
+
 cellPositions   <- dbGetQuery(db, "select cell_id, frame, center_x, center_y from cells where cell_id!=10000")
 
 #t1Events <- with(subset(topoChangeSummary, num_t1_gained>0  | num_t1_lost>0), data.frame(cell_id, frame, t1_sum=num_t1_gained+num_t1_lost))
