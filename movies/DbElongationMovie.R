@@ -73,7 +73,13 @@ rm(cellshapes, csElong)
 ### Now aggegregate by grid and render as line segment movie
 #mcdir(file.path(movieDir, "nematics_movies"))
 
-gridSize=128
+gridSize=movie_grid_size
+
+cells0 <- dbGetQuery(db, "select center_x, center_y from cells where frame=0 and cell_id != 10000")
+maxGridSize <- ceiling(0.33*min(max(cells0$center_x), max(cells0$center_y)))
+
+if (gridSize>maxGridSize) {gridSize <- maxGridSize}
+
 
 if(isDebug){ #### DEBUG
 gridSize=10 ## needed for debug movie

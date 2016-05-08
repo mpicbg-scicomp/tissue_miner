@@ -89,6 +89,11 @@ render_movie(csArea, paste0(db_name, "_cell_area_rainbow.mp4"), list(
   scale_fill_gradientn(name="area", colours=c("black", "blue", "green", "yellow", "red"), limits=areaRange)
 ), createZip=T)
 
+echo("Area movie done !")
+q(save="no")
+
+stop("should never reach this line")
+
 
 if(F){
   render_frame(csArea, 20) + geom_polygon(aes(x_pos, y_pos, group=cell_id, fill=area_in_range), alpha=0.7) +
