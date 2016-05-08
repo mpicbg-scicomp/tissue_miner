@@ -47,8 +47,8 @@ filter(roiCellsBT, roi=="border") %>%
 #### watch the corrected ROIs ####
 lgRoiSmoothed <- local(get(load("lgRoiSmoothed.RData")))
 
-l_ply(unique(lgRoiSmoothed$roi), function(current_roi){
-  # DEBUG l_ply(c("blade", "whole_tissue"), function(current_roi){
+#l_ply(unique(lgRoiSmoothed$roi), function(current_roi){
+l_ply(c("whole_tissue"), function(current_roi){
   lgRoiSmoothed %>% filter(roi == current_roi) %>%
     dt.merge(cellContours, by = "cell_id") %>% 
     render_movie(paste0("corrected_lineages_",current_roi,".mp4"), list(
