@@ -14,9 +14,15 @@ sudo apt-get install -y r-base
 fi
 
 ## enforce at least R 3.2
-if [ -z "$(R --version | grep '3.2')" ]; then
+RVERSION=$(R --version | awk '/R version/{print $3}')
+MAINRELEASE=$(echo $RVERSION | awk 'BEGIN{FS="."}{print $1}')
+SUBRELEASE=$(echo $RVERSION | awk 'BEGIN{FS="."}{print $2}')
+
+if [ $MAINRELEASE -gt 3 ] || ([ $MAINRELEASE -eq 3 ] && [ $SUBRELEASE -ge 2 ]); then
+    echo "R version OK: $RVERSION"
+else
     echo "R is too old. At least v3.2 is required to run TissueMiner" >&2
-	echo "Please, try to update it by running: sudo apt-get update && sudo apt-get install -y r-base" >&2
+	  echo "Please, try to update it by running: sudo apt-get update && sudo apt-get install -y r-base" >&2
     return 1
 fi
 
