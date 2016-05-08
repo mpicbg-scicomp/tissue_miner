@@ -580,7 +580,8 @@ mqf_fg_cell_neighbor_count <- function(movieDir, rois=c(), polygon_class_limit=c
     ungroup() %>%
     # only keep relevent columns
     select(cell_id, frame, neighbor_number, polygon_class_trimmed) %>%
-    unique_rows(c("cell_id","frame")) %>%
+    distinct(cell_id,frame) %>%
+    #unique_rows(c("cell_id","frame")) %>%
     # remove marging cell surrounding the tissue
     filter(cell_id!=10000) %>%
     addRois(movieDir,rois) %>%

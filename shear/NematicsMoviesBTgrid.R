@@ -66,7 +66,9 @@ badROIs <- simpleTriRoiRaw %>%
   group_by(roi, frame) %>%
   summarise(nbTri=n_distinct(tri_id)) %>%
   filter(nbTri<7) %>%
-  unique_rows("roi") %>% select(-nbTri)
+  distinct(roi) %>%
+  # unique_rows("roi") %>% 
+  select(-nbTri)
 
 # Assign good enough roi to triangles
 simpleTriRoi <- simpleTriRoiRaw #%>% anti_join(badROIs, by = c("frame", "roi"))
@@ -264,7 +266,8 @@ head(gridShear)
 
 # Get roi-center positions
 gridShearPos <- simpleTriRoi %>%
-  unique_rows(c("roi","frame","cell_id")) %>%
+  distinct(roi, frame, cell_id) %>%
+  # unique_rows(c("roi","frame","cell_id")) %>%
   group_by(roi, frame) %>%
   summarise(xGrid=mean(center_x),
             yGrid=mean(center_y)) %>%

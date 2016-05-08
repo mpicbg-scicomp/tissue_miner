@@ -179,7 +179,7 @@ save(cellsInROI, file="cellsInROI.RData")
 cellinfo <- dbGetQuery(db, "select cell_id, lineage_group from cell_histories")
 
 ## collect all cell_ids by lineage group in each roi
-linGroupsInROi <- merge(cellsInROI, cellinfo, by="cell_id") %>% unique_rows(c("lineage_group", "roi")) %>% select(-cell_id)
+linGroupsInROi <- merge(cellsInROI, cellinfo, by="cell_id") %>% distinct(lineage_group, roi) %>% select(-cell_id)
 roiCellsBTRaw <- merge(linGroupsInROi, cellinfo)
 
 save(roiCellsBTRaw, file="roiCellsBTRaw.RData")
