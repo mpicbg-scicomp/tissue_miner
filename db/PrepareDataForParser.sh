@@ -39,7 +39,7 @@ segDataDir=$movieDbDir/Segmentation
 
 ########################################################################################################################
 ## create original.png from tif or png time-lapse images as this is required for the parser, and not generated in TA anymore
-for originalIm in $(find $segDataDir -name "$movieName*.[p,t][n,i][f,g]" | sort); do
+for originalIm in $(find $segDataDir -maxdepth 1 -name "$movieName*.[p,t][n,i][f,g]" | sort); do
         # DEBUG originalPng=/lustre/projects/project-raphael/movie_dbs/testing/WT_25deg_111103/image_data/mutant/tag/segmentationData/frame0204/original.png
 		file=$(basename $originalIm)		
 		ext="${file##*.}"
