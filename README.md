@@ -59,8 +59,13 @@ TissueMiner ships with a command-line Ubuntu-Installer and can be used via Docke
     + Download TissueMiner repository (~120MB)
     + Install TM (~30 min due to the compilation of the source code of R packages)
 ```
+# Step1
 export TM_HOME="${HOME}/tissue_miner"
-sudo apt-get install git
+sudo apt-get update && sudo apt-get install git
+
+```
+```
+# Step 2
 git clone https://github.com/mpicbg-scicomp/tissue_miner.git ${TM_HOME}
 ${TM_HOME}/installation/ubuntu/install_tm.sh
 source ${HOME}/.bashrc
