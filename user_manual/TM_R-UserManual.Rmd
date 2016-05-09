@@ -1,5 +1,5 @@
 ---
-title: 'TissueMiner: an R-tutorial to visualize cell dynamics in 2D tissues'
+title: 'TissueMiner User Manual'
 author: "Raphael Etournay"
 date: "April 22nd 2016"
 output:
