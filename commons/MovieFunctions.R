@@ -87,11 +87,17 @@ render_source_image <- function(frame, img=readMovieImg(frame), squareRoi=rbind(
   cropImg <- img[seq(adjustRoi[2,1], adjustRoi[2,2]), seq(adjustRoi[1,1], adjustRoi[1,2])]
   
   ggplot(data.frame(), aes(x=1, y=1)) +
-    annotation_raster(cropImg,  adjustRoi[1,1], adjustRoi[1,2], -adjustRoi[2,1], -adjustRoi[2,2], interpolate=F) +
-    scale_x_continuous(limits=adjustRoi[1,],expand=c(0,0)) +
-    scale_y_continuous(limits=rev(adjustRoi[2,]), expand=c(0,0), trans = "reverse") +
-    theme(axis.title.x=element_blank(), axis.title.y=element_blank(), axis.text.x = element_blank(), axis.text.y = element_blank(), axis.ticks = element_blank()) +
-    annotate("text", x = Inf, y = Inf, color='red', hjust = 1.1, vjust = -0.5, label = timeStamp) +
+    # center points on pixels by inserting the image with 0.5 of offsets and shift image by one to align its first pixel on zero
+    annotation_raster(cropImg,  adjustRoi[1,1]-1.5, adjustRoi[1,2]-0.5, -adjustRoi[2,1]+1.5, -adjustRoi[2,2]+0.5, interpolate=F) +
+    # limit display to the image boundaries including offsets
+    scale_x_continuous(limits=c(adjustRoi[1,1]-1.5, adjustRoi[1,2]-0.5) ,expand=c(0,0), breaks = seq(0,100,5)) +
+    scale_y_continuous(limits=rev(c(adjustRoi[2,1]-1.5, adjustRoi[2,2]-0.5)), expand=c(0,0), trans = "reverse", breaks = seq(0,100,5)) +
+    labs(x=NULL, y=NULL, title=NULL) +
+    theme(axis.title.x=element_blank(), axis.title.y=element_blank(), axis.text.x = element_blank(), axis.text.y = element_blank(),
+          axis.ticks = element_blank(), axis.ticks.length = unit(0,"null"), panel.margin = rep(unit(0,"null"),4),
+          axis.text.x = element_text(margin=margin(0,0,0,0,"pt")),
+          axis.text.y = element_text(margin=margin(0,0,0,0,"pt")), plot.margin = rep(unit(0,"null"),4)) + #axis.ticks.margin= unit(0,"null")
+    annotate("text", x = Inf, y = Inf, color='red', hjust = 1.5, vjust = -1.5, label = timeStamp) +
     coord_equal()
 }
 
