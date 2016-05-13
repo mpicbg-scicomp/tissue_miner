@@ -94,14 +94,14 @@ Documentation
 
 * First [install](https://github.com/mpicbg-scicomp/tissue_miner#installation) TissueMiner on your system.
 * To get started with TissueMiner we suggest to do **Quickstart Tutorials on our example data:** 
-    + **[Quickstart R Tutorials](https://github.com/mpicbg-scicomp/tissue_miner/blob/gh-pages/quickstart_tutorial/ubuntu/tm_qs_example_data.md#first-use-of-tissueminer-with-example-data)** (Ubuntu).
-    + **[Quickstart docker-R Tutorials](https://github.com/mpicbg-scicomp/tissue_miner/blob/gh-pages/quickstart_tutorial/other_os/tm_qs_example_data.md#first-use-of-tissueminer-with-example-data)** (Mac, Windows, other Linux).
+    + **[Quickstart TM-R Tutorials](https://github.com/mpicbg-scicomp/tissue_miner/blob/gh-pages/quickstart_tutorial/ubuntu/tm_qs_example_data.md#first-use-of-tissueminer-with-example-data)** (Ubuntu).
+    + **[Quickstart docker-TM-R Tutorials](https://github.com/mpicbg-scicomp/tissue_miner/blob/gh-pages/quickstart_tutorial/other_os/tm_qs_example_data.md#first-use-of-tissueminer-with-example-data)** (Mac, Windows, other Linux).
 
 * To get started with your **own data** analysis:
-    + **[R Tutorials](https://github.com/mpicbg-scicomp/tissue_miner/blob/gh-pages/quickstart_tutorial/ubuntu/tm_qs_user_data.md#first-use-of-tissueminer-with-your-own-data)** (Ubuntu).
-    + **[docker-R Tutorials](https://github.com/mpicbg-scicomp/tissue_miner/blob/gh-pages/quickstart_tutorial/other_os/tm_qs_user_data.md#first-use-of-tissueminer-with-your-own-data)** (Mac, Windows, other Linux).
+    + **[TM-R Tutorials](https://github.com/mpicbg-scicomp/tissue_miner/blob/gh-pages/quickstart_tutorial/ubuntu/tm_qs_user_data.md#first-use-of-tissueminer-with-your-own-data)** (Ubuntu).
+    + **[docker-TM-R Tutorials](https://github.com/mpicbg-scicomp/tissue_miner/blob/gh-pages/quickstart_tutorial/other_os/tm_qs_user_data.md#first-use-of-tissueminer-with-your-own-data)** (Mac, Windows, other Linux).
     
-* We provide the streamlined [R scripts](docs/quickstart/scripts) that are used in the tutorials to perform a simple analysis of a single movie. This includes a script entitled `analyse_movie.R` that performs most of the analyses described in the Quickstart R Tutorials.
+* We provide the streamlined [R scripts](docs/quickstart/scripts) that are used in the tutorials to perform a simple analysis of a single movie. This includes a script entitled `analyse_movie.R` that performs most of the analyses described in the Quickstart Tutorials.
 
 * We also provide an exhaustive **[TM R User Manual](https://mpicbg-scicomp.github.io/tissue_miner/user_manual/TM_R-UserManual.html)** with lots of examples, background information and API details:
     + learn the necessary basics of the R language for TissueMiner (also see [here](https://mpicbg-scicomp.github.io/tissue_miner/user_manual/Learning_the_R_basics_for_TissueMiner.html))
@@ -117,7 +117,7 @@ Documentation
 Datasets
 ================
 We provide four datasets:
-* 1 demo sample (~35 Mb) to run [Quickstart R Tutorials](https://github.com/mpicbg-scicomp/tissue_miner/blob/gh-pages/quickstart_tutorial/tm_quickstart_landing_page.md#first-use-of-tissueminer)
+* 1 demo sample (~35 Mb) to run [Quickstart TM-R Tutorials](https://github.com/mpicbg-scicomp/tissue_miner/blob/gh-pages/quickstart_tutorial/tm_quickstart_landing_page.md#first-use-of-tissueminer)
 
 ```{bash}
 # In your unix terminal (or Docker QuickStart Terminal), type in:
