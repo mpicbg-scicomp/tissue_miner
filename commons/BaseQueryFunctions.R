@@ -820,7 +820,7 @@ mqf_cg_roi_rate_T1 <- function(movieDir, rois=c()){
 }
 # mqf_rateT1Balance <- function(movieDb, movieDir, rois=c()) topoChangeRate(movieDb, movieDir, rois, 0.5*(num_t1_gained-num_t1_lost))
 ## mqf_cg_roi_rate_isotropic_contrib ####
-mqf_cg_roi_rate_isotropic_contrib <- function(movieDir, rois=c()){
+mqf_cg_roi_rate_isotropic_contrib <- function(movieDir, rois=c(), kernSize=11){
   
   # Description: compute the isotropic deformation of the tissue and its cellular contributions per frame, in ROIs
   # Usage: mqf_cg_roi_rate_isotropic_contrib(movieDir)
@@ -878,10 +878,10 @@ mqf_cg_roi_rate_isotropic_contrib <- function(movieDir, rois=c()){
     select(frame,time_sec,timeIntHour,roi,division,extrusion,cell_area,tissue_area) %>%
     arrange(roi,frame) %>%
     group_by(roi) %>%
-    mutate(division=ma(division),
-           extrusion=ma(extrusion),
-           cell_area=ma(cell_area),
-           tissue_area=ma(tissue_area),
+    mutate(division=ma(division, kernSize),
+           extrusion=ma(extrusion, kernSize),
+           cell_area=ma(cell_area, kernSize),
+           tissue_area=ma(tissue_area, kernSize),
            sumContrib=division+extrusion+cell_area) %>%
     melt(., id.vars = c("frame","time_sec","timeIntHour","roi"), value.name = "value.ma", variable.name = "isoContrib") %>% 
     mutate(movie=basename(movieDir)) %>% add_dev_time()
@@ -897,7 +897,7 @@ mqf_cg_roi_rate_isotropic_contrib <- function(movieDir, rois=c()){
   return(relIsoContribSmooth)
 }
 ## mqf_cg_roi_rate_shear ####
-mqf_cg_roi_rate_shear <- function(movieDir, rois=c()){
+mqf_cg_roi_rate_shear <- function(movieDir, rois=c(), kernSize=11){
   
   # Description: compute the pure shear deformation of the tissue and its cellular contributions per frame, in ROIs
   # Usage: mqf_cg_roi_rate_shear(movieDir)
@@ -914,11 +914,11 @@ mqf_cg_roi_rate_shear <- function(movieDir, rois=c()){
     addTimeFunc(movieDb, .) %>%
     arrange(frame)
   # browser()
-  ShearRateByRoi <- as.df(data.table(pooledShear)[, ":=" (xx.ma=ma(xx)/(ma(timeInt_sec)/3600),
-                                                          xy.ma=ma(xy)/(ma(timeInt_sec)/3600),
-                                                          yx.ma=ma(yx)/(ma(timeInt_sec)/3600),
-                                                          yy.ma=ma(yy)/(ma(timeInt_sec)/3600),
-                                                          TimeInt.ma=as.numeric(ma(timeInt_sec))), by=c("roi", "tensor")]) %>%
+  ShearRateByRoi <- as.df(data.table(pooledShear)[, ":=" (xx.ma=ma(xx, kernSize)/(ma(timeInt_sec, kernSize)/3600),
+                                                          xy.ma=ma(xy, kernSize)/(ma(timeInt_sec, kernSize)/3600),
+                                                          yx.ma=ma(yx, kernSize)/(ma(timeInt_sec, kernSize)/3600),
+                                                          yy.ma=ma(yy, kernSize)/(ma(timeInt_sec, kernSize)/3600),
+                                                          TimeInt.ma=as.numeric(ma(timeInt_sec, kernSize))), by=c("roi", "tensor")]) %>%
     # calculate the phi angle and norm of nematics
     mutate(phi=mod2pi(0.5*(atan2(xy.ma, xx.ma))), 
            norm= sqrt(xx.ma^2+xy.ma^2)) %>%
