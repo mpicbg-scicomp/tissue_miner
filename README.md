@@ -110,7 +110,7 @@ Documentation
     
 * You already know Python and you like to use it instead ? We also provide a **[Tutorial in Python](docs/TM_tutorial_in_Python/TissueMiner_pythonTutorial-3WT_Demo.md#tissueminer-python-tutorial)**
 
-* For a more general overview consider our [Resource Paper](/link/here/once/published).
+* For a more general overview consider our [Resource Paper](http://dx.doi.org/10.7554/eLife.14334).
 
 * Commonly asked questions are answered in the [FAQ section](faq.md).
 
@@ -152,6 +152,11 @@ Reference
 
 If you like to use TissuMiner for your own research, please cite
 
+> Etournay et al. (2016). TissueMiner: a multiscale analysis toolkit to quantify how cellular processes create tissue dynamics. eLife, 5, e14334. [doi:10.7554/eLife.14334](https://elifesciences.org/content/5/e14334)
+
+or
+
 > Etournay et al. (2015). Interplay of cell dynamics and epithelial tension during morphogenesis of the Drosophila pupal wing. eLife, 4, e07090. [doi:10.7554/eLife.07090](http://elifesciences.org/content/early/2015/06/23/eLife.07090)
+
 
 
