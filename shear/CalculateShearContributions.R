@@ -13,8 +13,13 @@ if(length(argv) != 1){
 ########################################################################################################################
 ### Setup environment
 
-db_name=basename(movieDir)
+# movieDir <- "/Users/retourna/example_data/demo"
+# movieDir <- "/home/rstudio/home_share/example_data/demo"
+# movieDir <- "/Volumes/OSX/WT_25deg_111102"
+# Sys.setenv(TM_HOME="/home/rstudio/home_share/tissue_miner/")
 
+
+db_name=basename(movieDir)
 scriptsDir=Sys.getenv("TM_HOME")
 
 if(is.na(file.info(scriptsDir)$isdir)){
@@ -139,7 +144,7 @@ options(device="png") ## disable interactive graphics for parallel roi processin
 l_ply(shearRois, function(curROI){
     gc()
 
-    #DEBUG curROI="blade"
+    #DEBUG curROI="whole_tissue"
     simpleTri <- subset(local(get(load(file.path(tmpDir, paste0("simpleTriRoi_",curROI,".RData"))))), select=-roi)
     firstInt <- subset(local(get(load(file.path(tmpDir, paste0("firstIntRoi_",curROI,".RData"))))), select=-roi)
     sndInt <- subset(local(get(load(file.path(tmpDir, paste0("sndIntRoi_",curROI,".RData"))))), select=-roi)
