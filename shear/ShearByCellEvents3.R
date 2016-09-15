@@ -46,6 +46,12 @@ calcDeltaQtot <- function(triStatePt_prev, triStatePt_next){
     tu_yx= (-1*yy.next*yx.prev + yx.next*yy.prev)/denominator,
     tu_yy= (yy.next*xx.prev - yx.next*xy.prev)/denominator,
     
+    # denominator=-1*xy.i1*yx.i1 + xx.i1*yy.i1,
+    # tu_xx= (-1*xy.i2*yx.i1 + xx.i2*yy.i1)/denominator,
+    # tu_xy= (xy.i2*xx.i1 - xx.i2*xy.i1)/denominator,
+    # tu_yx= (-1*yy.i2*yx.i1 + yx.i2*yy.i1)/denominator,
+    # tu_yy= (yy.i2*xx.i1 - yx.i2*xy.i1)/denominator,
+
     ## calculate anisotropic part: total Pure shear Nu for each triangle (finite deformation)
     nu_xx=0.5*(tu_xx-tu_yy),
     nu_xy=0.5*(tu_xy+tu_yx), # also in of diagonal of whole symmetric part
@@ -131,15 +137,56 @@ calcAvgDeltaQtot <- function(deltaQtot){
     select(-c(av_Q_xx.prev,av_Q_xy.prev,tri_area.prev,av_Q_xx.next,av_Q_xy.next,tri_area.next,av_phi.prev,av_phi.next,delta_av_phi,delta_av_psi,C))
 }
 
+#### Compute state properties for all frames and intermediates ####
+# The Ta tensor describes the shape of triangles with respect to a reference triangle of unit area (Ta is not symmetric and not traceless)
+# The symmetric and traceless part of Ta is the nematic Qa such as Ta=exp(s_a)exp(Qa)R(Theta_a)
+
+print("Calculate triangle state properties for all intermediates")
+
+## Calculate state properties for all frame (fine- and coarse-grained )
+tTriData <- subset(simpleTri, select=-c(area, cell_id))
+Ta_t <- calcStateProps(tTriData)
+save(Ta_t, file="Ta_t.RData")
+# Ta_t <- local(get(load("Ta_t.RData")))
+Qavg_Ta_t <- calcQAverage(inner_join(Ta_t, triWithFrame, by="tri_id"), "frame"); rm(Ta_t, simpleTri, tTriData)
+
+
+## Calculate state properties for first intermediate from global env
+# todo consider to keep frame in calcStateProps to get rid of additional complexity here
+Ta_i1 <- calcStateProps(firstInt) %>% filter(!is.infinite(Q_a))
+save(Ta_i1, file="Ta_i1.RData")
+# Ta_i1 <- local(get(load("Ta_i1.RData")))
+Qavg_Ta_i1 <- calcQAverage(inner_join(Ta_i1, triWithFrame, by="tri_id"), "frame"); rm(Ta_i1)
+
+
+## Calculate state properties for second intermediate from global env
+Ta_i2 <- calcStateProps(sndInt)
+save(Ta_i2, file="Ta_i2.RData")
+# Ta_i2 <- local(get(load("Ta_i2.RData")))
+# Prepare a mapping of triangle IDs to the frame of reference, which is t+1 for the second intermediate
+#triWithFrameTP1 <- mutate(triWithFrame, frame=frame+1)
+triWithFrameTP1 <- sndInt %>% select(tri_id, frame) %>% distinct()
+## todo check that nrow(Ta_i2)==nrow(triWithFrameTP1) because both originate from sndInt
+Qavg_Ta_i2 <- calcQAverage(inner_join(Ta_i2, triWithFrameTP1, by="tri_id"), "frame"); rm(Ta_i2, triWithFrameTP1)
+
+
+## todo think about renaming frame to something more explicit like pos_frame, topo_frame, ref_frame
+## Calculate state properties for third intermediate from global env
+i3TriData <- with(thirdInt, data.frame(frame, tri_id, tri_order, center_x, center_y))
+Ta_i3 <- calcStateProps(i3TriData)
+save(Ta_i3, file="Ta_i3.RData")
+# Ta_i3 <- local(get(load("Ta_i3.RData")))
+Qavg_I3 <- calcQAverage(inner_join(Ta_i3, triWithFrame, by="tri_id"), "frame"); rm(Ta_i3, thirdInt, i3TriData)
+
+
 
 #### Compute shear and correlation effects between intermediate i1 and i2 #####
 ## Manual interpolation on the fly between two consecutive frames to save memory
-
-registerDoMC(cores=12)
+registerDoMC(cores=6) # TODO: library(pryr); mem_used(); mem_used()[1]/(10^9); detectCores()
 intervalNb <- 100
 maxFrame <-max(firstInt$frame)
 
-# Reshape triangle coordinates from long to wide in intermediates i1 and i2
+# Reshape triangle coordinates from long to wide format for intermediates i1 and i2
 firstIntermWide <- firstInt %>% tbl_dt() %>%
   gather(key =  coord, value = value, c(center_x, center_y)) %>% arrange(frame,tri_id) %>%
   dcast(frame+tri_id~coord+tri_order) %>% arrange(frame,tri_id) 
@@ -151,28 +198,30 @@ sndIntermWide <- sndInt %>% tbl_dt() %>%
 bothIntermWide <- dt.merge(firstIntermWide, mutate(sndIntermWide, frame=frame-1), by =c("frame","tri_id"), suffixes=c(".first",".snd")) %>% 
   rename(frameInt=frame)
 
-rm(firstIntermWide, sndIntermWide)
+rm(firstIntermWide, sndIntermWide, firstInt, sndInt)
 
 
 # Interpolate triangle coordinates between i1 and i2, calculate shear by frame interval and assign shear to left part of the interval
+
+print(paste("Calculate shear by interpolating triangle coordinates over",intervalNb, "sub-intervals between two consecutive frames"))
+
 system.time({
   # loop over frame intervals
   avgDeltaQtot <- ldply(0:(maxFrame-1), function(frameIntNb){
     
-    # loop over interpolated intervals (index) calculated on the fly
+    # Initialize prevCoord to the left part of the frame interval, and initialize triStatePt_prev
+    prevCoord <- filter(bothIntermWide, frameInt==frameIntNb) %>% filter(tri_id==553) %>%
+      rename(center_x_1=center_x_1.first, center_x_2=center_x_2.first, center_x_3=center_x_3.first,
+             center_y_1=center_y_1.first, center_y_2=center_y_2.first, center_y_3=center_y_3.first) %>%
+      select(c(tri_id, center_x_1, center_x_2, center_x_3, center_y_1, center_y_2, center_y_3))
+    triStatePt_prev <- calcStatePropsWide(prevCoord)
+    
     # system.time({
+    # loop over interpolated intervals (index) calculated on the fly
     for (index in 1:intervalNb){
       
-      # Initialize prevCoord to the left part of the frame interval, and initialize triStatePt_prev
-      if(index==1){
-        prevCoord <- filter(bothIntermWide, frameInt==frameIntNb) %>% rename(center_x_1=center_x_1.first, center_x_2=center_x_2.first, center_x_3=center_x_3.first,
-                                                                             center_y_1=center_y_1.first, center_y_2=center_y_2.first, center_y_3=center_y_3.first) %>%
-          select(c(tri_id, center_x_1, center_x_2, center_x_3, center_y_1, center_y_2, center_y_3))
-        triStatePt_prev <- calcStatePropsWide(prevCoord)
-      }
-      
       # calculate next interpolated set of triangle vertices
-      nextCoord <- filter(bothIntermWide, frameInt==frameIntNb) %>%
+      nextCoord <- bothIntermWide %>% filter(frameInt==frameIntNb) %>% filter(tri_id==553) %>%
         mutate(center_x_1=(index/intervalNb)*(center_x_1.snd-center_x_1.first) + center_x_1.first,
                center_x_2=(index/intervalNb)*(center_x_2.snd-center_x_2.first) + center_x_2.first,
                center_x_3=(index/intervalNb)*(center_x_3.snd-center_x_3.first) + center_x_3.first,
@@ -189,7 +238,7 @@ system.time({
       interpolAvgDeltaQtot <- calcAvgDeltaQtot(interpolDeltaQtot) %>% mutate(index=index)
       
       # append new interpolated data to pooledInterpolAvgDeltaQtot (initialized at interval index==1)
-      if(index==1){pooledInterpolAvgDeltaQtot<-data.frame(matrix(vector(), 0, length(names(avgDeltaQtot)), dimnames=list(c(), names(avgDeltaQtot))))}
+      if(index==1){pooledInterpolAvgDeltaQtot<-data.frame(matrix(vector(), 0, length(names(interpolAvgDeltaQtot)), dimnames=list(c(), names(interpolAvgDeltaQtot))))}
       pooledInterpolAvgDeltaQtot <- rbind(pooledInterpolAvgDeltaQtot, interpolAvgDeltaQtot)
       
       # shift to the next interpolated interval ("next" becomes "previous")
@@ -197,6 +246,7 @@ system.time({
       triStatePt_prev <- triStatePt_next
       
     }
+    
     # }) # end of system.time()
     
     # sum up interpolated values of shear tensor coefficients for the current frame interval
@@ -214,11 +264,11 @@ system.time({
              cagc_xx=-(av_u_kk_q_xx-av_U_kk_Q_xx),
              cagc_xy=-(av_u_kk_q_xy-av_U_kk_Q_xy)) #%>% print_head()
     
+    
     # append these summed up values into the final table "avgDeltaQtot"
     return(avgDeltaQtotByFrameIntervals)
     
-  }, .parallel=F, .inform=T, .progress = "text") %>% print_head()
-  
+  }, .parallel=T, .inform=T, .progress = "text") %>% print_head()
   
 }) # end of system.time()
 
@@ -232,177 +282,6 @@ if(F) {
 ## DEBUG END
 
 
-#### Compute state properties for all frames and intermediates ####
-# The Ta tensor describes the shape of triangles with respect to a reference triangle of unit area (Ta is not symmetric and not traceless)
-# The symmetric and traceless part of Ta is the nematic Qa such as Ta=exp(s_a)exp(Qa)R(Theta_a)
-
-## Calculate state properties for all frame (fine- and coarse-grained )
-tTriData <- subset(simpleTri, select=-c(area, cell_id))
-Ta_t <- calcStateProps(tTriData)
-save(Ta_t, file="Ta_t.RData")
-# Ta_t <- local(get(load("Ta_t.RData")))
-Qavg_Ta_t <- calcQAverage(inner_join(Ta_t, triWithFrame, by="tri_id"), "frame"); rm(Ta_t, simpleTri, tTriData)
-
-
-## Calculate state properties for first intermediate from global env
-# todo consider to keep frame in calcStateProps to get rid of additional complexity here
-Ta_i1 <- calcStateProps(firstInt) %>% filter(!is.infinite(Q_a))
-save(Ta_i1, file="Ta_i1.RData")
-# Ta_i1 <- local(get(load("Ta_i1.RData")))
-Qavg_Ta_i1 <- calcQAverage(inner_join(Ta_i1, triWithFrame, by="tri_id"), "frame"); #rm(Ta_i1, firstInt)
-
-
-## Calculate state properties for second intermediate from global env
-Ta_i2 <- calcStateProps(sndInt)
-save(Ta_i2, file="Ta_i2.RData")
-# Ta_i2 <- local(get(load("Ta_i2.RData")))
-# Prepare a mapping of triangle IDs to the frame of reference, which is t+1 for the second intermediate
-#triWithFrameTP1 <- mutate(triWithFrame, frame=frame+1)
-triWithFrameTP1 <- sndInt %>% select(tri_id, frame) %>% distinct()
-## todo check that nrow(Ta_i2)==nrow(triWithFrameTP1) because both originate from sndInt
-Qavg_Ta_i2 <- calcQAverage(inner_join(Ta_i2, triWithFrameTP1, by="tri_id"), "frame"); rm(Ta_i2, sndInt, triWithFrameTP1)
-
-
-## todo think about renaming frame to something more explicit like pos_frame, topo_frame, ref_frame
-## Calculate state properties for third intermediate from global env
-i3TriData <- with(thirdInt, data.frame(frame, tri_id, tri_order, center_x, center_y))
-Ta_i3 <- calcStateProps(i3TriData)
-save(Ta_i3, file="Ta_i3.RData")
-# Ta_i3 <- local(get(load("Ta_i3.RData")))
-Qavg_I3 <- calcQAverage(inner_join(Ta_i3, triWithFrame, by="tri_id"), "frame"); rm(Ta_i3, thirdInt, i3TriData)
-
-
-
-#### Calculate Total Pure Shear and cell elongation_ignoring_topo_changes + corot term, between frame I1 and I2 ####
-# Calculate Tu that describes the change in shape between two states (here t and I2 for shear contribution at cellular level)
-if(F) {
-  dQtot <- dt.merge(local(get(load("Ta_i1.RData"))), local(get(load("Ta_i2.RData"))), by="tri_id", suffixes=c(".i1", ".i2"))
-  names(dQtot) <- str_replace(names(dQtot), "^ta_", "")
-  
-  ## Fine-grained total shear: Let's define Tu, the affine transformation that describes deformation
-  ##  calculate matrix product component wise and get norm and angle of the symmetric traceless part (nematic) of Tu
-  dQtot %<>% mutate(
-    denominator=-1*xy.i1*yx.i1 + xx.i1*yy.i1,
-    tu_xx= (-1*xy.i2*yx.i1 + xx.i2*yy.i1)/denominator,
-    tu_xy= (xy.i2*xx.i1 - xx.i2*xy.i1)/denominator,
-    tu_yx= (-1*yy.i2*yx.i1 + yx.i2*yy.i1)/denominator,
-    tu_yy= (yy.i2*xx.i1 - yx.i2*xy.i1)/denominator,
-    
-    ## calculate anisotropic part: total Pure shear Nu for each triangle (finite deformation)
-    nu_xx=0.5*(tu_xx-tu_yy),
-    nu_xy=0.5*(tu_xy+tu_yx), # also in of diagonal of whole symmetric part
-    
-    ## Calulate component of total shear
-    # s_a.tu       = 0.5*log(tu_xx*tu_yy-tu_xy*tu_yx),         ## scaling
-    # theta_a.tu   = atan2(tu_yx-tu_xy, tu_xx+tu_yy),          ## rotation
-    # two_phi_a.tu = mod2pi(theta_a.tu+atan2(tu_xy+tu_yx, tu_xx-tu_yy)),  ## shear axis (aka orientation of nematic)
-    # Q_a.tu       = asinh(0.5 * sqrt((tu_xx-tu_yy)^2 + (tu_xy+tu_yx)^2) / exp(s_a.tu)),   ## norm of Q_a/amount of the pure shear
-    # 
-    # factor (see triangle paper)
-    c_a=tanh(2*Q_a.i1)/(2*Q_a.i1),
-    # nematic angle difference
-    delta_phi_a=0.5*angle_difference(two_phi_a.i2, two_phi_a.i1),
-    # triangle orientation difference
-    delta_theta_a=angle_difference(theta_a.i2, theta_a.i1),
-    # local tissue rotation angle 
-    delta_psi_a=angle_difference(delta_phi_a, angle_difference(delta_phi_a,delta_theta_a)*cosh(2*Q_a.i1)),
-    # corotational derivative of triangle elongation (tensor)
-    j_xx_a=2*(c_a*delta_psi_a + (1-c_a)*delta_phi_a)*Q_a.i1*sin(two_phi_a.i1),
-    j_xy_a=-2*(c_a*delta_psi_a + (1-c_a)*delta_phi_a)*Q_a.i1*cos(two_phi_a.i1),
-    # total triangle shear tensor (infinitesimal deformation close to nu for small deformation = interpolation)
-    tilde_u_xx_a=Q_a.i2*cos(two_phi_a.i2)-Q_a.i1*cos(two_phi_a.i1) + j_xx_a,
-    tilde_u_xy_a=Q_a.i2*sin(two_phi_a.i2)-Q_a.i1*sin(two_phi_a.i1) + j_xy_a,
-    # relative triangle area change
-    delta_u_kk_a=log(tri_area.i2/tri_area.i1)
-  )
-  
-  ## remove unused columns
-  # Note: the tri_id of dQtot refer to time t as tri_id are then artificially propagted to build second intermediate
-  dQtot <- subset(dQtot, select=!str_detect(names(dQtot), "(yx|xx|xy|yy)[.]"))
-  save(dQtot, file="dQtot.RData")
-  # dQtot <- local(get(load("dQtot.RData")))
-  
-  
-  ## Coarse-grained shear: Calculate triangle area weighted average of nematics for intermediates i1 and i2
-  # Note: the tri_id of dQtot refers to time t, therefore, the merge maps the frame column to time t of the inteval [t,t+1]
-  avgDeltaQtot <- dt.merge(dQtot, triWithFrame) %>%
-    group_by(frame) %>%
-    summarise(
-      
-      # area weighted avg of triangle elongation
-      Q_xx.i1=areaWeightedMean(tri_area.i1, Q_a.i1*cos(two_phi_a.i1)),
-      Q_xy.i1=areaWeightedMean(tri_area.i1, Q_a.i1*sin(two_phi_a.i1)),
-      tri_area.i1=sum(tri_area.i1, na.rm=T),
-      
-      Q_xx.i2=areaWeightedMean(tri_area.i2, Q_a.i2*cos(two_phi_a.i2)),
-      Q_xy.i2=areaWeightedMean(tri_area.i2, Q_a.i2*sin(two_phi_a.i2)),
-      tri_area.i2=sum(tri_area.i2, na.rm=T),
-      
-      
-      # Avg Total Pure Shear from Nu
-      total_shear_xx = areaWeightedMean(tri_area.i1, nu_xx),
-      total_shear_xy = areaWeightedMean(tri_area.i1, nu_xy),
-      
-      # Avg phi in i1 and in i2
-      phi.i1=0.5*Arg(Q_xx.i1+1i*Q_xy.i1),
-      phi.i2=0.5*Arg(Q_xx.i2+1i*Q_xy.i2),
-      
-      # Avg delta_phi
-      delta_phi=angle_difference(phi.i2, phi.i1),
-      
-      delta_psi=areaWeightedMean(tri_area.i1, delta_psi_a),
-      
-      C=tanh(2*sqrt(Q_xx.i1^2+Q_xx.i2^2))/(2*sqrt(Q_xx.i1^2+Q_xx.i2^2)),
-      
-      
-      # Correlation terms
-      # avg of j
-      j_xx=areaWeightedMean(tri_area.i1, j_xx_a),
-      j_xy=areaWeightedMean(tri_area.i1, j_xy_a),
-      # j of the avg
-      J_xx=2*(C*delta_psi + (1-C)*delta_phi)*Q_xy.i1,
-      J_xy=-2*(C*delta_psi + (1-C)*delta_phi)*Q_xx.i1,
-      
-      # isotropic part
-      u_kk_q_xx = areaWeightedMean(tri_area.i1, delta_u_kk_a*Q_a.i1*cos(two_phi_a.i1)),
-      u_kk_q_xy = areaWeightedMean(tri_area.i1, delta_u_kk_a*Q_a.i1*sin(two_phi_a.i1)),
-      
-      U_kk=areaWeightedMean(tri_area.i1, delta_u_kk_a),
-      
-      # rotational correlation term
-      crc_xx=j_xx-J_xx,
-      crc_xy=j_xy-J_xy,
-      
-      
-      # area growth correlation term
-      
-      cagc_xx=-(u_kk_q_xx-U_kk*Q_xx.i1),
-      cagc_xy=-(u_kk_q_xy-U_kk*Q_xy.i1)
-      
-    )
-  #), by=c("frame")])
-  
-  rm(dQtot)
-  # save(avgDeltaQtot, file="avgDeltaQtot.RData")
-  # avgDeltaQtot <- local(get(load("avgDeltaQtot.RData")))
-  
-}
-
-
-
-#### Check that dQtot is equal to Nu (symmetric traceless part of Tu describing total shear) ####
-# avgDeltaQtot2 <- mutate(avgDeltaQtot2,
-#                         ## calucate difference of Nu and compare it to the sum
-#                         dqtot_xx=cecr_xx + ct_xx + cagc_xx + crc_xx,
-#                         dqtot_xy=cecr_xy + ct_xy + cagc_xy + crc_xy,
-#                         deltaCheck_xx = nu_xx - (dqtot_xx),
-#                         deltaCheck_xy = nu_xy - (dqtot_xy)
-# )
-
-# ggsave2(ggplot(melt(with(avgDeltaQtot2, data.frame(frame, 13*nu_xx, 13*dqtot_xx)), id.vars="frame"), aes(frame, value, color=variable)) + geom_line(alpha=0.7) + ggtitle(" Nu equal to Qtot"))
-# ggsave2(ggplot(avgDeltaQtot2, aes(frame, deltaCheck_xx)) + geom_line() + geom_smooth())
-# ggsave2(ggplot(avgDeltaQtot2, aes(frame, deltaCheck_xy)) + geom_line() + geom_smooth())
-
 
 #### Coarse grained State properties and Pure Shear contributions (symmetric traceless tensors = nematics) ####
 
@@ -415,29 +294,6 @@ shearByT2 <- merge(Qavg_Ta_t, Qavg_Ta_i1, by="frame", suffixes=c(".t", ".i1")) %
                 select(frame,ShearT2_xx,ShearT2_xy)
 
 # Note: shearByT2 where frame refers to time t of the interval [t,t+1]
-
-#if(F){ #### DEBUG
-#subset(shearByT2, frame==110)
-#subset(Ta_i1, frame==110)
-#tt <- subset(dt.merge(Ta_i1, triWithFrame), frame==110)
-#
-##tri_area, Q_a*cos(two_phi_a)
-#ggplot(tt, aes(Q_a)) + geom_histogram()
-#summary(tt$Q_a)
-#tt %>% arrange(Q_a) %>% tail()
-#with(tt, as.data.frame(table(is.nan(tri_area))))
-#ttt <- calcQAverage(tt, "frame");
-#
-#firstInt %>% filter(tri_id==7108041) %>% arrange(tri_order) %>%  ggplot(aes(center_x, center_y, group=tri_id)) + geom_line()
-#tTriData %>% filter(tri_id==7108041) %>% arrange(tri_order) %>%  ggplot(aes(center_x, center_y, group=tri_id)) + geom_line()
-#tTriData %>% filter(tri_id==7108041) %>% dt.merge(., simpleTri)
-#neighbors %>% dt.merge(triWithFrame)
-#
-#subset(lastOccNeighbors, cell_id.x %in% c(87379, 80224, 43104))
-#subset(neighbors, cell_id.x==87379 & frame==110)
-#
-#} #### DEBUG end
-#ggplot(shearByT2, aes(frame, 13*ShearT2_xx)) + geom_smooth(color="red")
 
 
 #### Calculate coarse grained cell elongation changes (triangles) between frame t and t+1 ####
