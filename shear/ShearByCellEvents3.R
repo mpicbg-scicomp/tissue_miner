@@ -14,7 +14,7 @@ calcStatePropsWide <- function(triCoord){
   scalingFactor=1/(2* 3^(1/4))
   
   triStatePties <- triCoord %>% 
-    mutate(tri_area=0.5*(-x_2*y_1+x_3*y_1+x_1*y_2-x_3*y_2-x_1*y_3+x_2*y_3),
+    mutate(tri_area=0.5*(-x_2*y_1 + x_3*y_1 + x_1*y_2 - x_3*y_2 - x_1*y_3 + x_2*y_3),
            xx=x_2-x_1,
            xy=x_3-x_1,
            yx=y_2-y_1,
@@ -136,64 +136,71 @@ calcAvgDeltaQtot <- function(deltaQtot){
 ## Manual interpolation on the fly between two consecutive frames to save memory
 
 registerDoMC(cores=12)
-intervalNb <- 10
+intervalNb <- 100
 maxFrame <-max(firstInt$frame)
 
 # Reshape triangle coordinates from long to wide in intermediates i1 and i2
-firstIntWide <- firstInt %>% tbl_dt() %>%
+firstIntermWide <- firstInt %>% tbl_dt() %>%
   gather(key =  coord, value = value, c(center_x, center_y)) %>% arrange(frame,tri_id) %>%
   dcast(frame+tri_id~coord+tri_order) %>% arrange(frame,tri_id) 
 
-sndIntWide <- sndInt %>% tbl_dt() %>%
+sndIntermWide <- sndInt %>% tbl_dt() %>%
   gather(key =  coord, value = value, c(center_x, center_y)) %>% arrange(frame,tri_id) %>% 
   dcast(frame+tri_id~coord+tri_order) %>% arrange(frame,tri_id) 
 
-bothIntWide <- dt.merge(firstIntWide, mutate(sndIntWide, frame=frame-1), by =c("frame","tri_id"), suffixes=c(".first",".snd")) %>% 
-  rename(frameInt=frame) 
+bothIntermWide <- dt.merge(firstIntermWide, mutate(sndIntermWide, frame=frame-1), by =c("frame","tri_id"), suffixes=c(".first",".snd")) %>% 
+  rename(frameInt=frame)
 
-rm(firstIntWide, sndIntWide)
+rm(firstIntermWide, sndIntermWide)
 
 
 # Interpolate triangle coordinates between i1 and i2, calculate shear by frame interval and assign shear to left part of the interval
-
 system.time({
   # loop over frame intervals
   avgDeltaQtot <- ldply(0:(maxFrame-1), function(frameIntNb){
     
-    bothIntSlim <- bothIntWide %>% filter(frameInt==frameIntNb)
-    
-    # Initialize prevCoord to the left part of the frame interval
-    prevCoord <<- bothIntSlim %>% rename(center_x_1=center_x_1.first, center_x_2=center_x_2.first, center_x_3=center_x_3.first,
-                                        center_y_1=center_y_1.first, center_y_2=center_y_2.first, center_y_3=center_y_3.first) %>%
-      select(c(tri_id, center_x_1, center_x_2, center_x_3, center_y_1, center_y_2, center_y_3))
-    
-    
-    # loop over interpolated intervals calculated on the fly
-    interpolAvgDeltaQtot <- ldply(1:(intervalNb-1), function(index){
+    # loop over interpolated intervals (index) calculated on the fly
+    # system.time({
+    for (index in 1:intervalNb){
       
-      # calculate next interpolated point
-      nextCoord <- bothIntSlim %>% mutate(center_x_1=(index/intervalNb)*(center_x_1.snd-center_x_1.first) + center_x_1.first,
-                                          center_x_2=(index/intervalNb)*(center_x_2.snd-center_x_2.first) + center_x_2.first,
-                                          center_x_3=(index/intervalNb)*(center_x_3.snd-center_x_3.first) + center_x_3.first,
-                                          center_y_1=(index/intervalNb)*(center_y_1.snd-center_y_1.first) + center_y_1.first,
-                                          center_y_2=(index/intervalNb)*(center_y_2.snd-center_y_2.first) + center_y_2.first,
-                                          center_y_3=(index/intervalNb)*(center_y_3.snd-center_y_3.first) + center_y_3.first) %>%
+      # Initialize prevCoord to the left part of the frame interval, and initialize triStatePt_prev
+      if(index==1){
+        prevCoord <- filter(bothIntermWide, frameInt==frameIntNb) %>% rename(center_x_1=center_x_1.first, center_x_2=center_x_2.first, center_x_3=center_x_3.first,
+                                                                             center_y_1=center_y_1.first, center_y_2=center_y_2.first, center_y_3=center_y_3.first) %>%
+          select(c(tri_id, center_x_1, center_x_2, center_x_3, center_y_1, center_y_2, center_y_3))
+        triStatePt_prev <- calcStatePropsWide(prevCoord)
+      }
+      
+      # calculate next interpolated set of triangle vertices
+      nextCoord <- filter(bothIntermWide, frameInt==frameIntNb) %>%
+        mutate(center_x_1=(index/intervalNb)*(center_x_1.snd-center_x_1.first) + center_x_1.first,
+               center_x_2=(index/intervalNb)*(center_x_2.snd-center_x_2.first) + center_x_2.first,
+               center_x_3=(index/intervalNb)*(center_x_3.snd-center_x_3.first) + center_x_3.first,
+               center_y_1=(index/intervalNb)*(center_y_1.snd-center_y_1.first) + center_y_1.first,
+               center_y_2=(index/intervalNb)*(center_y_2.snd-center_y_2.first) + center_y_2.first,
+               center_y_3=(index/intervalNb)*(center_y_3.snd-center_y_3.first) + center_y_3.first) %>%
         select(c(tri_id, center_x_1, center_x_2, center_x_3, center_y_1, center_y_2, center_y_3))
       
-      # caculate shear tensor coefficients for current interpolated interval 
-      deltaQtot <- calcDeltaQtot(calcStatePropsWide(prevCoord), calcStatePropsWide(nextCoord))
+      # calculate shear tensor coefficients for current interpolated interval 
+      triStatePt_next <- calcStatePropsWide(nextCoord)
+      interpolDeltaQtot <- calcDeltaQtot(triStatePt_prev, triStatePt_next)
       
-      # and average them over triangles (area weighted) in current interpolated interval
-      avgDeltaQtot <- calcAvgDeltaQtot(deltaQtot) %>% mutate(index=index)
+      # and average these values over triangles (area weighted) in current interpolated interval
+      interpolAvgDeltaQtot <- calcAvgDeltaQtot(interpolDeltaQtot) %>% mutate(index=index)
       
-      # shift to the next interpolated interval
-      prevCoord <<- nextCoord
+      # append new interpolated data to pooledInterpolAvgDeltaQtot (initialized at interval index==1)
+      if(index==1){pooledInterpolAvgDeltaQtot<-data.frame(matrix(vector(), 0, length(names(avgDeltaQtot)), dimnames=list(c(), names(avgDeltaQtot))))}
+      pooledInterpolAvgDeltaQtot <- rbind(pooledInterpolAvgDeltaQtot, interpolAvgDeltaQtot)
       
-      return(avgDeltaQtot)
-    }, .parallel=T, .inform=T)
+      # shift to the next interpolated interval ("next" becomes "previous")
+      prevCoord <- nextCoord
+      triStatePt_prev <- triStatePt_next
+      
+    }
+    # }) # end of system.time()
     
     # sum up interpolated values of shear tensor coefficients for the current frame interval
-    avgDeltaQtotByFrameInt <- interpolAvgDeltaQtot %>% #arrange(index) %>%
+    avgDeltaQtotByFrameIntervals <- pooledInterpolAvgDeltaQtot %>% 
       summarize(av_total_shear_xx=sum(av_total_shear_xx, na.rm=T), av_total_shear_xy=sum(av_total_shear_xy, na.rm=T), 
                 av_j_xx=sum(av_j_xx, na.rm=T), av_j_xy=sum(av_j_xy, na.rm=T), 
                 J_xx=sum(J_xx, na.rm=T), J_xy=sum(J_xy, na.rm=T),
@@ -207,20 +214,20 @@ system.time({
              cagc_xx=-(av_u_kk_q_xx-av_U_kk_Q_xx),
              cagc_xy=-(av_u_kk_q_xy-av_U_kk_Q_xy)) #%>% print_head()
     
-    return(avgDeltaQtotByFrameInt)
+    # append these summed up values into the final table "avgDeltaQtot"
+    return(avgDeltaQtotByFrameIntervals)
     
-  }) %>% print_head()
+  }, .parallel=F, .inform=T, .progress = "text") %>% print_head()
   
   
-  
-})
+}) # end of system.time()
 
 
 ## DEBUG plot shear
 if(F) {
   head(avgDeltaQtot)
-  avgDeltaQtot %>% filter(frame<75) %>% ggplot(aes(frame,av_total_shear_xx/13.5)) + geom_line() + geom_smooth()
-  avgDeltaQtot %>% filter(frame<75) %>% ggplot(aes(frame,crc_xx/13.5)) + geom_line() + geom_smooth()
+  avgDeltaQtot %>% filter(frame<75) %>% ggplot(aes(frame,av_total_shear_xx)) + geom_line() + geom_smooth()
+  avgDeltaQtot %>% filter(frame<75) %>% ggplot(aes(frame,crc_xx)) + geom_line() + geom_smooth()
 }
 ## DEBUG END
 
@@ -490,16 +497,12 @@ avgDeformTensorsWide <- mutate(avgDeformTensorsWide,
                                   sumContrib_xx=correlationEffects_xx+CEwithCT_xx+ShearT1_xx+ShearT2_xx+ShearCD_xx,
                                   sumContrib_xy=correlationEffects_xy+CEwithCT_xy+ShearT1_xy+ShearT2_xy+ShearCD_xy)
 
-defTensors_melted <- melt(avgDeformTensorsWide, id.vars=c("frame"))
-defTensors_melted <- with(defTensors_melted , data.frame(frame,
-                                                        tensor=as.character(str_sub(variable, end=max((str_locate_all(variable, "_"))[[1]][,2]-1))),
-                                                        component=as.character(str_sub(variable, start=max((str_locate_all(variable, "_"))[[1]][,2]+1))),
-                                                        value)
-)
-
-# %>% group_by(variable)
-# variable="av_U_kk_Q_xx"; str_sub(variable, start=max((str_locate_all(variable, "_"))[[1]][,2]+1));str_sub(variable, end=max((str_locate_all(variable, "_"))[[1]][,2]-1))
-avgDeformTensorsLong <- dcast(defTensors_melted, frame+tensor~component)
+avgDeformTensorsLong <- melt(avgDeformTensorsWide, id.vars=c("frame")) %>%
+  group_by(variable) %>%
+  transmute(frame=frame,tensor=as.character(str_sub(variable, end=max((str_locate_all(variable, "_"))[[1]][,2]-1))),
+            component=as.character(str_sub(variable, start=max((str_locate_all(variable, "_"))[[1]][,2]+1))),
+            value=value) %>%
+  dcast(frame+tensor~component) %>% print_head()
 
 save(avgDeformTensorsLong, file="avgDeformTensorsLong.RData")
 # avgDeformTensorsLong <- local(get(load("avgDeformTensorsLong.RData")))
