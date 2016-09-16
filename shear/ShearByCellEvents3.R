@@ -1,6 +1,6 @@
 
 
-#### Helper functions ####
+#### Helper functions to put in ShearFunctions.R ####
 angle_difference <- function(angle2, angle1) {
   return(Arg(exp(1i*(angle2-angle1))))
 }
@@ -134,7 +134,8 @@ calcAvgDeltaQtot <- function(deltaQtot){
     select(-c(av_Q_xx.prev,av_Q_xy.prev,av_Q_xx.next,av_Q_xy.next,av_phi.prev,av_phi.next,delta_av_phi,delta_av_psi,C))
 }
 
-#### Compute state properties for all frames and intermediates ####
+
+#### Calculate triangle state properties for all frames and intermediates ####
 # The Ta tensor describes the shape of triangles with respect to a reference triangle of unit area (Ta is not symmetric and not traceless)
 # The symmetric and traceless part of Ta is the nematic Qa such as Ta=exp(s_a)exp(Qa)R(Theta_a)
 
@@ -176,8 +177,7 @@ save(Ta_i3, file="Ta_i3.RData")
 Qavg_I3 <- calcQAverage(inner_join(Ta_i3, triWithFrame, by="tri_id"), "frame"); rm(Ta_i3, thirdInt, i3TriData)
 
 
-
-#### Compute shear and correlation effects between intermediate i1 and i2 #####
+#### Calculate shear and correlation effects between intermediates i1 and i2 #####
 ## Manual interpolation on the fly between two consecutive frames to save memory
 registerDoMC(cores=32) # TODO: library(pryr); mem_used(); mem_used()[1]/(10^9); detectCores()
 intervalNb <- 100
@@ -279,8 +279,7 @@ if(F) {
 ## DEBUG END
 
 
-
-#### Coarse grained State properties and Pure Shear contributions (symmetric traceless tensors = nematics) ####
+#### Calculate coarse grained triangle elongation state, and T2 shear contribution between t and i1 ####
 
 ## Calculate cell elongation tensor (state property)
 cellElongState <- with(Qavg_Ta_t, data.frame(frame, Q_xx=Q_xx_avg, Q_xy=Q_xy_avg))
@@ -293,7 +292,7 @@ shearByT2 <- merge(Qavg_Ta_t, Qavg_Ta_i1, by="frame", suffixes=c(".t", ".i1")) %
 # Note: shearByT2 where frame refers to time t of the interval [t,t+1]
 
 
-#### Calculate coarse grained cell elongation changes (triangles) between frame t and t+1 ####
+#### Calculate coarse grained triangle elongation changes between t and t+1 ####
 shearByCE <- with(transform(merge(Qavg_Ta_t, transform(Qavg_Ta_t, frame=frame-1), by="frame", suffixes=c(".t", ".tp1")),
                        ShearCE_xx=Q_xx_avg.tp1-Q_xx_avg.t,
                        ShearCE_xy=Q_xy_avg.tp1-Q_xy_avg.t), data.frame(frame,ShearCE_xx,ShearCE_xy))
@@ -301,7 +300,7 @@ shearByCE <- with(transform(merge(Qavg_Ta_t, transform(Qavg_Ta_t, frame=frame-1)
 # Note: shearByCE where frame refers to time t of the interval [t,t+1]
 
 
-#### Calculate T1 shear contribution shear between I2 and I3 ####
+#### Calculate T1 shear contribution shear between i2 and i3 ####
 #shearByT1 <- with(transform(merge(transform(Qavg_I3, frame=frame-1), Qavg_Ta_i2, by="frame", suffixes=c(".i3", ".i2")),
 ## no shift here because both are on the right side of Raphael's shear implementation chart
 shearByT1 <- with(transform(merge(Qavg_I3, Qavg_Ta_i2, by="frame", suffixes=c(".i3", ".i2")),
@@ -311,7 +310,7 @@ shearByT1 <- with(transform(merge(Qavg_I3, Qavg_Ta_i2, by="frame", suffixes=c(".
 # Note: shearByT1 where frame refers to time t+1 of the interval [t,t+1]
 
 
-#### Calculate CD shear contribution between I3 and tp1 ####
+#### Calculate CD shear contribution between i3 and t+1 ####
 ## Compare 3rdInt with tp1 from which it was built => no frame shift
 shearByCD <- with(transform(merge(Qavg_I3,Qavg_Ta_t, by="frame", suffixes=c(".i3", ".tp1")),
                        ShearCD_xx=Q_xx_avg.i3-Q_xx_avg.tp1,
@@ -320,7 +319,7 @@ shearByCD <- with(transform(merge(Qavg_I3,Qavg_Ta_t, by="frame", suffixes=c(".i3
 # Note: shearByCD where frame refers to time t+1 of the interval [t,t+1]
 
 
-#### Aggregate avg shear contributions as a function of time ####
+#### Aggregate avg shear contributions ####
 
 ## Wide format (better for calculations)
 ## shift T1 and CD to align them on time t of the interval [t,t+1] like CE, T2, avgDeltaQtot2 (see left and right side of Raphael's chart)
@@ -400,6 +399,4 @@ if(F) {
   
 }
 ## DEBUG END
-
-
 
