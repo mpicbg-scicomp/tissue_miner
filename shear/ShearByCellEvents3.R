@@ -359,27 +359,29 @@ avgDeformTensorsLong <- melt(avgDeformTensorsWide, id.vars=c("frame")) %>%
 save(avgDeformTensorsLong, file="avgDeformTensorsLong.RData")
 # avgDeformTensorsLong <- local(get(load("avgDeformTensorsLong.RData")))
 
-## DEBUG shear
+#### DEBUG shear implementation ####
 if(F) {
-  movieDir <- "/home/rstudio/data/movieSegmentation/WT_25deg_111103"
+  movieDir <- "/home/rstudio/data/movieSegmentation/WT_25deg_111102"
   source(file.path(scriptsDir, "commons/TimeFunctions.R"))
   source(file.path(scriptsDir, "commons/BaseQueryFunctions.R"))
   
   shearData <- mqf_cg_roi_rate_shear(movieDir, "blade")
   
-  shearRateSlim <- subset(shearData, (tensor=="CEwithCT" | tensor=="correlationEffects" | tensor=="av_total_shear" | tensor=="ShearT1" | tensor=="ShearT2" | tensor=="ShearCD"))
-  shearRateSlim$tensor <- factor(shearRateSlim$tensor, 
-                                 levels=c("ShearCD", "CEwithCT", "correlationEffects", "av_total_shear", "ShearT1", "ShearT2"),
-                                 labels=c("cell_division", "cell_elongation_change","correlation_effects","total_shear","T1", "T2"))
-  
-  ggplot(shearRateSlim , aes(dev_time,xx.ma*100, color=tensor)) +
-    geom_line() + 
+  # shearRateSlim <- subset(shearData, (tensor=="CEwithCT" | tensor=="correlationEffects" | tensor=="av_total_shear" | tensor=="ShearT1" | tensor=="ShearT2" | tensor=="ShearCD"))
+  # shearRateSlim$tensor <- factor(shearRateSlim$tensor, 
+  #                                levels=c("ShearCD", "CEwithCT", "correlationEffects", "av_total_shear", "ShearT1", "ShearT2"),
+  #                                labels=c("cell_division", "cell_elongation_change","correlation_effects","total_shear","T1", "T2"))
+  # 
+  ggplot(shearData %>% filter(tensor %in% c("crc", "cagc", "ct", "av_total_shear", "ShearT1", "ShearT2", "ShearCD", "ShearCE", "correlationEffects")),
+         aes(frame,xx.ma*100, color=tensor)) +
+    geom_line() + geom_smooth() +
     xlab("Time [hAPF]")+
     #           scale_x_continuous(breaks=seq(16,36, 2),limits=c(15,max(ceiling(shearRate$dev_time)))) +
     # scale_x_continuous(breaks=seq(16,36, 4),limits=c(16,34)) +
     ylab(expression(paste("PD shear rate [",10^-2,h^-1,"]"))) +
-    # scale_y_continuous(breaks=seq(-6,8, 2), limit=c(-6, 8.5)) +
-    scale_color_manual(values=shearColors) +
+    scale_y_continuous(breaks=seq(-6,8, 2), limit=c(-6, 8.5)) +
+    scale_color_manual(values=c(shearColors, "crc"="pink", "cagc"="lightgreen", "ct"="grey", "ShearCE"="darkgreen", "av_total_shear"="blue",
+                                "ShearT1"="red", "ShearT2"="turquoise", "ShearCD"="orange", "correlationEffects"="magenta")) +
     # facet_grid(tensor~roi) +
     theme(#legend.justification=c(1,0),
       #legend.position=c(1,0),
@@ -396,6 +398,136 @@ if(F) {
     ggtitle("shear")
   
   ggsave2(outputFormat="pdf")
+  
+}
+
+## DEBUG shear in L5 between Laura's version and mine
+if(F){
+  LauraData <- read.delim(file="~/data/Dropbox/DropBox_Jacques/avgDeformTensorsWideL5_Laura.tsv", header = T) %>% print_head() %>%
+    select(-c(time_sec,timeInt_sec)) %>%
+    mutate(correlationEffects_xx=cagc_xx+crc_xx,
+           correlationEffects_xy=cagc_xy+crc_xy,
+           CEwithCT_xx=ShearCE_xx+ct_xx,
+           CEwithCT_xy=ShearCE_xy+ct_xy,
+           sumContrib_xx=correlationEffects_xx+CEwithCT_xx+ShearT1_xx+ShearT2_xx+ShearCD_xx,
+           sumContrib_xy=correlationEffects_xy+CEwithCT_xy+ShearT1_xy+ShearT2_xy+ShearCD_xy) %>%
+    melt(id.vars=c("frame")) %>%
+    group_by(variable) %>%
+    transmute(frame=frame,tensor=as.character(str_sub(variable, end=max((str_locate_all(variable, "_"))[[1]][,2]-1))),
+              component=as.character(str_sub(variable, start=max((str_locate_all(variable, "_"))[[1]][,2]+1))),
+              value=value) %>%
+    dcast(frame+tensor~component) %>% print_head()
+  
+  RaphaData <- locload(file="~/data/Dropbox/DropBox_Jacques/avgDeformTensorsLongL5_Rapha.RData")%>% print_head() 
+  
+  DiffLauraRapha <- dt.merge(LauraData, RaphaData, by =c("frame","tensor"), suffixes=c(".laura",".rapha")) %>% print_head() %>%
+    mutate(diff_xx=xx.laura-xx.rapha,
+           diff_xy=xy.laura-xy.rapha) %>%
+    filter(diff_xx != 0 | diff_xy != 0) %>% print_head()
+  
+  max(abs(DiffLauraRapha$diff_xx))
+  max(abs(DiffLauraRapha$diff_xy))
+  
+  LauraData2 <- locload(file="~/data/Dropbox/DropBox_Jacques/avgDeformTensorsLongL5_Laura.RData")%>% print_head() 
+  DiffLauraRapha2 <- dt.merge(LauraData2, RaphaData, by =c("frame","tensor"), suffixes=c(".laura",".rapha")) %>% print_head() %>%
+    mutate(diff_xx=xx.laura-xx.rapha,
+           diff_xy=xy.laura-xy.rapha) %>%
+    filter(diff_xx != 0 | diff_xy != 0) %>% print_head()
+  
+  max(abs(DiffLauraRapha2$diff_xx))
+  max(abs(DiffLauraRapha2$diff_xy))
+  
+  
+  # Debug shear rates using Laura's data
+  movieDir <- "/home/rstudio/data/movieSegmentation/WT_25deg_111102"
+  movieDb <- openMovieDb(movieDir)
+  
+  # queryResult <- LauraData %>%
+  queryResult <- RaphaData %>%
+    mutate(roi = "L5") %>% print_head()
+  
+  rois = unique(queryResult$roi)
+  
+  # Shear tensors with time_sec, timeInt_sec and rates
+  ShearRateByRoi <- filter(queryResult, roi %in% rois) %>%
+    addTimeFunc(movieDb, .) %>%
+    arrange(frame) %>%
+    # Calculate rate of shear in per hour
+    group_by(roi, tensor) %>%
+    mutate(xx_rate_hr = xx/(timeInt_sec/3600),
+           xy_rate_hr = xy/(timeInt_sec/3600)) %>% ungroup() %>% print_head()
+  
+  kernSize <- 11
+  
+  ShearRateSmoothedByRoi <- ShearRateByRoi %>% 
+    group_by(roi, tensor) %>%
+    mutate(xx_rate_hr.ma=ma(xx_rate_hr, kernSize),
+           xy_rate_hr.ma=ma(xy_rate_hr, kernSize),
+           time_sec=ma(time_sec, kernSize)) %>% ungroup() %>%
+    # calculate the phi angle and norm of nematics
+    mutate(phi=mod2pi(0.5*(atan2(xy_rate_hr.ma, xx_rate_hr.ma))), 
+           norm= sqrt(xx_rate_hr.ma^2+xy_rate_hr.ma^2)) %>%
+    #     # scale nematic norm for display and calculate the x and y nematic coordinates for ploting
+    #     mutate(x1=center_x-0.5*displayFactor*norm*cos(phi),
+    #            y1=center_y-0.5*displayFactor*norm*sin(phi),
+    #            x2=center_x+0.5*displayFactor*norm*cos(phi),
+    #            y2=center_y+0.5*displayFactor*norm*sin(phi)) %>%
+    mutate(movie=basename(movieDir)) %>% add_dev_time() %>%
+    select(c(movie, roi, tensor, frame, dev_time, xx_rate_hr.ma, xy_rate_hr.ma, phi, norm, xx_rate_hr, xy_rate_hr)) %>% print_head()
+  
+  ggplot(ShearRateSmoothedByRoi %>% filter(tensor %in% c("ct", "nu", "ShearT1", "ShearT2", "ShearCD", "ShearCE", "correlationEffects")),
+         aes(dev_time,xx_rate_hr.ma*100, color=tensor)) +
+    geom_line() + 
+    xlab("Time [hAPF]")+
+    #           scale_x_continuous(breaks=seq(16,36, 2),limits=c(15,max(ceiling(shearRate$dev_time)))) +
+    scale_x_continuous(breaks=seq(16,36, 4),limits=c(15,32)) +
+    ylab(expression(paste("PD shear rate [",10^-2,h^-1,"]"))) +
+    scale_y_continuous(breaks=seq(-6,8, 2), limit=c(-7.5, 8.5)) +
+    scale_color_manual(values=c(shearColors, "crc"="pink", "cagc"="lightgreen", "ct"="grey", "CEwithCT"="darkgreen", "ShearCE"="darkgreen", "av_total_shear"="blue","nu"="blue",
+                                "ShearT1"="red", "ShearT2"="turquoise", "ShearCD"="orange", "correlationEffects"="magenta")) +
+    # facet_grid(tensor~roi) +
+    theme(#legend.justification=c(1,0),
+      #legend.position=c(1,0),
+      #legend.text=element_text(size=8),
+      # legend.position="none",
+      legend.title=element_blank(),
+      legend.key = element_blank(),
+      # plot.title = element_blank(),
+      #                 strip.text=element_blank(),
+      strip.background=element_blank(),
+      panel.grid.minor=element_blank(),
+      plot.margin = unit(c(0,0,0,0), "cm")) +
+    guides(col = guide_legend(ncol = 1)) +
+    ggtitle("shear_individual_nematics")
+  setwd("~/data/Dropbox/DropBox_Jacques/")
+  ggsave2(height=5,  outputFormat = "pdf")
+  
+  ggplot(ShearRateSmoothedByRoi %>% filter(tensor %in% c("ct", "nu", "ShearT1", "ShearT2", "ShearCD", "CEwithCT", "correlationEffects")),
+         aes(dev_time,xx_rate_hr.ma*100, color=tensor)) +
+    geom_line() + 
+    xlab("Time [hAPF]")+
+    #           scale_x_continuous(breaks=seq(16,36, 2),limits=c(15,max(ceiling(shearRate$dev_time)))) +
+    scale_x_continuous(breaks=seq(16,36, 4),limits=c(15,32)) +
+    ylab(expression(paste("PD shear rate [",10^-2,h^-1,"]"))) +
+    scale_y_continuous(breaks=seq(-6,8, 2), limit=c(-7.5, 8.5)) +
+    scale_color_manual(values=c(shearColors, "crc"="pink", "cagc"="lightgreen", "ct"="grey", "CEwithCT"="darkgreen", "ShearCE"="darkgreen", "av_total_shear"="blue","nu"="blue",
+                                "ShearT1"="red", "ShearT2"="turquoise", "ShearCD"="orange", "correlationEffects"="magenta")) +
+    # facet_grid(tensor~roi) +
+    theme(#legend.justification=c(1,0),
+      #legend.position=c(1,0),
+      #legend.text=element_text(size=8),
+      # legend.position="none",
+      legend.title=element_blank(),
+      legend.key = element_blank(),
+      # plot.title = element_blank(),
+      #                 strip.text=element_blank(),
+      strip.background=element_blank(),
+      panel.grid.minor=element_blank(),
+      plot.margin = unit(c(0,0,0,0), "cm")) +
+    guides(col = guide_legend(ncol = 1)) +
+    ggtitle("shear_CEwithCT")
+  setwd("~/data/Dropbox/DropBox_Jacques/")
+  ggsave2(height=5,  outputFormat = "pdf")
   
 }
 ## DEBUG END
