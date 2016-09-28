@@ -5,7 +5,7 @@ movieDbBaseDir="/home/rstudio/data/movieSegmentation"
 
 # Define path a particular time-lapse called "demo"
 movieDirs <- file.path(movieDbBaseDir, c("WT_25deg_111102","WT_25deg_111103","WT_25deg_120531"))
-movieDirs <- file.path(movieDbBaseDir, c("WT_25deg_111102"))
+# movieDirs <- file.path(movieDbBaseDir, c("WT_25deg_111102"))
 
 
 # Set up path to the TissueMiner code
@@ -205,10 +205,9 @@ align_data_points_by_interpolation <- function(df, movieDirs, x_timecolname, y_c
 
 
 #### Debugging: extract shear data ####
-shearData <- multi_db_query(movieDirs, mqf_cg_roi_rate_shear, "L5", interpol_interval_sec=60, interpol_method="linear", smooth_time_window_size_sec=3600) %>% print_head() %>%
+shearData <- multi_db_query(movieDirs, mqf_cg_roi_rate_shear, c("blade","L5"), interpol_interval_sec="none", interpol_method="linear", smooth_time_window_size_sec=3000) %>% print_head() %>%
   filter(tensor %in% c("crc", "cagc", "CEwithCT", "av_total_shear","nu","ct","J",
                        "ShearT1", "ShearT2", "ShearCD", "correlationEffects"))
-
 
 ggplot(shearData, aes(dev_time,xx_rate_hr.ma*100, color=tensor)) +
   geom_line(alpha=0.8) +
@@ -218,14 +217,56 @@ ggplot(shearData, aes(dev_time,xx_rate_hr.ma*100, color=tensor)) +
   ylab(expression(paste("shear rate xx [",10^-2,h^-1,"]"))) +
   scale_color_manual(values=c(shearColors, "crc"="pink", "cagc"="lightgreen", "ct"="grey","J"="grey", "CEwithCT"="darkgreen", "av_total_shear"="blue","nu"="blue",
                               "ShearT1"="red", "ShearT2"="turquoise", "ShearCD"="orange", "correlationEffects"="magenta")) +
-  facet_wrap(movie~roi) +
-  ggtitle("shear decomposition")
+  facet_grid(movie~roi) +
+  ggtitle("shear_decomposition_noInterpol_kernel11")
 
 setwd("~/data/Dropbox/DropBox_Jacques/")
-ggsave2(height=5,  outputFormat = "pdf")
+ggsave2(width=15, outputFormat = "pdf")
 
 
-shearRateSynchonized <- shearRateSlim %>% 
+
+
+shearData <- multi_db_query(movieDirs, mqf_cg_roi_rate_shear, c("blade","L5"), interpol_interval_sec=26, interpol_method="linear", smooth_time_window_size_sec=0) %>% print_head() %>%
+  filter(tensor %in% c("crc", "cagc", "CEwithCT", "av_total_shear","nu","ct","J",
+                       "ShearT1", "ShearT2", "ShearCD", "correlationEffects"))
+
+ggplot(shearData, aes(dev_time,xx_rate_hr.ma*100, color=tensor)) +
+  geom_line(alpha=0.8) +
+  xlab("Time [hAPF]")+
+  scale_x_continuous(breaks=seq(16,36, 2),limits=c(15,32)) +
+  scale_y_continuous(breaks=seq(-6,10, 2),limits=c(-7,10)) +
+  ylab(expression(paste("shear rate xx [",10^-2,h^-1,"]"))) +
+  scale_color_manual(values=c(shearColors, "crc"="pink", "cagc"="lightgreen", "ct"="grey","J"="grey", "CEwithCT"="darkgreen", "av_total_shear"="blue","nu"="blue",
+                              "ShearT1"="red", "ShearT2"="turquoise", "ShearCD"="orange", "correlationEffects"="magenta")) +
+  facet_grid(movie~roi) +
+  ggtitle("shear_decomposition_timeInt26sec_noSmoothing")
+
+setwd("~/data/Dropbox/DropBox_Jacques/")
+ggsave2(width=15, outputFormat = "pdf")
+
+
+
+
+shearData <- multi_db_query(movieDirs, mqf_cg_roi_rate_shear, c("blade","L5"), interpol_interval_sec=26, interpol_method="linear", smooth_time_window_size_sec=3000) %>% print_head() %>%
+  filter(tensor %in% c("crc", "cagc", "CEwithCT", "av_total_shear","nu","ct","J",
+                       "ShearT1", "ShearT2", "ShearCD", "correlationEffects"))
+
+ggplot(shearData, aes(dev_time,xx_rate_hr.ma*100, color=tensor)) +
+  geom_line(alpha=0.8) +
+  xlab("Time [hAPF]")+
+  scale_x_continuous(breaks=seq(16,36, 2),limits=c(15,32)) +
+  scale_y_continuous(breaks=seq(-6,10, 2),limits=c(-7,10)) +
+  ylab(expression(paste("shear rate xx [",10^-2,h^-1,"]"))) +
+  scale_color_manual(values=c(shearColors, "crc"="pink", "cagc"="lightgreen", "ct"="grey","J"="grey", "CEwithCT"="darkgreen", "av_total_shear"="blue","nu"="blue",
+                              "ShearT1"="red", "ShearT2"="turquoise", "ShearCD"="orange", "correlationEffects"="magenta")) +
+  facet_grid(movie~roi) +
+  ggtitle("shear_decomposition_timeInt26sec_kernSize115")
+
+setwd("~/data/Dropbox/DropBox_Jacques/")
+ggsave2(width=15, outputFormat = "pdf")
+
+
+shearRateSynchonized <- shearData %>% 
   align_data_points_by_interpolation(movieDirs=movieDir, "dev_time", c("xx_rate_hr.ma","xy_rate_hr.ma", "xx_rate_hr", "xy_rate_hr"), interpolationGroup = c("movie", "roi", "tensor")) %>% 
   print_head()
 
@@ -235,9 +276,10 @@ ggplot(shearRateSynchonized, aes(dev_time,xx_rate_hr.ma*100, color=tensor)) +
   xlab("Time [hAPF]")+
   scale_x_continuous(breaks=seq(16,36, 2),limits=c(15,34)) +
   ylab(expression(paste("shear rate xx [",10^-2,h^-1,"]"))) +
-  scale_color_manual(values=shearColors) +
-  facet_wrap(movie~roi) +
-  ggtitle("shear decomposition")
+  scale_color_manual(values=c(shearColors, "crc"="pink", "cagc"="lightgreen", "ct"="grey","J"="grey", "CEwithCT"="darkgreen", "av_total_shear"="blue","nu"="blue",
+                              "ShearT1"="red", "ShearT2"="turquoise", "ShearCD"="orange", "correlationEffects"="magenta")) +
+  facet_grid(movie~roi) +
+  ggtitle("shear_decomposition_aligned_by_movie")
 
 
 # average data between the 3 movies amongst ROI
@@ -254,10 +296,12 @@ ggplot(shearRateSummary, aes(dev_time,xx_rate.avg*100, color=tensor)) +
   scale_x_continuous(breaks=seq(16,36, 2),limits=c(15,34)) +
   scale_y_continuous(breaks=seq(-6,10, 2),limits=c(-6.5,10)) +
   ylab(expression(paste("shear rate xx [",10^-2,h^-1,"]"))) +
-  scale_color_manual(values=shearColors) +
-  scale_fill_manual(values=shearColors) +
+  scale_color_manual(values=c(shearColors, "crc"="pink", "cagc"="lightgreen", "ct"="grey","J"="grey", "CEwithCT"="darkgreen", "av_total_shear"="blue","nu"="blue",
+                              "ShearT1"="red", "ShearT2"="turquoise", "ShearCD"="orange", "correlationEffects"="magenta")) +
+  scale_fill_manual(values=c(shearColors, "crc"="pink", "cagc"="lightgreen", "ct"="grey","J"="grey", "CEwithCT"="darkgreen", "av_total_shear"="blue","nu"="blue",
+                             "ShearT1"="red", "ShearT2"="turquoise", "ShearCD"="orange", "correlationEffects"="magenta")) +
   facet_wrap(~roi) +
-  ggtitle("shear_rate_L5_smoothXsec")
+  ggtitle("shear_rate_blade_smooth26sec")
 setwd("~/data/Dropbox/DropBox_Jacques/")
 ggsave2(height=5,  outputFormat = "pdf")
 
