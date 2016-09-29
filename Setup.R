@@ -40,6 +40,8 @@ require.auto(docopt)
 require.auto(graph)
 require.auto(igraph) ## lineage analysis
 
+require.auto(dtplyr) # to use data table and 'dplyr' together
+
 ## lineage color optimization
 require.auto(RBGL) # --> no longer on cran but somehow still in their index
 #source("http://bioconductor.org/biocLite.R")
