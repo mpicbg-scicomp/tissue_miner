@@ -163,7 +163,7 @@ save(Ta_i2, file="Ta_i2.RData")
 # Ta_i2 <- local(get(load("Ta_i2.RData")))
 # Prepare a mapping of triangle IDs to the frame of reference, which is t+1 for the second intermediate
 #triWithFrameTP1 <- mutate(triWithFrame, frame=frame+1)
-triWithFrameTP1 <- sndInt %>% select(tri_id, frame) %>% distinct()
+triWithFrameTP1 <- sndInt %>% select(tri_id, frame) %>% distinct(.keep_all = TRUE)
 ## todo check that nrow(Ta_i2)==nrow(triWithFrameTP1) because both originate from sndInt
 Qavg_Ta_i2 <- calcQAverage(inner_join(Ta_i2, triWithFrameTP1, by="tri_id"), "frame"); rm(Ta_i2, triWithFrameTP1)
 

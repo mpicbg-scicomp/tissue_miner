@@ -86,7 +86,7 @@ dbondsNoDiv <- dt.merge(dbonds, thrdIntMother) %>%
 cellNeighborsNoDiv <- dbondsNoDiv %>% select(frame, cell_id, dbond_id, left_dbond_id) %>%
   dt.merge(with(dbondsNoDiv, data.frame(dbond_id=conj_dbond_id, cell_id)), by=c("dbond_id")) %>%
   select(frame, cell_id=cell_id.x, neighbor_cell_id=cell_id.y, dbond_id, left_dbond_id) %>%
-  distinct(frame, cell_id, neighbor_cell_id) %>%
+  distinct(frame, cell_id, neighbor_cell_id, .keep_all = TRUE) %>%
   # unique_rows(c("frame", "cell_id", "neighbor_cell_id")) %>%
   ## remove bonds between the dividing selfs
   filter(cell_id!=neighbor_cell_id)
@@ -139,7 +139,7 @@ neighborChange <- subset(neighborChange, frame>=0 & frame<max(frame))
 
 
 ## indicate if ids are present in tp1
-cellsInFrame <- dt.merge(cells, thrdIntMother) %>% select(frame, cell_id=cell_or_mother_id) %>% distinct(frame, cell_id) #unique_rows(c("frame", "cell_id"))
+cellsInFrame <- dt.merge(cells, thrdIntMother) %>% select(frame, cell_id=cell_or_mother_id) %>% distinct(frame, cell_id, .keep_all = TRUE) #unique_rows(c("frame", "cell_id"))
 
 
 #t1DataOr <- subset(neighborChange, is.na(isNeighbor.t) | is.na(isNeighbor.tp1))

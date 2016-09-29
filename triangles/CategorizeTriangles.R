@@ -141,7 +141,7 @@ if (!identical(row.names(catCellPairs), character(0))){
     ungroup()
   
   ## ... and simplify it
-  triangleCategories <- twoOutOfThree %>% distinct(tri_id, type) %>% select(tri_id, type)
+  triangleCategories <- twoOutOfThree %>% distinct(tri_id, type, .keep_all = TRUE) %>% select(tri_id, type)
   
   triangleCategories %>% ggplot(aes(type)) + geom_bar()
   

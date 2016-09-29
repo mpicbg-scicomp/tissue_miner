@@ -81,7 +81,7 @@ get_bond_stats <- function(movieDir){
   bondStats <- dbonds %>%
     ## use conjugated nature of db to create pairs for connected vertices
     inner_join(., transmute(., conj_dbond_id, vertex_id), by=c("dbond_id"="conj_dbond_id")) %>%
-    distinct(bond_id) %>%
+    distinct(bond_id, .keep_all =TRUE) %>%
     select(-dbond_id, -conj_dbond_id) %>%
     ## reshape into long format to ease downstream vertex data merging and aggregation
     gather(vertex, vertex_id, -bond_id) %>% arrange(bond_id)
@@ -493,7 +493,7 @@ mqf_fg_triangle_properties <- function(movieDir, rois=c(), triContour=F){
   # add frame to triangle data
   filepath <- file.path(movieDir, "shear_contrib", "triList.RData")
   triangleProperties <- with(local(get(load(filepath))), data.frame(frame, tri_id)) %>% 
-    distinct(tri_id) %>%
+    distinct(tri_id, .keep_all =TRUE) %>%
     dt.merge(., queryResult, by="tri_id") 
   
   if (length(rois)==0) rois=unique(allRoiData$roi)
@@ -547,7 +547,7 @@ mqf_fg_bond_length <- function(movieDir, rois=c()){
     # remove unecessary columns
     select (-c(dbond_id,conj_dbond_id)) %>% 
     # remove duplicated bond ids resulting from the above join operations
-    distinct(bond_id) %>% 
+    distinct(bond_id, .keep_all =TRUE) %>% 
     # join the resulting table with bonds to add the bond_length property
     dt.merge(bonds, by=c("bond_id")) %>%
     addRois(., movieDir, rois) %>%
@@ -580,7 +580,7 @@ mqf_fg_cell_neighbor_count <- function(movieDir, rois=c(), polygon_class_limit=c
     ungroup() %>%
     # only keep relevent columns
     select(cell_id, frame, neighbor_number, polygon_class_trimmed) %>%
-    distinct(cell_id,frame) %>%
+    distinct(cell_id,frame, .keep_all = TRUE) %>%
     #unique_rows(c("cell_id","frame")) %>%
     # remove marging cell surrounding the tissue
     filter(cell_id!=10000) %>%

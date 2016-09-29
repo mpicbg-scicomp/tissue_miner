@@ -56,7 +56,7 @@ chunk_time_into_intervals <- function(df, deltaT){
     mutate(interval_mid=round(0.5*(interval_start+interval_end)))
   
   # Merge all time intervals to each time point
-  dfTimePoints <- select(df, time_sec) %>% distinct(time_sec)
+  dfTimePoints <- select(df, time_sec) %>% distinct(time_sec, .keep_all = TRUE)
   timeSecByIntervals <- dt.merge(mutate(dfTimePoints, fakekey=T), mutate(timeIntervals, fakekey=T), by=c("fakekey"), all=T, allow.cartesian=TRUE) %>%
     # Filter the correct interval for each time point
     select(-fakekey) %>% filter(time_sec >= interval_start & time_sec <=interval_end)

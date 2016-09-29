@@ -66,7 +66,7 @@ badROIs <- simpleTriRoiRaw %>%
   group_by(roi, frame) %>%
   summarise(nbTri=n_distinct(tri_id)) %>%
   filter(nbTri<7) %>%
-  distinct(roi) %>%
+  distinct(roi, .keep_all =TRUE) %>%
   # unique_rows("roi") %>% 
   select(-nbTri)
 
@@ -96,7 +96,7 @@ shearByCellEvents <- function(simpleTri,firstInt,sndInt,thirdInt,curROI){
   Ta_i2 <- calcStateProps(sndInt)
   
   ## Prepare a mapping of triangle IDs to the frame of refernece, which is t+1 for the second intermediate
-  triWithFrameTP1 <- sndInt %>% select(tri_id, frame) %>% distinct()
+  triWithFrameTP1 <- sndInt %>% select(tri_id, frame) %>% distinct(.keep_all = TRUE)
   
   ## todo check that nrow(Ta_i2)==nrow(triWithFrameTP1) because both originate from sndInt
   Qavg_Ta_i2 <- calcQAverage(dt.merge(Ta_i2, triWithFrameTP1), "frame")
@@ -266,7 +266,7 @@ head(gridShear)
 
 # Get roi-center positions
 gridShearPos <- simpleTriRoi %>%
-  distinct(roi, frame, cell_id) %>%
+  distinct(roi, frame, cell_id, .keep_all = TRUE) %>%
   # unique_rows(c("roi","frame","cell_id")) %>%
   group_by(roi, frame) %>%
   summarise(xGrid=mean(center_x),

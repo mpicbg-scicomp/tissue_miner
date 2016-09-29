@@ -98,7 +98,7 @@ if (!identical(row.names(lostCells), character(0))) {
   if(F){
     ## display lost cells from the lastOccNeighbors table
     lostCellID <- lastOccNeighbors %>% select(cell_id.x,frame) %>%
-      distinct(cell_id.x,frame) %>%
+      distinct(cell_id.x,frame, .keep_all = TRUE) %>%
       #unique_rows(c("cell_id.x","frame"))
     ggplot(lostCellID, aes(frame))+geom_histogram()
     

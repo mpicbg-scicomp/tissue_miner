@@ -160,7 +160,7 @@ add_dev_time <- function(df){
 
 ## DEPRECATED: use dplyr::distinct
 unique_rows <- function(df, columns){
-    warning("unique_rows() is DEPRECATED: use dplyr::distinct instead")
+    warning("unique_rows() is DEPRECATED: use dplyr::distinct(.keep_all =TRUE) instead")
     unique(setkeyv(data.table(df), columns)) %>% as.df()
 }
 
