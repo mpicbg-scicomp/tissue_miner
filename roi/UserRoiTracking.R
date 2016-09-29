@@ -107,7 +107,7 @@ cellLineages <- dbGetQuery(db, "select cell_id, lineage_group from cell_historie
 
 
 ## map cells to their lineage group in each ROI, and assign the entire cell lineages to each ROI (more cells than selected, but it is more conistent lineage-wise)
-linGroupsInROi <- merge(cellsInROI, cellLineages, by="cell_id") %>% distinct(lineage_group, roi) %>% select(-cell_id) 
+linGroupsInROi <- merge(cellsInROI, cellLineages, by="cell_id") %>% distinct(lineage_group, roi, .keep_all = TRUE) %>% select(-cell_id) 
 roiCellsBTRaw <- merge(linGroupsInROi, cellLineages)
 
 
@@ -180,11 +180,11 @@ if(debug_mode){
 ## 4/ Identify border lineages. NOTE: holes correspond to "SegErrAppearance" or "Apoptosis"= lineage is broken for those cells
 borderLineages <- borderCells %>% 
   ## remove frame, therefore filter for unique cell_id
-  select(-frame)  %>% distinct(cell_id) %>%
+  select(-frame)  %>% distinct(cell_id, .keep_all = TRUE) %>%
   ## bring in lineage_group
   dt.merge(cellLineages, by = "cell_id") %>% 
   ## remove cell_id, therefore fitler for unique (isCellTouchingMargin,lineage_group)
-  select(-cell_id) %>% distinct(isCellTouchingMargin,lineage_group) %>%
+  select(-cell_id) %>% distinct(isCellTouchingMargin,lineage_group, .keep_all = TRUE) %>%
   ## bring in all cells of each lineage_group
   dt.merge(cellLineages, by = "lineage_group") #%>% print_head()
 
@@ -212,10 +212,10 @@ inAndOutFlowsByLineages <- rbind(inwardFlowsByLineages, outwardFlowsByLineages) 
   group_by(lineage_group) %>%
   mutate(lineage_status=ifelse(length(unique(cell_status)) > 1, "MultiStatus", cell_status)) #%>% print_head()
 
-improvedBorderLineages <- rbind(select(inAndOutFlowsByLineages, lineage_group, lineage_status),
-                                transmute(borderLineages, lineage_group, lineage_status="Border")) %>%
+improvedBorderLineages <- bind_rows(select(inAndOutFlowsByLineages, lineage_group, lineage_status),
+                                transmute(borderLineages, lineage_group, lineage_status="Border")) %>% 
   group_by(lineage_group) %>%
-  mutate(lineage_status=ifelse(length(unique(lineage_status)) > 1, "MultiStatus", lineage_status)) %>% distinct(lineage_group) %>% ungroup() %>%
+  mutate(lineage_status=ifelse(length(unique(lineage_status)) > 1, "MultiStatus", lineage_status)) %>% distinct(lineage_group, .keep_all = TRUE) %>% ungroup() %>%
   dt.merge(cellLineages, allow.cartesian=TRUE, by = "lineage_group") #%>% print_head()
 
 borderCellRoiByLineages <- improvedBorderLineages %>% transmute(lineage_group, roi="border", cell_id)
@@ -258,13 +258,13 @@ if (nrow(improvedBorderLineages)>0) {
         summarise(lineage_status=lineage_status[1], isBorder=all(neighbor_status %in% c("Border", "MovedIntoMask", "Orphan", "MultiStatus", "MovesOutOfMask", "SegErrAppearance", "Apoptosis"))) %>%
         # keep "SegErrAppearance" or "Apoptosis" cell_id that were surrounded by border cells at least once
         group_by(cell_id) %>% summarise(lineage_status=ifelse(length(unique(lineage_status))>1, "MultiStatus", lineage_status[1]) ,isBorder = any(isBorder==TRUE)) %>% 
-        filter(isBorder) %>% select(-isBorder) %>% distinct(cell_id) #%>% print_head()
+        filter(isBorder) %>% select(-isBorder) %>% distinct(cell_id, .keep_all = TRUE) #%>% print_head()
       
       ## Get border lineages from newly identified border cells
       if (nrow(selectedLineageCandidates)>1){
         selectedLineageCandidates %<>%  
           # add lineage_group
-          dt.merge(cellLineages, by = "cell_id") %>% select(-cell_id) %>% distinct(lineage_group) %>%
+          dt.merge(cellLineages, by = "cell_id") %>% select(-cell_id) %>% distinct(lineage_group, .keep_all = TRUE) %>%
           # add all cells of each lineage_group
           dt.merge(cellLineages, by = "lineage_group")  #%>% print_head()
       } else { selectedLineageCandidates <- data.frame(lineage_group=character(0), lineage_status=character(0), cell_id=numeric(0))}
@@ -307,13 +307,13 @@ if (nrow(improvedBorderLineages)>0) {
                 lineage_status=lineage_status[1]) %>% 
       # keep "SegErrAppearance" or "Apoptosis" cell_id that were surrounded by border cells at least once
       group_by(cell_id) %>% summarise(lineage_status=ifelse(length(unique(lineage_status))>1, "MultiStatus", lineage_status[1]) ,isBorder = any(isBorder==TRUE)) %>% 
-      filter(isBorder) %>% select(-isBorder) %>% distinct(cell_id) #%>% print_head()
+      filter(isBorder) %>% select(-isBorder) %>% distinct(cell_id, .keep_all = TRUE) #%>% print_head()
     
     ## Get border lineages from newly identified border cells
     if (nrow(selectedLineageCandidates)>1){
       selectedLineageCandidates %<>%  
         # add lineage_group
-        dt.merge(cellLineages, by = "cell_id") %>% select(-cell_id) %>% distinct(lineage_group) %>%
+        dt.merge(cellLineages, by = "cell_id") %>% select(-cell_id) %>% distinct(lineage_group, .keep_all = TRUE) %>%
         # add all cells of each lineage_group
         dt.merge(cellLineages, by = "lineage_group")  #%>% print_head()
     } else { selectedLineageCandidates <- data.frame(lineage_group=character(0), lineage_status=character(0), cell_id=numeric(0))}
@@ -435,7 +435,7 @@ roiCellsBT <- ddply(dbonds, .(frame), function(dbondsFrame){
 ## 4/ Define the whole_tissue ROI as the complement of the border ROI 
 roiCellsBT %<>% rbind(dt.merge(select(cellLineages, cell_id), dbGetQuery(db, "select cell_id, frame from cells"), by = "cell_id") %>% 
                         mutate(roi="whole_tissue")) %>%
-  select(-frame) %>% distinct(roi, cell_id)
+  select(-frame) %>% distinct(roi, cell_id, .keep_all =  TRUE)
 
 save(roiCellsBT, file="roiCellsBT.RData")
 # roiCellsBT <- local(get(load("roiCellsBT.RData")))

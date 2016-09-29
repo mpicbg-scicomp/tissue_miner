@@ -18,7 +18,7 @@ if(length(argv) != 1){
 # movieDir="/media/project_raphael@fileserver/movieDB_newParser/WT_severedHB-25deg_130107"
 # movieDir="/media/project_raphael@fileserver/movieDB_newParser/MTdp_25deg_140222"
 # movieDir="/projects/project-raphael/movie_dbs/db_tests/PA_Sample_NoCorrection"
-# movieDir="/home/brandl/mnt/mack/project-raphael/movie_dbs/analysis/WT_25deg_111102"
+# movieDir="/home/etournay/example_data/demo"
 db_name=basename(movieDir)
 
 scriptsDir=Sys.getenv("TM_HOME")
@@ -83,9 +83,9 @@ uniqueTriangles <- triangleCells %>%  mutate(
     ) %>%
     ## just keep one instance
 #    arrange(-cell_a) %>%
-    distinct(frame, max_cell, med_cell, min_cell) %>%
+    distinct(frame, max_cell, med_cell, min_cell, .keep_all = TRUE) %>%
     # discard the columns
-    select(-matches("_cell")) #%>% print_head
+    select(-matches("_cell")) %>% print_head
 
 ## remove background and add ID
 triangles <- uniqueTriangles %>%
