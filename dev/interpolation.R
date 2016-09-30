@@ -3,10 +3,6 @@
 # Define path to all processed movies: MUST BE EDITED BY THE USER
 movieDbBaseDir="/home/rstudio/data/movieSegmentation"
 
-# Define path a particular time-lapse called "demo"
-movieDirs <- file.path(movieDbBaseDir, c("WT_25deg_111102","WT_25deg_111103","WT_25deg_120531"))
-# movieDirs <- file.path(movieDbBaseDir, c("WT_25deg_111102"))
-
 
 # Set up path to the TissueMiner code
 # This command requires that the global environment TM_HOME is defined in the .bash_profile
@@ -45,8 +41,8 @@ interpolate <- function(df, x_colname, y_colnames, interpolationGroup, delta_x, 
               max_x=max(x))
   
   corrected_delta_x <- (x_range$max_x[1]-x_range$min_x[1])/ceiling((x_range$max_x[1]-x_range$min_x[1])/delta_x)
-  print(paste("Input delta_x:", round(delta_x, 2), "; Number of interpolation intervals:", (x_range$max_x[1]-x_range$min_x[1])/delta_x))
-  print(paste("Corrected delta_x:", round(corrected_delta_x, 2), "; Number of interpolation intervals used:", ceiling((x_range$max_x[1]-x_range$min_x[1])/delta_x)))
+  print(paste("Input delta_x:", round(delta_x, 4), "; Number of interpolation intervals:", (x_range$max_x[1]-x_range$min_x[1])/delta_x - 1))
+  print(paste("Corrected delta_x:", round(corrected_delta_x, 4), "; Number of interpolation intervals used:", ceiling((x_range$max_x[1]-x_range$min_x[1])/delta_x - 1)))
     
   for (ycol in y_colnames) {
     i <-  which(y_colnames==ycol)
@@ -74,7 +70,7 @@ interpolate <- function(df, x_colname, y_colnames, interpolationGroup, delta_x, 
         
       }) 
     if (i==1) {final_res <- res}
-    if (i>1) {final_res <- cbind(final_res, select_(ungroup(res), .dots=c(ycol)))}
+    if (i>1) {final_res <- bind_cols(final_res, select_(ungroup(res), .dots=c(ycol)))}
   }  
   return(final_res)
 }
@@ -111,6 +107,7 @@ mqf_cg_roi_rate_shear <- function(movieDir, rois=c(), interpol_interval_sec="gue
       interpolate(x_colname = "time_sec", y_colnames = c("xx_rate_hr", "xy_rate_hr"), interpolationGroup = c("roi", "tensor"), delta_x = interpol_interval_sec, method = interpol_method)
     
     # Calculate optimal kernel size for smoothing
+    # browser()
     kernSize <- round(smooth_time_window_size_sec/diff(ShearRateInterpolByRoi$time_sec))[1]; if(kernSize%%2==0) { kernSize <- kernSize+1 }
     echo(paste("Moving window kernel size =", kernSize))
     
@@ -203,8 +200,10 @@ align_data_points_by_interpolation <- function(df, movieDirs, x_timecolname, y_c
   return(registered_data )
 }
 
+#### Debugging: extract shear data from a single movie ####
 
-#### Debugging: extract shear data ####
+movieDirs <- file.path(movieDbBaseDir, c("WT_25deg_111102"))
+
 shearData <- multi_db_query(movieDirs, mqf_cg_roi_rate_shear, c("blade","L5"), interpol_interval_sec="none", interpol_method="linear", smooth_time_window_size_sec=3000) %>% print_head() %>%
   filter(tensor %in% c("crc", "cagc", "CEwithCT", "av_total_shear","nu","ct","J",
                        "ShearT1", "ShearT2", "ShearCD", "correlationEffects"))
@@ -226,7 +225,7 @@ ggsave2(width=15, outputFormat = "pdf")
 
 
 
-shearData <- multi_db_query(movieDirs, mqf_cg_roi_rate_shear, c("blade","L5"), interpol_interval_sec=26, interpol_method="linear", smooth_time_window_size_sec=0) %>% print_head() %>%
+shearData <- multi_db_query(movieDirs, mqf_cg_roi_rate_shear, c("blade"), interpol_interval_sec=26.85, interpol_method="linear", smooth_time_window_size_sec=0) %>% print_head() %>%
   filter(tensor %in% c("crc", "cagc", "CEwithCT", "av_total_shear","nu","ct","J",
                        "ShearT1", "ShearT2", "ShearCD", "correlationEffects"))
 
@@ -234,7 +233,7 @@ ggplot(shearData, aes(dev_time,xx_rate_hr.ma*100, color=tensor)) +
   geom_line(alpha=0.8) +
   xlab("Time [hAPF]")+
   scale_x_continuous(breaks=seq(16,36, 2),limits=c(15,32)) +
-  scale_y_continuous(breaks=seq(-6,10, 2),limits=c(-7,10)) +
+  # scale_y_continuous(breaks=seq(-6,10, 2),limits=c(-7,10)) +
   ylab(expression(paste("shear rate xx [",10^-2,h^-1,"]"))) +
   scale_color_manual(values=c(shearColors, "crc"="pink", "cagc"="lightgreen", "ct"="grey","J"="grey", "CEwithCT"="darkgreen", "av_total_shear"="blue","nu"="blue",
                               "ShearT1"="red", "ShearT2"="turquoise", "ShearCD"="orange", "correlationEffects"="magenta")) +
@@ -242,14 +241,14 @@ ggplot(shearData, aes(dev_time,xx_rate_hr.ma*100, color=tensor)) +
   ggtitle("shear_decomposition_timeInt26sec_noSmoothing")
 
 setwd("~/data/Dropbox/DropBox_Jacques/")
-ggsave2(width=15, outputFormat = "pdf")
+ggsave2(width=7, outputFormat = "pdf")
 
 
 
 
-shearData <- multi_db_query(movieDirs, mqf_cg_roi_rate_shear, c("blade","L5"), interpol_interval_sec=26, interpol_method="linear", smooth_time_window_size_sec=3000) %>% print_head() %>%
+shearData <- multi_db_query(movieDirs, mqf_cg_roi_rate_shear, c("L5"), interpol_interval_sec=26.85, interpol_method="linear", smooth_time_window_size_sec=3100) %>% print_head() %>%
   filter(tensor %in% c("crc", "cagc", "CEwithCT", "av_total_shear","nu","ct","J",
-                       "ShearT1", "ShearT2", "ShearCD", "correlationEffects"))
+                       "ShearT1", "ShearT2", "ShearCD", "correlationEffects","sumContrib"))
 
 ggplot(shearData, aes(dev_time,xx_rate_hr.ma*100, color=tensor)) +
   geom_line(alpha=0.8) +
@@ -258,12 +257,32 @@ ggplot(shearData, aes(dev_time,xx_rate_hr.ma*100, color=tensor)) +
   scale_y_continuous(breaks=seq(-6,10, 2),limits=c(-7,10)) +
   ylab(expression(paste("shear rate xx [",10^-2,h^-1,"]"))) +
   scale_color_manual(values=c(shearColors, "crc"="pink", "cagc"="lightgreen", "ct"="grey","J"="grey", "CEwithCT"="darkgreen", "av_total_shear"="blue","nu"="blue",
-                              "ShearT1"="red", "ShearT2"="turquoise", "ShearCD"="orange", "correlationEffects"="magenta")) +
+                              "ShearT1"="red", "ShearT2"="turquoise", "ShearCD"="orange", "correlationEffects"="magenta","sumContrib"="yellow")) +
   facet_grid(movie~roi) +
-  ggtitle("shear_decomposition_timeInt26sec_kernSize115")
+  ggtitle("shear_decomposition_timeInt26sec_kernSize115_L5")
 
 setwd("~/data/Dropbox/DropBox_Jacques/")
-ggsave2(width=15, outputFormat = "pdf")
+ggsave2(height=5, outputFormat = "pdf")
+
+#### Compare multiple WT movies ####
+movieDbBaseDir="/home/rstudio/data/movieSegmentation"
+movieDbBaseDir="/home/rstudio/data/movieDebug"
+movieDirs <- file.path(movieDbBaseDir, c("WT_25deg_111102","WT_25deg_111103","WT_25deg_120531"))
+
+shearData <- multi_db_query(movieDirs, mqf_cg_roi_rate_shear, c("L5"), interpol_interval_sec=26.85, interpol_method="linear", smooth_time_window_size_sec=3100) %>% print_head() %>%
+  filter(tensor %in% c("crc", "cagc", "CEwithCT", "av_total_shear","nu","ct","J",
+                       "ShearT1", "ShearT2", "ShearCD", "correlationEffects","sumContrib"))
+
+ggplot(shearData, aes(dev_time,xx_rate_hr.ma*100, color=tensor)) +
+  geom_line() + 
+  xlab("Time [hAPF]")+
+  scale_x_continuous(breaks=seq(16,36, 2),limits=c(15,34)) +
+  scale_y_continuous(breaks=seq(-6,10, 2),limits=c(-7.5,10)) +
+  ylab(expression(paste("shear rate xx [",10^-2,h^-1,"]"))) +
+  scale_color_manual(values=c(shearColors, "crc"="pink", "cagc"="lightgreen", "ct"="grey","J"="grey", "CEwithCT"="darkgreen", "av_total_shear"="blue","nu"="blue",
+                              "ShearT1"="red", "ShearT2"="turquoise", "ShearCD"="orange", "correlationEffects"="magenta", "sumContrib"="yellow")) +
+  facet_grid(movie~roi) +
+  ggtitle("shear_decomposition_full_data_range_new")
 
 
 shearRateSynchonized <- shearData %>% 
@@ -275,11 +294,14 @@ ggplot(shearRateSynchonized, aes(dev_time,xx_rate_hr.ma*100, color=tensor)) +
   geom_line() + 
   xlab("Time [hAPF]")+
   scale_x_continuous(breaks=seq(16,36, 2),limits=c(15,34)) +
+  scale_y_continuous(breaks=seq(-6,10, 2),limits=c(-7.5,10)) +
   ylab(expression(paste("shear rate xx [",10^-2,h^-1,"]"))) +
   scale_color_manual(values=c(shearColors, "crc"="pink", "cagc"="lightgreen", "ct"="grey","J"="grey", "CEwithCT"="darkgreen", "av_total_shear"="blue","nu"="blue",
-                              "ShearT1"="red", "ShearT2"="turquoise", "ShearCD"="orange", "correlationEffects"="magenta")) +
+                              "ShearT1"="red", "ShearT2"="turquoise", "ShearCD"="orange", "correlationEffects"="magenta", "sumContrib"="yellow")) +
   facet_grid(movie~roi) +
-  ggtitle("shear_decomposition_aligned_by_movie")
+  ggtitle("shear_decomposition_aligned_by_movie_snd_interpolation_new")
+
+ggsave2(height=10, outputFormat = "pdf")
 
 
 # average data between the 3 movies amongst ROI
@@ -294,14 +316,14 @@ ggplot(shearRateSummary, aes(dev_time,xx_rate.avg*100, color=tensor)) +
               alpha=0.2, linetype="blank", size=0.2) +
   xlab("Time [hAPF]")+
   scale_x_continuous(breaks=seq(16,36, 2),limits=c(15,34)) +
-  scale_y_continuous(breaks=seq(-6,10, 2),limits=c(-6.5,10)) +
+  scale_y_continuous(breaks=seq(-6,10, 2),limits=c(-7.5,10)) +
   ylab(expression(paste("shear rate xx [",10^-2,h^-1,"]"))) +
   scale_color_manual(values=c(shearColors, "crc"="pink", "cagc"="lightgreen", "ct"="grey","J"="grey", "CEwithCT"="darkgreen", "av_total_shear"="blue","nu"="blue",
                               "ShearT1"="red", "ShearT2"="turquoise", "ShearCD"="orange", "correlationEffects"="magenta")) +
   scale_fill_manual(values=c(shearColors, "crc"="pink", "cagc"="lightgreen", "ct"="grey","J"="grey", "CEwithCT"="darkgreen", "av_total_shear"="blue","nu"="blue",
                              "ShearT1"="red", "ShearT2"="turquoise", "ShearCD"="orange", "correlationEffects"="magenta")) +
   facet_wrap(~roi) +
-  ggtitle("shear_rate_blade_smooth26sec")
+  ggtitle("shear_rate_L5_AVG_3WTmovies")
 setwd("~/data/Dropbox/DropBox_Jacques/")
 ggsave2(height=5,  outputFormat = "pdf")
 
