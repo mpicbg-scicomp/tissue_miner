@@ -107,18 +107,22 @@ tmpDir <- file.path(getwd(),".shear_chunks")
 dir.create(tmpDir)
 
 
-# registerDoMC(cores=detectCores())
-registerDoMC(cores=2)
+registerDoMC(cores=detectCores())
+# registerDoMC(cores=2)
 
+print("  step 1/4 ...")
 simpleTriRoi <- assignROI(simpleTri,roiBT); shearRois <- unique(simpleTriRoi$roi) %>% ac
 chunkByRoi(simpleTriRoi,shearRois,tmpDir,"simpleTriRoi"); rm(simpleTriRoi)
 
+print("  step 2/4 ...")
 firstIntRoi <- assignROI(local(get(load("firstInt.RData"))),roiBT)
 chunkByRoi(firstIntRoi,shearRois,tmpDir,"firstIntRoi"); rm(firstIntRoi)
 
+print("  step 3/4 ...")
 sndIntRoi <- assignROI(local(get(load("sndInt.RData"))),roiBT)
 chunkByRoi(sndIntRoi,shearRois,tmpDir,"sndIntRoi"); rm(sndIntRoi)
 
+print("  step 4/4 ...")
 thirdIntRoi <- assignROI(local(get(load("thirdInt.RData"))),roiBT)
 chunkByRoi(thirdIntRoi,shearRois,tmpDir,"thirdIntRoi"); rm(thirdIntRoi)
 
@@ -143,6 +147,7 @@ l_ply(shearRois, function(curROI){
 
   mcdir(file.path(shearContribDir, curROI))
   source(file.path(scriptsDir, "shear/ShearByCellEvents2.R"), local=new.env())
+  # source(file.path(scriptsDir, "shear/ShearByCellEvents3.R"), local=new.env())
   
   }))
 }, .parallel=F, .inform=T, .progress="text")
