@@ -401,7 +401,7 @@ if(F) {
   
 }
 
-## DEBUG shear in L5 between Laura's version and mine
+#### DEBUG shear in L5 between Laura's version and mine ####
 if(F){
   LauraData <- read.delim(file="~/data/Dropbox/DropBox_Jacques/avgDeformTensorsWideL5_Laura.tsv", header = T) %>% print_head() %>%
     select(-c(time_sec,timeInt_sec)) %>%
@@ -530,5 +530,6 @@ if(F){
   ggsave2(height=5,  outputFormat = "pdf")
   
 }
+
 ## DEBUG END
 
