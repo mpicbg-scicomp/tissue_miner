@@ -148,7 +148,7 @@ mqf_cg_roi_rate_shear <- function(movieDir, rois=c(), interpol_interval_sec="gue
       #            x2=center_x+0.5*displayFactor*norm*cos(phi),
       #            y2=center_y+0.5*displayFactor*norm*sin(phi)) %>%
       mutate(movie=basename(movieDir)) %>% add_dev_time() %>%
-      select(c(movie, roi, tensor, frame, dev_time, xx_rate_hr.ma, xy_rate_hr.ma, phi, norm, xx_rate_hr, xy_rate_hr))
+      select(c(movie, roi, tensor, frame, dev_time, xx_rate_hr.ma, xy_rate_hr.ma, phi, norm, xx_rate_hr, xy_rate_hr, xx, xy))
   }
   
   dbDisconnect(movieDb)
@@ -201,9 +201,12 @@ align_data_points_by_interpolation <- function(df, movieDirs, x_timecolname, y_c
 }
 
 #### Debugging: extract shear data from a single movie ####
-
+if(F){
+movieDbBaseDir="/home/rstudio/data/movieSegmentation"
 movieDirs <- file.path(movieDbBaseDir, c("WT_25deg_111102"))
 
+
+## Shear rate, no interpolation, smoothing over 3000sec
 shearData <- multi_db_query(movieDirs, mqf_cg_roi_rate_shear, c("blade","L5"), interpol_interval_sec="none", interpol_method="linear", smooth_time_window_size_sec=3000) %>% print_head() %>%
   filter(tensor %in% c("crc", "cagc", "CEwithCT", "av_total_shear","nu","ct","J",
                        "ShearT1", "ShearT2", "ShearCD", "correlationEffects"))
@@ -222,7 +225,21 @@ ggplot(shearData, aes(dev_time,xx_rate_hr.ma*100, color=tensor)) +
 setwd("~/data/Dropbox/DropBox_Jacques/")
 ggsave2(width=15, outputFormat = "pdf")
 
+## Cumulative shear, no interpolation:
+cumShear <- shearData %>% 
+  group_by(movie, roi, tensor) %>%
+  mutate(cumshear_xx=cumsum(xx)) %>% print_head()
 
+ggplot(cumShear, aes(dev_time, cumshear_xx, color=tensor)) +
+  geom_line(alpha=0.8) +
+  xlab("Time [hAPF]")+
+  scale_x_continuous(breaks=seq(16,36, 2),limits=c(15,32)) +
+  # scale_y_continuous(breaks=seq(-6,10, 2),limits=c(-7,10)) +
+  ylab(expression(paste("cum shear xx"))) +
+  scale_color_manual(values=c(shearColors, "crc"="pink", "cagc"="lightgreen", "ct"="grey","J"="grey", "CEwithCT"="darkgreen", "av_total_shear"="blue","nu"="blue",
+                              "ShearT1"="red", "ShearT2"="turquoise", "ShearCD"="orange", "correlationEffects"="magenta")) +
+  facet_grid(movie~roi) +
+  ggtitle("cum-shear_decomposition_noInterpol")
 
 
 shearData <- multi_db_query(movieDirs, mqf_cg_roi_rate_shear, c("blade"), interpol_interval_sec=26.85, interpol_method="linear", smooth_time_window_size_sec=0) %>% print_head() %>%
@@ -263,11 +280,115 @@ ggplot(shearData, aes(dev_time,xx_rate_hr.ma*100, color=tensor)) +
 
 setwd("~/data/Dropbox/DropBox_Jacques/")
 ggsave2(height=5, outputFormat = "pdf")
+}
+#### Compare new implementation to Marko's data ####
+if(F){
 
-#### Compare multiple WT movies ####
-movieDbBaseDir="/home/rstudio/data/movieSegmentation"
+## Compare new shear implementation to Marko's implementation
 movieDbBaseDir="/home/rstudio/data/movieDebug"
-movieDirs <- file.path(movieDbBaseDir, c("WT_25deg_111102","WT_25deg_111103","WT_25deg_120531"))
+movieDirs <- file.path(movieDbBaseDir, c("WT_25deg_111102","MTdp_25deg_140222"))
+
+
+Marko111102blade <- read.csv(file = "/home/rstudio/data/Dropbox/DropBox_Jacques/shear_components_WT_25deg_111102_blade.csv") %>%
+  mutate(sumContrib_xx=shear_cell_elongation_xx+corotational_xx+shear_T1_xx+shear_cell_division_xx+shear_cell_extrusion_xx+rotation_elongation_correlation_xx+area_growth_elongation_correlation_xx,
+         check_xx=(total_shear_xx-sumContrib_xx)) %>%
+  gather(key=tensor_name, value=variable, -frame) %>% 
+  group_by(tensor_name) %>%
+  mutate(tensor=as.character(str_sub(tensor_name, end=max((str_locate_all(tensor_name, "_"))[[1]][,2]-1))),
+         component=as.character(str_sub(tensor_name, start=max((str_locate_all(tensor_name, "_"))[[1]][,2]+1)))) %>% 
+  ungroup() %>%
+  select(-tensor_name) %>% 
+  spread(key=component, value=variable) %>% 
+  mutate(movie="WT_25deg_111102", roi="blade", owner="marko") 
+  
+Marko140222blade <- read.csv(file = "/home/rstudio/data/Dropbox/DropBox_Jacques/shear_components_MTdp_25deg_140222_blade.csv") %>% 
+  mutate(sumContrib_xx=shear_cell_elongation_xx+corotational_xx+shear_T1_xx+shear_cell_division_xx+shear_cell_extrusion_xx+rotation_elongation_correlation_xx+area_growth_elongation_correlation_xx,
+         check_xx=(total_shear_xx-sumContrib_xx)) %>%
+  gather(key=tensor_name, value=variable, -frame) %>% 
+  group_by(tensor_name) %>%
+  mutate(tensor=as.character(str_sub(tensor_name, end=max((str_locate_all(tensor_name, "_"))[[1]][,2]-1))),
+         component=as.character(str_sub(tensor_name, start=max((str_locate_all(tensor_name, "_"))[[1]][,2]+1)))) %>% 
+  ungroup() %>%
+  select(-tensor_name) %>% 
+  spread(key=component, value=variable) %>% 
+  mutate(movie="MTdp_25deg_140222", roi="blade", owner="marko")
+
+MarkoShear <- bind_rows(Marko111102blade,Marko140222blade) %>% 
+  mutate(tensor=ifelse(tensor=="area_growth_elongation_correlation", "cagc", tensor),
+         tensor=ifelse(tensor=="rotation_elongation_correlation", "crc", tensor),
+         tensor=ifelse(tensor=="corotational", "J", tensor),
+         tensor=ifelse(tensor=="total_shear", "av_total_shear", tensor),
+         tensor=ifelse(tensor=="shear_cell_elongation", "ShearCE", tensor),
+         tensor=ifelse(tensor=="shear_cell_extrusion", "ShearT2", tensor),
+         tensor=ifelse(tensor=="shear_T1", "ShearT1", tensor),
+         tensor=ifelse(tensor=="shear_cell_division", "ShearCD", tensor)) %>% print_head()
+
+
+RaphaShear <- multi_db_query(movieDirs, mqf_cg_roi_rate_shear, c("blade"), interpol_interval_sec="none", interpol_method="linear", smooth_time_window_size_sec=3100) %>% 
+  select(c(movie, roi, frame, tensor, xx, xy)) %>% filter(tensor %in% c("cagc","crc","J","av_total_shear","ShearCE", "ShearT2","ShearT1","ShearCD", "sumContrib")) %>%
+  mutate(owner="rapha") %>% print_head() 
+  
+shearComparison <- bind_rows(MarkoShear, RaphaShear) %>% print_head()
+
+shearDiff <- dt.merge(RaphaShear, MarkoShear, by = c("movie", "roi", "frame", "tensor"), suffixes = c(".rapha", ".marko")) %>% 
+  mutate(xx.diff=abs(xx.rapha-xx.marko),
+         xy.diff=abs(xy.rapha-xy.marko)) %>% print_head()
+
+interpolatedTensors <- c("cagc","crc","J","av_total_shear","check","sumContrib")
+
+# Visualize tensors
+ggplot(shearComparison %>% filter(tensor %in% interpolatedTensors), aes(frame, xx, color=tensor)) +
+  geom_line() +
+  scale_y_continuous(name="arbitrary units", labels = scientific) +
+  facet_grid(tensor+owner~movie, scales = "free_y") +
+  ggtitle("01_xx_shear comparison for interpolated data")
+setwd("~/data/Dropbox/DropBox_Jacques/")
+ggsave2(height=15, width = 10, outputFormat = "pdf")
+
+ggplot(shearComparison %>% filter(!tensor %in% interpolatedTensors), aes(frame, xx, color=tensor)) +
+  geom_line() +
+  scale_y_continuous(name="arbitrary units", labels = scientific) +
+  facet_grid(tensor+owner~movie, scales = "free_y") +
+  ggtitle("02_xx_shear comparison for non-interpolated data")
+ggsave2(height=15, width = 10, outputFormat = "pdf")
+
+# Visualize the difference between tensors of same category
+ggplot(shearDiff %>% filter(tensor %in% interpolatedTensors), aes(frame,xx.diff, color=tensor)) +
+  geom_line() + 
+  scale_y_continuous(name="arbitrary units", labels = scientific) +
+  facet_grid(tensor~movie, scales = "free_y") +
+  ggtitle("03_xx_shear difference for interpolated data")
+ggsave2(height=15, width = 10, outputFormat = "pdf")
+
+ggplot(shearDiff %>% filter(!tensor %in% interpolatedTensors), aes(frame,xx.diff, color=tensor)) +
+  geom_line() + 
+  scale_y_continuous(name="arbitrary units", labels = scientific) +
+  facet_grid(tensor~movie, scales = "free_y") +
+  ggtitle("04_xx_shear difference for non-interpolated data")
+ggsave2(height=15, width = 10, outputFormat = "pdf")
+
+
+# Visualize the distribution of differences
+ggplot(shearDiff %>% filter(tensor %in% interpolatedTensors), aes(xx.diff, fill=tensor)) +
+  geom_histogram(bins=120, color="black") +
+  scale_x_continuous(name="xx difference", labels = scientific) +
+  facet_grid(tensor~movie, scales = "free_y") +
+  ggtitle("05_xx_shear difference distribution for interpolated data")
+ggsave2(height=15, width = 10, outputFormat = "pdf")
+
+
+ggplot(shearDiff %>% filter(!tensor %in% interpolatedTensors), aes(xx.diff, fill=tensor)) +
+  geom_histogram(bins=120, color="black") +
+  scale_x_continuous(name="xx difference", labels = scientific) +
+  facet_grid(tensor~movie, scales = "free_y") +
+  ggtitle("06_xx_shear difference distribution for non-interpolated data")
+ggsave2(height=15, width = 10, outputFormat = "pdf")
+
+
+}
+#### Compare multiple movies ####
+if(F){
+
 
 shearData <- multi_db_query(movieDirs, mqf_cg_roi_rate_shear, c("L5"), interpol_interval_sec=26.85, interpol_method="linear", smooth_time_window_size_sec=3100) %>% print_head() %>%
   filter(tensor %in% c("crc", "cagc", "CEwithCT", "av_total_shear","nu","ct","J",
@@ -326,8 +447,9 @@ ggplot(shearRateSummary, aes(dev_time,xx_rate.avg*100, color=tensor)) +
   ggtitle("shear_rate_L5_AVG_3WTmovies")
 setwd("~/data/Dropbox/DropBox_Jacques/")
 ggsave2(height=5,  outputFormat = "pdf")
-
+}
 #### Plot with old mqf function ####
+if(F){
 source(file.path(scriptsDir, "commons/BaseQueryFunctions.R"))
 shearData <- multi_db_query(movieDirs, mqf_cg_roi_rate_shear, "L5", kernSize=11) %>% print_head()
 
@@ -349,4 +471,4 @@ ggplot(shearRateSlim, aes(dev_time,xx.ma*100, color=tensor)) +
   scale_color_manual(values=shearColors) +
   facet_wrap(movie~roi) +
   ggtitle("shear decomposition old mqf")
-
+}
