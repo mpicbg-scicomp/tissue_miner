@@ -58,9 +58,9 @@ sudo apt-get --no-install-recommends install -y graphviz
 sudo apt-get --no-install-recommends install -y libcairo2-dev
 
 
-## sem is disabled for now, since it's not essential to have it.
 ## sem for image conversion (see http://askubuntu.com/questions/12764/where-do-i-get-a-package-for-gnu-parallel)
-#sudo apt-get install -y parallel
+sudo apt-get install -y parallel
+
 #sudo apt-get install -y wget
 #wget http://ftp.gnu.org/gnu/parallel/parallel-20140422.tar.bz2
 #tar -xvjf parallel*
