@@ -24,138 +24,8 @@ theme_update(panel.grid.major=element_line(linetype= "dotted", color="black", si
              legend.key = element_blank()
 )
 
-#### Helper functions ####
 
-interpolate <- function(df, x_colname, y_colnames, interpolationGroup, delta_x,  method = "linear"){ #samplingFactor=10,
-  
-  dfSlim <- df %>% select_(.dots=c(x_colname,y_colnames,interpolationGroup)) 
-  
-  # remove any NA as they cannot be interpolated
-  if (any(!complete.cases(dfSlim))) {warning("NA found in the data set, they will be skipped for interpolation")}
-  dfSlim <- dfSlim[complete.cases(dfSlim),]
-  
-  # calculate corrected delta_x to keep an integer number of interpolation intervals in the given range of data
-  x_range <- dfSlim %>%
-    rename_(.dots=setNames(names(.), gsub(x_colname, "x", names(.)))) %>% 
-    summarise(min_x=min(x),
-              max_x=max(x))
-  
-  corrected_delta_x <- (x_range$max_x[1]-x_range$min_x[1])/ceiling((x_range$max_x[1]-x_range$min_x[1])/delta_x)
-  print(paste("Input delta_x:", round(delta_x, 4), "; Number of interpolation intervals:", (x_range$max_x[1]-x_range$min_x[1])/delta_x - 1))
-  print(paste("Corrected delta_x:", round(corrected_delta_x, 4), "; Number of interpolation intervals used:", ceiling((x_range$max_x[1]-x_range$min_x[1])/delta_x - 1)))
-    
-  for (ycol in y_colnames) {
-    i <-  which(y_colnames==ycol)
-    
-    res <- dfSlim %>%
-      # https://stackoverflow.com/questions/30382908/r-dplyr-rename-variables-using-string-functions
-      rename_(.dots=setNames(names(.), gsub(x_colname, "x", names(.)))) %>% 
-      rename_(.dots=setNames(names(.), gsub(ycol, "y", names(.)))) %>% 
-      mutate(min_x=min(x),
-             max_x=max(x)) %>%
-      # https://stackoverflow.com/questions/21208801/group-by-multiple-columns-in-dplyr-using-string-vector-input
-      group_by_(.dots = interpolationGroup) %>% 
-      do({
-        
-        # apply interpolation using the corrected_delta_x 
-        if (method %in% c("linear", "constant")){
-          with(., approx(x, y,
-                         xout = seq(min_x[1], max_x[1],
-                                    by = corrected_delta_x), method = method)) %>% as.df() %>% rename_(.dots=setNames(names(.), c(x_colname, ycol))) 
-        } else if (method %in% c("fmm", "periodic", "natural", "monoH.FC", "hyman")) {
-          with(., spline(x, y,
-                         xout = seq(min_x[1], max_x[1],
-                                    by = corrected_delta_x), method = method)) %>% as.df() %>% rename_(.dots=setNames(names(.), c(x_colname, ycol))) 
-        }
-        
-      }) 
-    if (i==1) {final_res <- res}
-    if (i>1) {final_res <- bind_cols(final_res, select_(ungroup(res), .dots=c(ycol)))}
-  }  
-  return(final_res)
-}
-
-mqf_cg_roi_rate_shear <- function(movieDir, rois=c(), interpol_interval_sec="guess", interpol_method="linear", smooth_time_window_size_sec=3600){
-  
-  # Description: compute the pure shear deformation of the tissue and its cellular contributions per frame, in ROIs
-  # Usage: mqf_cg_roi_rate_shear(movieDir)
-  # Arguments: movieDir = path to movie directory, rois = selected rois (all by default), interpol_interval_sec =  size of new intervals in seconds (=NA for no interpolation), smooth_time_window_size_sec = time over which to average
-  # Output: a dataframe
-  
-  movieDb <- openMovieDb(movieDir)
-  
-  queryResult <- ldply(list.files(movieDir, "avgDeformTensorsLong.RData", full.names=TRUE, recursive=T), addRoiByDir)
-  
-  if(length(rois)==0) rois = unique(queryResult$roi)
-  
-  # Shear tensors with time_sec, timeInt_sec and rates
-  ShearRateByRoi <- filter(queryResult, roi %in% rois) %>%
-    addTimeFunc(movieDb, .) %>%
-    arrange(frame) %>%
-    # Calculate rate of shear in per hour
-    group_by(roi, tensor) %>%
-    mutate(xx_rate_hr = xx/(timeInt_sec/3600),
-           xy_rate_hr = xy/(timeInt_sec/3600)) %>% ungroup()
-    
-    
-  # Interpolate and smooth shear rates: default = 1/5 of the real smallest interval
-  if (interpol_interval_sec=="guess") {interpol_interval_sec <- round(0.2*min(ShearRateByRoi$timeInt_sec))}
-
-  if (interpol_interval_sec != "none") {
-   # Interpolate data
-    ShearRateInterpolByRoi <- ShearRateByRoi %>% 
-      interpolate(x_colname = "time_sec", y_colnames = c("xx_rate_hr", "xy_rate_hr"), interpolationGroup = c("roi", "tensor"), delta_x = interpol_interval_sec, method = interpol_method)
-    
-    # Calculate optimal kernel size for smoothing
-    # browser()
-    kernSize <- round(smooth_time_window_size_sec/diff(ShearRateInterpolByRoi$time_sec))[1]; if(kernSize%%2==0) { kernSize <- kernSize+1 }
-    echo(paste("Moving window kernel size =", kernSize))
-    
-    # Apply smoothing
-    ShearRateSmoothedByRoi <- ShearRateInterpolByRoi %>%
-      group_by(roi, tensor) %>%
-      mutate(xx_rate_hr.ma=ma(xx_rate_hr, kernSize),
-             xy_rate_hr.ma=ma(xy_rate_hr, kernSize),
-             time_sec=ma(time_sec, kernSize)) %>% ungroup() %>%
-      # calculate the phi angle and norm of nematics
-      mutate(phi=mod2pi(0.5*(atan2(xy_rate_hr.ma, xx_rate_hr.ma))), 
-             norm= sqrt(xx_rate_hr.ma^2+xy_rate_hr.ma^2)) %>%
-      #     # scale nematic norm for display and calculate the x and y nematic coordinates for ploting
-      #     mutate(x1=center_x-0.5*displayFactor*norm*cos(phi),
-      #            y1=center_y-0.5*displayFactor*norm*sin(phi),
-      #            x2=center_x+0.5*displayFactor*norm*cos(phi),
-      #            y2=center_y+0.5*displayFactor*norm*sin(phi)) %>%
-      mutate(movie=basename(movieDir)) %>% add_dev_time() %>%
-      select(c(movie, roi, tensor, dev_time, xx_rate_hr.ma, xy_rate_hr.ma, phi, norm, xx_rate_hr, xy_rate_hr))
-  }
-  else {
-    # Calculate optimal kernel size for smoothing
-    kernSize <- round(smooth_time_window_size_sec/min(ShearRateByRoi$timeInt_sec)); if(kernSize%%2==0) { kernSize <- kernSize+1 }
-    echo(paste("Moving window kernel size =", kernSize))
-    
-    # Apply smoothing
-    ShearRateSmoothedByRoi <- ShearRateByRoi %>% 
-      group_by(roi, tensor) %>%
-      mutate(xx_rate_hr.ma=ma(xx_rate_hr, kernSize),
-             xy_rate_hr.ma=ma(xy_rate_hr, kernSize),
-             time_sec=ma(time_sec, kernSize)) %>% ungroup() %>%
-      # calculate the phi angle and norm of nematics
-      mutate(phi=mod2pi(0.5*(atan2(xy_rate_hr.ma, xx_rate_hr.ma))), 
-             norm= sqrt(xx_rate_hr.ma^2+xy_rate_hr.ma^2)) %>%
-      #     # scale nematic norm for display and calculate the x and y nematic coordinates for ploting
-      #     mutate(x1=center_x-0.5*displayFactor*norm*cos(phi),
-      #            y1=center_y-0.5*displayFactor*norm*sin(phi),
-      #            x2=center_x+0.5*displayFactor*norm*cos(phi),
-      #            y2=center_y+0.5*displayFactor*norm*sin(phi)) %>%
-      mutate(movie=basename(movieDir)) %>% add_dev_time() %>%
-      select(c(movie, roi, tensor, frame, dev_time, xx_rate_hr.ma, xy_rate_hr.ma, phi, norm, xx_rate_hr, xy_rate_hr, xx, xy))
-  }
-  
-  dbDisconnect(movieDb)
-  
-  return(ShearRateSmoothedByRoi)
-}
-
+#### Obselete helper functions ####
 trim_movie_data_by_time <- function(df, discard.NA=FALSE){
   
   # Description: : apply a time min and max offsets such that the counting starts at the first common time point of the selected movies and ends the last common time point
@@ -174,7 +44,7 @@ trim_movie_data_by_time <- function(df, discard.NA=FALSE){
   return(df)
 }
 
-align_data_points_by_interpolation <- function(df, movieDirs, x_timecolname, y_colnames, interpolationGroup, interpol_interval_hr="guess"){
+align_data_points_by_interpolation <- function(df, movieDirs, x_timecolname, y_colnames, interpolationGroup, interpol_interval_hr="default"){
   
   # Trim data to remove non-overlapping time points and NAs
   trimmed_data <- trim_movie_data_by_time(df, discard.NA = TRUE)
@@ -183,7 +53,7 @@ align_data_points_by_interpolation <- function(df, movieDirs, x_timecolname, y_c
   #trimmed_data <- trimmed_data[complete.cases(trimmed_data),]
   
   # Align data points on a common time scale
-  if (interpol_interval_hr=="guess") {interpol_interval_hr <- min((trimmed_data %>% group_by_(.dots=interpolationGroup) %>% mutate(int=c(diff(dev_time),NA)) %>% ungroup())$int, na.rm=T)}
+  if (interpol_interval_hr=="default") {interpol_interval_hr <- min((trimmed_data %>% group_by_(.dots=interpolationGroup) %>% mutate(int=c(diff(dev_time),NA)) %>% ungroup())$int, na.rm=T)}
   registered_data <- interpolate(trimmed_data,x_timecolname,y_colnames,interpolationGroup, delta_x=interpol_interval_hr, method = "linear") %>%
     trim_movie_data_by_time(discard.NA = TRUE)
   
@@ -200,7 +70,334 @@ align_data_points_by_interpolation <- function(df, movieDirs, x_timecolname, y_c
   return(registered_data )
 }
 
-#### Debugging: extract shear data from a single movie ####
+
+#### Helper functions ####
+
+interpolate <- function(df, x_colname, y_colnames, interpolationGroup, delta_x, x_range, method = "linear"){
+  
+  dfSlim <- df %>% select_(.dots=c(x_colname,y_colnames,interpolationGroup)) 
+  
+  # remove any NA as they cannot be interpolated
+  if (any(!complete.cases(dfSlim))) {warning("NA found in the data set, they will be skipped for interpolation")}
+  dfSlim <- dfSlim[complete.cases(dfSlim),]
+  
+  # calculate corrected delta_x to keep an integer number of interpolation intervals in the imposed range
+  corrected_delta_x <- (x_range[2]-x_range[1])/ceiling((x_range[2]-x_range[1])/delta_x)
+  print(paste("Input delta_x:", round(delta_x, 10), "; Expected number of interpolation intervals:", (x_range[2]-x_range[1])/delta_x - 1))
+  print(paste("Corrected delta_x:", round(corrected_delta_x, 10), "; Number of interpolation intervals used:", ceiling((x_range[2]-x_range[1])/delta_x - 1)))
+  
+  
+  for (ycol in y_colnames) {
+    i <-  which(y_colnames==ycol)
+    
+    res <- dfSlim %>%
+      # https://stackoverflow.com/questions/30382908/r-dplyr-rename-variables-using-string-functions
+      rename_(.dots=setNames(names(.), gsub(x_colname, "x", names(.)))) %>% 
+      rename_(.dots=setNames(names(.), gsub(ycol, "y", names(.)))) %>% 
+      # https://stackoverflow.com/questions/21208801/group-by-multiple-columns-in-dplyr-using-string-vector-input
+      group_by_(.dots = interpolationGroup) %>% 
+      do({
+      
+        # apply interpolation using the corrected_delta_x 
+        if (method %in% c("linear", "constant")){
+          with(., approx(x, y,
+                         xout = seq(x_range[1], x_range[2],
+                                    by = corrected_delta_x), method = method)) %>% as.df() %>% rename_(.dots=setNames(names(.), c(x_colname, ycol))) 
+        } else if (method %in% c("fmm", "periodic", "natural", "monoH.FC", "hyman")) {
+          with(., spline(x, y,
+                         xout = seq(x_range[1], x_range[2],
+                                    by = corrected_delta_x), method = method)) %>% as.df() %>% rename_(.dots=setNames(names(.), c(x_colname, ycol))) 
+        }
+        
+      }) 
+    if (i==1) {final_res <- res}
+    if (i>1) {final_res <- bind_cols(final_res, select_(ungroup(res), .dots=c(ycol)))}
+  }  
+  
+  # keep complete cases, namely discard NAs that may occur when interpolating outside of the data range
+  final_res <- final_res[complete.cases(final_res),]
+  return(final_res)
+}
+
+getCT <- function(name) {
+ for(env in sys.frames()){
+   if (exists(name, env)) {
+     return(get(name, env))
+   }
+ }
+
+ stop(paste(name, "not defined"))
+ #    return(NULL)
+}
+
+getCTR <- function(name) {
+  for(env in sys.frames()){
+    if (exists(name, env)) {
+      return(get(name, env))
+    }
+  }
+  
+  stop("When querying one single movie, please set trim_non_overlapping_ends=FALSE")
+  #    return(NULL)
+}
+
+get_movie_time_info <- function(movieDir){
+  
+  movieDb <- openMovieDb(movieDir)
+
+  time <- dbGetQuery(movieDb, "select * from frames")
+  cells <- dbGetQuery(movieDb, "select frame from cells") %>% summarise(maxFrame=max(frame))
+  devTimeWithIntervals <- time[-nrow(time),] %>% 
+    mutate(timeInt_sec=diff(time$time_sec),
+           movie=basename(movieDir)) %>% 
+    filter(frame<=cells$maxFrame) %>%
+    add_dev_time()
+  
+  dbDisconnect(movieDb)
+  
+  return(devTimeWithIntervals)
+}
+
+get_common_time_range <- function(movieDirectories){
+  
+  pooledTimeInfo <- ldply(movieDirectories, function(movieDir){
+    get_movie_time_info(movieDir)
+  })
+
+  timeSummary <- pooledTimeInfo %>%
+    group_by(movie) %>%
+    summarise(starts=min(dev_time), ends=max(dev_time), minIntervals_sec=min(timeInt_sec)) %>% ungroup() %>% 
+    summarise(start=max(starts), end=min(ends), minInterval_sec=min(minIntervals_sec))
+}
+
+multi_db_query_sync <- function(movieDirectories, queryFun=mqf_cg_roi_cell_count, ...){
+  ## todo get hash of range and function and cache the results somewhere
+  #    require.auto(foreach); require.auto(doMC); registerDoMC(cores=6)
+  
+  # Description: query multiple databases and aggregate data into a dataframe
+  # Usage: in combination with mqf_* functions, ex: multi_db_query(movieDirs, mqf_cg_roi_cell_count, selectedRois)
+  # Arguments: movieDirs = list of paths to a given movie folder, 
+  #            queryFun = the definition of a query function to apply,
+  #            selectedRois = the user-defined ROIs (all ROIs by default)
+
+  # Always calculate common time range even if not needed (only needed if trim_non_overlapping_ends is TRUE)
+  commonTimeRange <- get_common_time_range(movieDirectories)
+  message("Overlapping time range:")
+  print(commonTimeRange)
+ 
+  queryResults <- ldply(movieDirectories, function(movieDir){
+    
+    results <- queryFun(movieDir, ...)
+    return(results)
+
+  }, .progress="text", .parallel=F, .inform=T)
+  
+  return(queryResults)
+}
+
+mqf_cg_roi_rate_shear <- function(movieDir, rois=c("whole_tissue"), interpol_interval_sec="none", interpol_method="linear", smooth_time_window_size_sec="default", trim_non_overlapping_ends=F){
+  
+  # Description: compute the pure shear deformation of the tissue and its cellular contributions per frame, in ROIs
+  # Usage: mqf_cg_roi_rate_shear(movieDir)
+  # Arguments: movieDir = path to movie directory, rois = selected rois (all by default), interpol_interval_sec =  size of new intervals in seconds (=NA for no interpolation), smooth_time_window_size_sec = time over which to average
+  # Output: a dataframe
+  
+  # Display current movie name
+  message(paste("Movie:", basename(movieDir)))
+  
+  # Open database connection
+  movieDb <- openMovieDb(movieDir)
+  
+  # Get shear data for all ROIs
+  queryResult <- ldply(list.files(movieDir, "avgDeformTensorsLong.RData", full.names=TRUE, recursive=T), addRoiByDir) %>% 
+    filter(!tensor %in% c("Q","av_u_kk_q","av_U_kk_Q","av_j","J","u"))
+  
+  # Case of no ROI selection (rois=c()), pick up all available ROIs
+  if(length(rois)==0) rois = unique(queryResult$roi)
+
+  # Shear tensors by user-selected ROI with time_sec, timeInt_sec and calculate rates
+  ShearRateByRoi <- filter(queryResult, roi %in% rois) %>%
+    addTimeFunc(movieDb, .) %>%
+    arrange(frame) %>%
+    # Calculate rate of shear in per hour
+    group_by(roi, tensor) %>%
+    mutate(xx_rate_hr = xx/(timeInt_sec/3600),
+           xy_rate_hr = xy/(timeInt_sec/3600)) %>% ungroup() %>% mutate(movie=basename(movieDir)) %>% add_dev_time()
+  
+  # Trim time-sequence if trim_non_overlapping_ends is TRUE: make senses only for multi-movie comparison
+  if (trim_non_overlapping_ends){
+    commonTimeRange <- getCTR("commonTimeRange")
+    ShearRateByRoi %<>% filter(dev_time>commonTimeRange$start & dev_time<commonTimeRange$end)
+    dev_time_range <- c(commonTimeRange$start, commonTimeRange$end)
+    } else {dev_time_range <- c(min(ShearRateByRoi$dev_time), max(ShearRateByRoi$dev_time))}
+  
+  # Set default interpolation time interval: 1/10 of the real smallest time interval
+  if (interpol_interval_sec=="default") {
+    interpol_interval_sec <- round(0.1*min(ShearRateByRoi$timeInt_sec))
+  }
+
+  # Set default time window size for smoothing: over at least 2 time intervals of the original data (without interpolation)
+  if (smooth_time_window_size_sec=="default") {
+    smooth_time_window_size_sec=2*min(ShearRateByRoi$timeInt_sec)
+  }
+  
+  # Case with interpolation
+  if (interpol_interval_sec != "none") {
+    # Interpolate data
+    ShearRateInterpolByRoi <- ShearRateByRoi %>% 
+      # interpolate(x_colname = "time_sec", y_colnames = c("xx_rate_hr", "xy_rate_hr", "dev_time"), interpolationGroup = c("roi", "tensor"), delta_x = interpol_interval_sec, method = interpol_method) %>%
+      interpolate(x_colname = "dev_time", y_colnames = c("xx_rate_hr", "xy_rate_hr"), interpolationGroup = c("roi", "tensor"), delta_x = interpol_interval_sec/3600, x_range = dev_time_range, method = interpol_method) %>%
+      # assign movie name and timeInt_sec that were lost when interpolating
+      group_by(roi, tensor) %>%
+      mutate(movie=basename(movieDir), timeInt_hr=c(diff(dev_time),NA))
+ 
+    # Calculate optimal kernel size for smoothing
+    kernSize <- round(smooth_time_window_size_sec/(3600*ShearRateInterpolByRoi$timeInt_hr[1])); if(kernSize%%2==0) { kernSize <- kernSize+1 }
+    print(paste("Moving window kernel size =", kernSize))
+  
+    # Apply smoothing
+    ShearRateSmoothedByRoi <- ShearRateInterpolByRoi %>%
+      group_by(roi, tensor) %>%
+      mutate(xx_rate_hr.ma=ma(xx_rate_hr, kernSize),
+             xy_rate_hr.ma=ma(xy_rate_hr, kernSize)) %>% 
+      # calculate cumsum shear using non-averaged shear rate
+      mutate(xx_cumsum=cumsum(xx_rate_hr*timeInt_hr),
+             xy_cumsum=cumsum(xy_rate_hr*timeInt_hr)) %>%
+      # shift cumsum values to the right part of the time interval allowing to start from 0
+      arrange(dev_time) %>%
+      mutate(xx_cumsum=c(0, xx_cumsum[-length(xx_cumsum)]),
+             xy_cumsum=c(0, xy_cumsum[-length(xy_cumsum)])) %>%
+      ungroup() %>%
+      # calculate the phi angle and norm of nematics
+      mutate(phi=mod2pi(0.5*(atan2(xy_rate_hr.ma, xx_rate_hr.ma))), 
+             norm= sqrt(xx_rate_hr.ma^2+xy_rate_hr.ma^2)) %>%
+      select(c(movie, roi, tensor, dev_time, xx_rate_hr.ma, xy_rate_hr.ma, phi, norm, xx_cumsum, xy_cumsum)) 
+    
+  }
+  
+  # Case without interpolation
+  else {
+    # Calculate optimal kernel size for smoothing
+    kernSize <- round(smooth_time_window_size_sec/min(ShearRateByRoi$timeInt_sec)); if(kernSize%%2==0) { kernSize <- kernSize+1 }
+    print(paste("Moving window kernel size =", kernSize))
+      
+    # Apply smoothing
+    ShearRateSmoothedByRoi <- ShearRateByRoi %>% 
+      group_by(roi, tensor) %>%
+      mutate(xx_rate_hr.ma=ma(xx_rate_hr, kernSize),
+             xy_rate_hr.ma=ma(xy_rate_hr, kernSize),
+             time_sec=ma(time_sec, kernSize)) %>% 
+      # calculate cumsum shear using non-averaged shear rate
+      mutate(xx_cumsum=cumsum(xx_rate_hr*(timeInt_sec/3600)),
+             xy_cumsum=cumsum(xy_rate_hr*(timeInt_sec/3600))) %>%
+      # shift cumsum values to the right part of the time interval allowing to start from 0
+      arrange(dev_time) %>%
+      mutate(xx_cumsum=c(0, xx_cumsum[-length(xx_cumsum)]),
+             xy_cumsum=c(0, xy_cumsum[-length(xy_cumsum)])) %>%
+      ungroup() %>%
+      # calculate the phi angle and norm of nematics
+      mutate(phi=mod2pi(0.5*(atan2(xy_rate_hr.ma, xx_rate_hr.ma))), 
+             norm= sqrt(xx_rate_hr.ma^2+xy_rate_hr.ma^2)) %>%
+      select(c(movie, roi, tensor, frame, dev_time, xx_rate_hr.ma, xy_rate_hr.ma, phi, norm, xx_cumsum, xy_cumsum))
+  }
+  
+  dbDisconnect(movieDb)
+  
+  return(ShearRateSmoothedByRoi)
+}
+
+
+plotshearrate <- function(shearData){
+  ggplot(shearData, aes(dev_time,xx_rate_hr.ma*100, color=tensor)) +
+    geom_line(alpha=0.8) +
+    xlab("Time [hAPF]")+
+    scale_x_continuous(breaks=seq(16,36, 2),limits=c(15,32)) +
+    scale_y_continuous(breaks=seq(-6,10, 2),limits=c(-7,10)) +
+    ylab(expression(paste("shear rate xx [",10^-2,h^-1,"]"))) +
+    scale_color_manual(values=c(shearColors, "crc"="pink", "cagc"="lightgreen", "ct"="grey","J"="grey", "CEwithCT"="darkgreen", "av_total_shear"="blue","nu"="blue",
+                                "ShearT1"="red", "ShearT2"="turquoise", "ShearCD"="orange", "correlationEffects"="magenta")) +
+    facet_grid(movie~roi) +
+    ggtitle("shear_rate_decomposition")
+  
+}
+
+plotshearcumsum  <- function(shearData){
+  ggplot(shearData, aes(dev_time,xx_cumsum, color=tensor)) +
+    geom_line(alpha=0.8) +
+    xlab("Time [hAPF]")+
+    scale_x_continuous(breaks=seq(16,36, 2),limits=c(15,36)) +
+    # scale_y_continuous(breaks=seq(-6,10, 2),limits=c(-2,2)) +
+    ylab(expression(paste("shear cumusm xx "))) +
+    scale_color_manual(values=c(shearColors, "crc"="pink", "cagc"="lightgreen", "ct"="grey","J"="grey", "CEwithCT"="darkgreen", "av_total_shear"="blue","nu"="blue",
+                                "ShearT1"="red", "ShearT2"="turquoise", "ShearCD"="orange", "correlationEffects"="magenta")) +
+    facet_grid(movie~roi) +
+    ggtitle("cumsum_shear_decomposition")
+  
+}
+
+#### DEbugging new multiquery function ####
+if(F){
+  movieDbBaseDir="/home/rstudio/data/movieSegmentation"
+  movieDirs <- file.path(movieDbBaseDir, c("WT_25deg_111102","WT_25deg_111103","WT_25deg_120531"))
+  
+  
+  multi_db_query_sync(movieDirs, mqf_cg_roi_rate_shear,c("blade"),interpol_interval_sec=26.84, interpol_method="linear", smooth_time_window_size_sec=3000, trim_non_overlapping_ends=T) %>% 
+    print_head() -> df 
+
+  df %>% plotshearrate()
+  df %>% plotshearcumsum()
+  
+  multi_db_query_sync(movieDirs, mqf_cg_roi_rate_shear,c("blade"),interpol_interval_sec="none", interpol_method="linear", smooth_time_window_size_sec=3000, trim_non_overlapping_ends=T) %>% 
+    print_head() -> df 
+  
+  df %>% plotshearrate()
+  df %>% plotshearcumsum()
+  
+  
+  multi_db_query_sync(movieDirs, mqf_cg_roi_rate_shear, c("blade"), interpol_interval_sec="none", interpol_method="linear", smooth_time_window_size_sec=0, trim_non_overlapping_ends=F) %>% 
+    print_head() -> df 
+  df %>% plotshearrate()
+  df %>% plotshearcumsum()
+  
+  multi_db_query_sync(movieDirs, mqf_cg_roi_rate_shear, c("blade"), interpol_interval_sec="none", interpol_method="linear", smooth_time_window_size_sec=3000, trim_non_overlapping_ends=F) %>% 
+    print_head() -> df 
+  df %>% plotshearrate()
+  df %>% plotshearcumsum()
+  
+  multi_db_query_sync(movieDirs, mqf_cg_roi_rate_shear, c("blade"), interpol_interval_sec="default", interpol_method="linear", smooth_time_window_size_sec=3000, trim_non_overlapping_ends=F) %>% 
+    print_head() -> df 
+  df %>% plotshearrate()
+  df %>% plotshearcumsum()
+  
+  multi_db_query_sync(movieDirs, mqf_cg_roi_rate_shear, c("blade"), interpol_interval_sec=26.84, interpol_method="linear", smooth_time_window_size_sec=3000, trim_non_overlapping_ends=F) %>% 
+    print_head() -> df 
+  df %>% plotshearrate()
+  df %>% plotshearcumsum()
+  
+  multi_db_query_sync(movieDirs, mqf_cg_roi_rate_shear, c("blade"), interpol_interval_sec=26.84, interpol_method="linear", smooth_time_window_size_sec=3000, trim_non_overlapping_ends=T) %>% 
+    print_head() -> df 
+  df %>% plotshearrate()
+  df %>% plotshearcumsum()
+  
+  multi_db_query_sync(movieDirs, mqf_cg_roi_rate_shear, c("blade"), interpol_interval_sec="none", interpol_method="linear", smooth_time_window_size_sec=3000, trim_non_overlapping_ends=T) %>% 
+    print_head() -> df
+  df %>% plotshearrate()
+  df %>% plotshearcumsum()
+  
+  multi_db_query_sync(movieDirs, mqf_cg_roi_rate_shear, c("blade"), interpol_interval_sec="default", interpol_method="linear", smooth_time_window_size_sec=3000, trim_non_overlapping_ends=T) %>% 
+    print_head() -> df 
+  df %>% plotshearrate()
+  df %>% plotshearcumsum()
+  
+ 
+  
+  mqf_cg_roi_rate_shear(file.path(movieDbBaseDir, c("WT_25deg_111102")), c(), interpol_interval_sec="default", interpol_method="linear", smooth_time_window_size_sec=3000, trim_non_overlapping_ends=F) %>%
+    print_head() -> df 
+  df %>% plotshearrate()
+  df %>% plotshearcumsum()
+  
+}
+#### Debugging: extract shear data from a single movie and show rate and cumsum ####
 if(F){
 movieDbBaseDir="/home/rstudio/data/movieSegmentation"
 movieDirs <- file.path(movieDbBaseDir, c("WT_25deg_111102"))
@@ -324,8 +521,8 @@ MarkoShear <- bind_rows(Marko111102blade,Marko140222blade) %>%
          tensor=ifelse(tensor=="shear_cell_division", "ShearCD", tensor)) %>% print_head()
 
 
-RaphaShear <- multi_db_query(movieDirs, mqf_cg_roi_rate_shear, c("blade"), interpol_interval_sec="none", interpol_method="linear", smooth_time_window_size_sec=3100) %>% 
-  select(c(movie, roi, frame, tensor, xx, xy)) %>% filter(tensor %in% c("cagc","crc","J","av_total_shear","ShearCE", "ShearT2","ShearT1","ShearCD", "sumContrib")) %>%
+RaphaShear <- multi_db_query(movieDirs, mqf_cg_roi_rate_shear, c("blade"), interpol_interval_sec="none", interpol_method="linear", smooth_time_window_size_sec=600) %>% 
+  select(c(movie, roi, frame, tensor, xx, xy)) %>% filter(tensor %in% c("cagc","crc","J","av_total_shear","ShearCE", "ShearT2","ShearT1","ShearCD", "sumContrib", "check")) %>%
   mutate(owner="rapha") %>% print_head() 
   
 shearComparison <- bind_rows(MarkoShear, RaphaShear) %>% print_head()
@@ -472,3 +669,4 @@ ggplot(shearRateSlim, aes(dev_time,xx.ma*100, color=tensor)) +
   facet_wrap(movie~roi) +
   ggtitle("shear decomposition old mqf")
 }
+
