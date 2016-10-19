@@ -184,11 +184,11 @@ intervalNb <- 100
 maxFrame <-max(firstInt$frame)
 
 # Reshape triangle coordinates from long to wide format for intermediates i1 and i2
-firstIntermWide <- firstInt %>% tbl_dt() %>%
+firstIntermWide <- firstInt %>% #tbl_dt() %>%
   gather(key =  coord, value = value, c(center_x, center_y)) %>% arrange(frame,tri_id) %>%
   dcast(frame+tri_id~coord+tri_order) %>% arrange(frame,tri_id) 
 
-sndIntermWide <- sndInt %>% tbl_dt() %>%
+sndIntermWide <- sndInt %>% #tbl_dt() %>%
   gather(key =  coord, value = value, c(center_x, center_y)) %>% arrange(frame,tri_id) %>% 
   dcast(frame+tri_id~coord+tri_order) %>% arrange(frame,tri_id) 
 
@@ -342,12 +342,14 @@ options(stringsAsFactors=F)
 
 # Before melting, combine corotational term with CE, and crc with cagc
 avgDeformTensorsWide <- mutate(avgDeformTensorsWide, 
-                                  correlationEffects_xx=cagc_xx+crc_xx,
-                                  correlationEffects_xy=cagc_xy+crc_xy,
-                                  CEwithCT_xx=ShearCE_xx+J_xx,
-                                  CEwithCT_xy=ShearCE_xy+J_xy,
-                                  sumContrib_xx=correlationEffects_xx+CEwithCT_xx+ShearT1_xx+ShearT2_xx+ShearCD_xx,
-                                  sumContrib_xy=correlationEffects_xy+CEwithCT_xy+ShearT1_xy+ShearT2_xy+ShearCD_xy)
+                               correlationEffects_xx=cagc_xx+crc_xx,
+                               correlationEffects_xy=cagc_xy+crc_xy,
+                               CEwithCT_xx=ShearCE_xx+J_xx,
+                               CEwithCT_xy=ShearCE_xy+J_xy,
+                               sumContrib_xx=correlationEffects_xx+CEwithCT_xx+ShearT1_xx+ShearT2_xx+ShearCD_xx,
+                               sumContrib_xy=correlationEffects_xy+CEwithCT_xy+ShearT1_xy+ShearT2_xy+ShearCD_xy,
+                               check_xx=av_total_shear_xx-sumContrib_xx,
+                               check_xy=av_total_shear_xy-sumContrib_xy)
 
 avgDeformTensorsLong <- melt(avgDeformTensorsWide, id.vars=c("frame")) %>%
   group_by(variable) %>%
