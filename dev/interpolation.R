@@ -115,7 +115,7 @@ interpolate <- function(df, x_colname, y_colnames, interpolationGroup, delta_x, 
   }  
   
   # keep complete cases, namely discard NAs that may occur when interpolating outside of the data range
-  final_res <- final_res[complete.cases(final_res),]
+  # final_res <- final_res[complete.cases(final_res),]
   return(final_res)
 }
 
@@ -145,8 +145,11 @@ get_movie_time_info <- function(movieDir){
   
   movieDb <- openMovieDb(movieDir)
 
+  # Query frame and time
   time <- dbGetQuery(movieDb, "select * from frames")
-  cells <- dbGetQuery(movieDb, "select frame from cells") %>% summarise(maxFrame=max(frame))
+  
+  # Identify the max frame containing cells and select one before because interval quantities are assinge to the left part of the interval
+  cells <- dbGetQuery(movieDb, "select frame from cells") %>% summarise(maxFrame=max(frame)-1)
   devTimeWithIntervals <- time[-nrow(time),] %>% 
     mutate(timeInt_sec=diff(time$time_sec),
            movie=basename(movieDir)) %>% 
@@ -195,7 +198,7 @@ multi_db_query_sync <- function(movieDirectories, queryFun=mqf_cg_roi_cell_count
   return(queryResults)
 }
 
-mqf_cg_roi_rate_shear <- function(movieDir, rois=c("whole_tissue"), interpol_interval_sec="none", interpol_method="linear", smooth_time_window_size_sec="default", trim_non_overlapping_ends=F){
+mqf_cg_roi_rate_shear <- function(movieDir, rois=c("whole_tissue"), interpol_interval_sec="default", interpol_method="linear", smooth_time_window_size_sec="default", trim_non_overlapping_ends=F){
   
   # Description: compute the pure shear deformation of the tissue and its cellular contributions per frame, in ROIs
   # Usage: mqf_cg_roi_rate_shear(movieDir)
@@ -227,7 +230,7 @@ mqf_cg_roi_rate_shear <- function(movieDir, rois=c("whole_tissue"), interpol_int
   # Trim time-sequence if trim_non_overlapping_ends is TRUE: make senses only for multi-movie comparison
   if (trim_non_overlapping_ends){
     commonTimeRange <- getCTR("commonTimeRange")
-    ShearRateByRoi %<>% filter(dev_time>commonTimeRange$start & dev_time<commonTimeRange$end)
+    # ShearRateByRoi %<>% filter(dev_time>commonTimeRange$start & dev_time<commonTimeRange$end)
     dev_time_range <- c(commonTimeRange$start, commonTimeRange$end)
     } else {dev_time_range <- c(min(ShearRateByRoi$dev_time), max(ShearRateByRoi$dev_time))}
   
@@ -346,6 +349,41 @@ if(F){
 
   df %>% plotshearrate()
   df %>% plotshearcumsum()
+  
+  comparison <- df %>% group_by(roi, tensor, dev_time) %>%
+    summarise(xx_rate_hr.avg=mean(xx_rate_hr.ma),
+              xx_rate_hr.sd=sd(xx_rate_hr.ma),
+              xx_cumsum.avg=mean(xx_cumsum),
+              xx_cumsum.sd=sd(xx_cumsum)) %>% print_head()
+  
+
+  ggplot(comparison, aes(dev_time,xx_rate_hr.avg, color=tensor)) +
+    geom_line() + 
+    geom_ribbon(aes(ymin=(xx_rate_hr.avg-xx_rate_hr.sd), ymax=(xx_rate_hr.avg+xx_rate_hr.sd), fill=tensor),
+                alpha=0.2, linetype="blank", size=0.2) +
+    xlab("Time [hAPF]")+
+    scale_x_continuous(breaks=seq(16,36, 2),limits=c(16,34)) +
+    ylab(expression(paste("cumulative PD shear"))) +
+    scale_color_manual(values=c(shearColors, "crc"="pink", "cagc"="lightgreen", "ct"="grey","J"="grey", "CEwithCT"="darkgreen", "av_total_shear"="blue","nu"="blue",
+                                "ShearT1"="red", "ShearT2"="turquoise", "ShearCD"="orange", "correlationEffects"="magenta")) +
+    scale_fill_manual(values=c(shearColors, "crc"="pink", "cagc"="lightgreen", "ct"="grey","J"="grey", "CEwithCT"="darkgreen", "av_total_shear"="blue","nu"="blue",
+                               "ShearT1"="red", "ShearT2"="turquoise", "ShearCD"="orange", "correlationEffects"="magenta")) +
+    facet_wrap(~roi) +
+    ggtitle("AVG shear decomposition")
+  
+  ggplot(comparison, aes(dev_time,xx_cumsum.avg, color=tensor)) +
+    geom_line() + 
+    geom_ribbon(aes(ymin=(xx_cumsum.avg-xx_cumsum.sd), ymax=(xx_cumsum.avg+xx_cumsum.sd), fill=tensor),
+                alpha=0.2, linetype="blank", size=0.2) +
+    xlab("Time [hAPF]")+
+    scale_x_continuous(breaks=seq(16,36, 2),limits=c(16,34)) +
+    ylab(expression(paste("cumulative PD shear"))) +
+    scale_color_manual(values=c(shearColors, "crc"="pink", "cagc"="lightgreen", "ct"="grey","J"="grey", "CEwithCT"="darkgreen", "av_total_shear"="blue","nu"="blue",
+                                "ShearT1"="red", "ShearT2"="turquoise", "ShearCD"="orange", "correlationEffects"="magenta")) +
+    scale_fill_manual(values=c(shearColors, "crc"="pink", "cagc"="lightgreen", "ct"="grey","J"="grey", "CEwithCT"="darkgreen", "av_total_shear"="blue","nu"="blue",
+                               "ShearT1"="red", "ShearT2"="turquoise", "ShearCD"="orange", "correlationEffects"="magenta")) +
+    facet_wrap(~roi) +
+    ggtitle("AVG cumsum shear decomposition")
   
   multi_db_query_sync(movieDirs, mqf_cg_roi_rate_shear,c("blade"),interpol_interval_sec="none", interpol_method="linear", smooth_time_window_size_sec=3000, trim_non_overlapping_ends=T) %>% 
     print_head() -> df 
