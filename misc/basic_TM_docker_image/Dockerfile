@@ -7,8 +7,8 @@ FROM ubuntu:14.04
 
 MAINTAINER "Raphael Etournay and Holger Brandl" brandl@mpi-cbg.de
 
-## update package list and install 
-RUN apt-get update && apt-get install -y curl git
+## security updates for ubuntu and install curl and git
+RUN apt-get update && apt-get upgrade && apt-get install -y curl git
 
 
 ## install dependencies without cloning the repository. This allows for a more efficient use of the docker build cache
