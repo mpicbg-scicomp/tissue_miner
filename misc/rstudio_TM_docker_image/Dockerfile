@@ -108,6 +108,9 @@ RUN apt-get clean \
 COPY userconf.sh /etc/cont-init.d/conf
 # Step 16
 COPY run_rstudio_server.sh /etc/services.d/rstudio/run
+
+#USER rstudio
+
 # Step 17
 COPY rocker_Renviron /home/rstudio/.Renviron
 # Step 18
@@ -116,22 +119,22 @@ COPY rocker_Rprofile /home/rstudio/.Rprofile
 # Step 19
 ## Install additional required R packages
 ## Install all required R packages
-RUN  /bin/bash -c "export TM_HOME='/tissue_miner'; /tissue_miner/Setup.R | tee ${TM_HOME}/.tm_install_rsetup.log" \
-	/bin/bash -c "export TM_HOME='/tissue_miner'; /tissue_miner/misc/rstudio_TM_docker_image/RstudioSetup.R | tee ${TM_HOME}/.tm_install_rstudio_setup.log"
+RUN  /bin/bash -c "export TM_HOME='/tissue_miner'; /tissue_miner/Setup.R" \
+	/bin/bash -c "export TM_HOME='/tissue_miner'; /tissue_miner/misc/rstudio_TM_docker_image/RstudioSetup.R"
 
 # Step 20
 # RUN ln -s /tissue_miner /home/rstudio/tissue_miner
-RUN chmod -R ugo+rwx /root
+# RUN chmod -R ugo+rwx /root
 
 # Step 21
 EXPOSE 8787
 
 
 ## also add .bash_profile to user home directory
-COPY docker_bash_profile.sh /.bash_profile
+COPY docker_bash_profile.sh /home/rstudio/.bash_profile
 
 ## Source .bash_profile when running the container
-COPY docker_entrypoint.sh /
+COPY docker_entrypoint.sh /home/rstudio/
 ENTRYPOINT ["/docker_entrypoint.sh"]
 
 # Step 22

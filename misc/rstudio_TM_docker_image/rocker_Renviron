@@ -4,4 +4,4 @@ TM_CONFIG="/tissue_miner/config/default_config.R"
 
 #.libPaths("/root/R/x86_64-pc-linux-gnu-library/3.2")
 #R_LIBS_SITE="/root/R/x86_64-pc-linux-gnu-library/3.2"
-R_LIBS_USER="/root/R/x86_64-pc-linux-gnu-library/3.3"
+#R_LIBS_USER="/root/R/x86_64-pc-linux-gnu-library/3.3"
