@@ -82,9 +82,9 @@ interpolate <- function(df, x_colname, y_colnames, interpolationGroup, delta_x, 
   dfSlim <- dfSlim[complete.cases(dfSlim),]
   
   # calculate corrected delta_x to keep an integer number of interpolation intervals in the imposed range
-  corrected_delta_x <- (x_range[2]-x_range[1])/ceiling((x_range[2]-x_range[1])/delta_x)
+  corrected_delta_x <- (x_range[2]-x_range[1])/round((x_range[2]-x_range[1])/delta_x)
   print(paste("Input delta_x:", round(delta_x, 10), "; Expected number of interpolation intervals:", (x_range[2]-x_range[1])/delta_x - 1))
-  print(paste("Corrected delta_x:", round(corrected_delta_x, 10), "; Number of interpolation intervals used:", ceiling((x_range[2]-x_range[1])/delta_x - 1)))
+  print(paste("Corrected delta_x:", round(corrected_delta_x, 10), "; Number of interpolation intervals used:", round((x_range[2]-x_range[1])/delta_x - 1)))
   
   
   for (ycol in y_colnames) {
@@ -173,7 +173,7 @@ get_common_time_range <- function(movieDirectories){
     summarise(start=max(starts), end=min(ends), minInterval_sec=min(minIntervals_sec))
 }
 
-multi_db_query_sync <- function(movieDirectories, queryFun=mqf_cg_roi_cell_count, ...){
+multi_db_query <- function(movieDirectories, queryFun=mqf_cg_roi_cell_count, ...){
   ## todo get hash of range and function and cache the results somewhere
   #    require.auto(foreach); require.auto(doMC); registerDoMC(cores=6)
   
@@ -213,7 +213,7 @@ mqf_cg_roi_rate_shear <- function(movieDir, rois=c("whole_tissue"), interpol_int
   
   # Get shear data for all ROIs
   queryResult <- ldply(list.files(movieDir, "avgDeformTensorsLong.RData", full.names=TRUE, recursive=T), addRoiByDir) %>% 
-    filter(!tensor %in% c("Q","av_u_kk_q","av_U_kk_Q","av_j","J","u"))
+    filter(!tensor %in% c("Q","av_u_kk_q","av_U_kk_Q","av_j","u"))
   
   # Case of no ROI selection (rois=c()), pick up all available ROIs
   if(length(rois)==0) rois = unique(queryResult$roi)
@@ -301,7 +301,7 @@ mqf_cg_roi_rate_shear <- function(movieDir, rois=c("whole_tissue"), interpol_int
       # calculate the phi angle and norm of nematics
       mutate(phi=mod2pi(0.5*(atan2(xy_rate_hr.ma, xx_rate_hr.ma))), 
              norm= sqrt(xx_rate_hr.ma^2+xy_rate_hr.ma^2)) %>%
-      select(c(movie, roi, tensor, frame, dev_time, xx_rate_hr.ma, xy_rate_hr.ma, phi, norm, xx_cumsum, xy_cumsum))
+      select(c(movie, roi, tensor, frame, dev_time, xx, xy, xx_rate_hr.ma, xy_rate_hr.ma, phi, norm, xx_cumsum, xy_cumsum))
   }
   
   dbDisconnect(movieDb)
@@ -332,7 +332,9 @@ plotshearcumsum  <- function(shearData){
     # scale_y_continuous(breaks=seq(-6,10, 2),limits=c(-2,2)) +
     ylab(expression(paste("shear cumusm xx "))) +
     scale_color_manual(values=c(shearColors, "crc"="pink", "cagc"="lightgreen", "ct"="grey","J"="grey", "CEwithCT"="darkgreen", "av_total_shear"="blue","nu"="blue",
-                                "ShearT1"="red", "ShearT2"="turquoise", "ShearCD"="orange", "correlationEffects"="magenta")) +
+                                "ShearT1"="red", "ShearT2"="turquoise", "ShearCD"="orange", "correlationEffects"="magenta", "sumContrib"="yellow")) +
+    # scale_linetype_manual(values=c("crc"="pink", "cagc"="lightgreen", "ct"="grey","J"="grey", "CEwithCT"="darkgreen", "av_total_shear"="blue","nu"="blue",
+    #                                "ShearT1"="red", "ShearT2"="turquoise", "ShearCD"="orange", "correlationEffects"="magenta", "sumContrib"="yellow")) +
     facet_grid(movie~roi) +
     ggtitle("cumsum_shear_decomposition")
   
@@ -343,12 +345,21 @@ if(F){
   movieDbBaseDir="/home/rstudio/data/movieSegmentation"
   movieDirs <- file.path(movieDbBaseDir, c("WT_25deg_111102","WT_25deg_111103","WT_25deg_120531"))
   
+  # Cumshear for 111102 only
+  mqf_cg_roi_rate_shear(file.path(movieDbBaseDir, c("WT_25deg_111102")), c("blade"), interpol_interval_sec=26.84, interpol_method="linear", smooth_time_window_size_sec=3060, trim_non_overlapping_ends=F) %>%
+    print_head() -> df 
+  df %>% plotshearrate()
+  df %>% plotshearcumsum()
   
-  multi_db_query_sync(movieDirs, mqf_cg_roi_rate_shear,c("blade"),interpol_interval_sec=26.84, interpol_method="linear", smooth_time_window_size_sec=3000, trim_non_overlapping_ends=T) %>% 
+  # Cumshear for 3 aligned WT 
+  multi_db_query(movieDirs, mqf_cg_roi_rate_shear,c("blade"),interpol_interval_sec=26.84, interpol_method="linear", smooth_time_window_size_sec=3000, trim_non_overlapping_ends=T) %>% 
     print_head() -> df 
 
   df %>% plotshearrate()
   df %>% plotshearcumsum()
+  setwd("~/data/Dropbox/DropBox_Jacques/")
+  ggsave2(height=7, width = 7, outputFormat = "pdf")
+  
   
   comparison <- df %>% group_by(roi, tensor, dev_time) %>%
     summarise(xx_rate_hr.avg=mean(xx_rate_hr.ma),
@@ -370,6 +381,8 @@ if(F){
                                "ShearT1"="red", "ShearT2"="turquoise", "ShearCD"="orange", "correlationEffects"="magenta")) +
     facet_wrap(~roi) +
     ggtitle("AVG shear decomposition")
+  setwd("~/data/Dropbox/DropBox_Jacques/")
+  ggsave2(height=3, width = 7, outputFormat = "pdf")
   
   ggplot(comparison, aes(dev_time,xx_cumsum.avg, color=tensor)) +
     geom_line() + 
@@ -384,55 +397,54 @@ if(F){
                                "ShearT1"="red", "ShearT2"="turquoise", "ShearCD"="orange", "correlationEffects"="magenta")) +
     facet_wrap(~roi) +
     ggtitle("AVG cumsum shear decomposition")
+  setwd("~/data/Dropbox/DropBox_Jacques/")
+  ggsave2(height=3, width = 7, outputFormat = "pdf")
   
-  multi_db_query_sync(movieDirs, mqf_cg_roi_rate_shear,c("blade"),interpol_interval_sec="none", interpol_method="linear", smooth_time_window_size_sec=3000, trim_non_overlapping_ends=T) %>% 
+  multi_db_query(movieDirs, mqf_cg_roi_rate_shear,c("blade"),interpol_interval_sec="none", interpol_method="linear", smooth_time_window_size_sec=3000, trim_non_overlapping_ends=T) %>% 
     print_head() -> df 
   
   df %>% plotshearrate()
   df %>% plotshearcumsum()
   
   
-  multi_db_query_sync(movieDirs, mqf_cg_roi_rate_shear, c("blade"), interpol_interval_sec="none", interpol_method="linear", smooth_time_window_size_sec=0, trim_non_overlapping_ends=F) %>% 
+  multi_db_query(movieDirs, mqf_cg_roi_rate_shear, c("blade"), interpol_interval_sec="none", interpol_method="linear", smooth_time_window_size_sec=0, trim_non_overlapping_ends=F) %>% 
     print_head() -> df 
   df %>% plotshearrate()
   df %>% plotshearcumsum()
   
-  multi_db_query_sync(movieDirs, mqf_cg_roi_rate_shear, c("blade"), interpol_interval_sec="none", interpol_method="linear", smooth_time_window_size_sec=3000, trim_non_overlapping_ends=F) %>% 
+  multi_db_query(movieDirs, mqf_cg_roi_rate_shear, c("blade"), interpol_interval_sec="none", interpol_method="linear", smooth_time_window_size_sec=3000, trim_non_overlapping_ends=F) %>% 
     print_head() -> df 
   df %>% plotshearrate()
   df %>% plotshearcumsum()
   
-  multi_db_query_sync(movieDirs, mqf_cg_roi_rate_shear, c("blade"), interpol_interval_sec="default", interpol_method="linear", smooth_time_window_size_sec=3000, trim_non_overlapping_ends=F) %>% 
+  multi_db_query(movieDirs, mqf_cg_roi_rate_shear, c("blade"), interpol_interval_sec="default", interpol_method="linear", smooth_time_window_size_sec=3000, trim_non_overlapping_ends=F) %>% 
     print_head() -> df 
   df %>% plotshearrate()
   df %>% plotshearcumsum()
   
-  multi_db_query_sync(movieDirs, mqf_cg_roi_rate_shear, c("blade"), interpol_interval_sec=26.84, interpol_method="linear", smooth_time_window_size_sec=3000, trim_non_overlapping_ends=F) %>% 
+  multi_db_query(movieDirs, mqf_cg_roi_rate_shear, c("blade"), interpol_interval_sec=26.84, interpol_method="linear", smooth_time_window_size_sec=3000, trim_non_overlapping_ends=F) %>% 
     print_head() -> df 
   df %>% plotshearrate()
   df %>% plotshearcumsum()
   
-  multi_db_query_sync(movieDirs, mqf_cg_roi_rate_shear, c("blade"), interpol_interval_sec=26.84, interpol_method="linear", smooth_time_window_size_sec=3000, trim_non_overlapping_ends=T) %>% 
+  multi_db_query(movieDirs, mqf_cg_roi_rate_shear, c("blade"), interpol_interval_sec=26.84, interpol_method="linear", smooth_time_window_size_sec=3000, trim_non_overlapping_ends=T) %>% 
     print_head() -> df 
   df %>% plotshearrate()
   df %>% plotshearcumsum()
   
-  multi_db_query_sync(movieDirs, mqf_cg_roi_rate_shear, c("blade"), interpol_interval_sec="none", interpol_method="linear", smooth_time_window_size_sec=3000, trim_non_overlapping_ends=T) %>% 
+  multi_db_query(movieDirs, mqf_cg_roi_rate_shear, c("blade"), interpol_interval_sec="none", interpol_method="linear", smooth_time_window_size_sec=3000, trim_non_overlapping_ends=T) %>% 
     print_head() -> df
   df %>% plotshearrate()
   df %>% plotshearcumsum()
   
-  multi_db_query_sync(movieDirs, mqf_cg_roi_rate_shear, c("blade"), interpol_interval_sec="default", interpol_method="linear", smooth_time_window_size_sec=3000, trim_non_overlapping_ends=T) %>% 
+  multi_db_query(movieDirs, mqf_cg_roi_rate_shear, c("blade"), interpol_interval_sec="default", interpol_method="linear", smooth_time_window_size_sec=3000, trim_non_overlapping_ends=T) %>% 
     print_head() -> df 
   df %>% plotshearrate()
   df %>% plotshearcumsum()
   
  
   
-  mqf_cg_roi_rate_shear(file.path(movieDbBaseDir, c("WT_25deg_111102")), c(), interpol_interval_sec="default", interpol_method="linear", smooth_time_window_size_sec=3000, trim_non_overlapping_ends=F) %>%
-    print_head() -> df 
-  df %>% plotshearrate()
-  df %>% plotshearcumsum()
+ 
   
 }
 #### Debugging: extract shear data from a single movie and show rate and cumsum ####
@@ -559,11 +571,21 @@ MarkoShear <- bind_rows(Marko111102blade,Marko140222blade) %>%
          tensor=ifelse(tensor=="shear_cell_division", "ShearCD", tensor)) %>% print_head()
 
 
-RaphaShear <- multi_db_query(movieDirs, mqf_cg_roi_rate_shear, c("blade"), interpol_interval_sec="none", interpol_method="linear", smooth_time_window_size_sec=600) %>% 
-  select(c(movie, roi, frame, tensor, xx, xy)) %>% filter(tensor %in% c("cagc","crc","J","av_total_shear","ShearCE", "ShearT2","ShearT1","ShearCD", "sumContrib", "check")) %>%
-  mutate(owner="rapha") %>% print_head() 
-  
-shearComparison <- bind_rows(MarkoShear, RaphaShear) %>% print_head()
+# RaphaShear <- multi_db_query(movieDirs, mqf_cg_roi_rate_shear, c("blade"), interpol_interval_sec="none", interpol_method="linear", smooth_time_window_size_sec=0) %>% 
+#   select(c(movie, roi, frame, tensor, xx, xy)) %>% filter(tensor %in% c("cagc","crc","J","av_total_shear","ShearCE", "ShearT2","ShearT1","ShearCD", "sumContrib", "check")) %>%
+#   mutate(owner="rapha") %>% print_head() 
+
+RaphaShear <-  bind_rows(
+  locload("/home/rstudio/data/movieDebug/WT_25deg_111102/shear_contrib/blade/avgDeformTensorsLong.RData") %>%
+  mutate(movie="WT_25deg_111102"),
+locload("/home/rstudio/data/movieDebug/MTdp_25deg_140222/shear_contrib/blade/avgDeformTensorsLong.RData") %>%
+  mutate(movie="MTdp_25deg_140222")
+) %>% filter(tensor %in% c("cagc","crc","J","av_total_shear","ShearCE", "ShearT2","ShearT1","ShearCD", "sumContrib", "check")) %>%
+  mutate(owner="rapha", roi="blade") %>% print_head()
+
+ 
+shearComparison <- bind_rows(MarkoShear, RaphaShear) %>% print_head() 
+write.table(shearComparison, file="shearComparison.tsv", sep="\t", row.names=F, quote=F)
 
 shearDiff <- dt.merge(RaphaShear, MarkoShear, by = c("movie", "roi", "frame", "tensor"), suffixes = c(".rapha", ".marko")) %>% 
   mutate(xx.diff=abs(xx.rapha-xx.marko),
@@ -617,6 +639,16 @@ ggplot(shearDiff %>% filter(!tensor %in% interpolatedTensors), aes(xx.diff, fill
   scale_x_continuous(name="xx difference", labels = scientific) +
   facet_grid(tensor~movie, scales = "free_y") +
   ggtitle("06_xx_shear difference distribution for non-interpolated data")
+ggsave2(height=15, width = 10, outputFormat = "pdf")
+
+# Compare cumulated values
+shearComparison %>% group_by(owner, roi, movie, tensor) %>%
+  mutate(cumsum_xx=cumsum(xx)) %>% print_head() %>%
+  filter(tensor %in% interpolatedTensors) %>%
+  ggplot(aes(frame, cumsum_xx, color=owner)) + geom_line(alpha=0.6) +
+  facet_grid(tensor~movie) +
+  scale_color_manual(values=c("marko"="blue", "rapha"="red")) +
+  ggtitle("07_xx_shear_CUMSUM for interpolated data")
 ggsave2(height=15, width = 10, outputFormat = "pdf")
 
 
