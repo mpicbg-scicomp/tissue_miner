@@ -1,4 +1,4 @@
 #!/bin/bash
 set -e
 
-eval "source /.bash_profile; $@"
+eval "source /home/rstudio/.bash_profile; $@"
