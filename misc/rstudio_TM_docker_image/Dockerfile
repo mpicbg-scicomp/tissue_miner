@@ -21,7 +21,7 @@ RUN /bin/bash -c "source <(curl https://raw.githubusercontent.com/mpicbg-scicomp
 
 ## clone TM locally and compile the parser needed to convert TissueAnalyzer outputs into csv
 RUN mkdir /tissue_miner && git clone https://github.com/mpicbg-scicomp/tissue_miner /tissue_miner \
-	&& cd /tissue_miner/parser &&  make
+	&& cd /tissue_miner/parser && make
 
 
 ## Set up a rstudio user.
