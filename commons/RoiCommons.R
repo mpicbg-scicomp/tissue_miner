@@ -42,14 +42,14 @@ smooth_tissue <- function(overlayData, smooth_val, kernel_size=5, by=c("xGrid", 
     # DEBUG smooth_val="mac_in_range"
 
     ## create missing frames to avoid that we smooth over gaps in time
-    if(global_min_max){
+    if (global_min_max) {
         minMaxByElement <- overlayData %$% data.frame(frame=min(frame):max(frame)) %>%
             merge(select(overlayData %>% ungroup(), one_of(by)) %>% distinct(.keep_all =TRUE), by=NULL)
-    }else{
+    } else {
         minMaxByElement <- data.table(overlayData)[, list(frame=min(frame):max(frame)), by=by]
     }
 
-    timeContData <- full_join(minMaxByElement, overlayData, by=c(by, "frame"),  all.x=T, allow.cartesian=TRUE) %>% arrange(frame)
+    timeContData <- full_join(tbl_dt(minMaxByElement), tbl_dt(overlayData), by=c(by, "frame"),  all.x=T, allow.cartesian=TRUE) %>% arrange(frame)
 #    timeContData %>% filter(xGrid==testX, yGrid==testY)
 
 #    browser()
@@ -118,5 +118,5 @@ getBckndGridElements <- function(db, gridWitdh=movie_grid_size){
 
 ## this should be optional
 removeBckndGridOvlp <- function(dataWithRoiAndFrame, bckndGridElements){
-    anti_join(data.table(dataWithRoiAndFrame), data.table(bckndGridElements)) %>% as.df()
+    anti_join(tbl_dt(dataWithRoiAndFrame), tbl_dt(bckndGridElements)) %>% as.df()
 }
