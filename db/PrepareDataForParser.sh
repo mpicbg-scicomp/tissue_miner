@@ -36,19 +36,41 @@ movieName=$(basename $movieDbDir)
 
 segDataDir=$movieDbDir/Segmentation
 
+########################################################################################################################
+# Define number of CPUs on Linux or MacOSX OS (take half of CPU to avoid overload on MacOS)
+unamestr=$(uname)
+if [[ "$unamestr" == 'Linux' ]]; then
+   NB_CPU=$(echo $(grep -c processor /proc/cpuinfo) | bc)
+elif [[ "$unamestr" == 'Darwin' ]]; then
+   NB_CPU=$(echo $(/usr/sbin/system_profiler -detailLevel full SPHardwareDataType | awk '/Total Number of Cores/{print $5}')/2 | bc)
+fi
 
 ########################################################################################################################
 ## create original.png from tif or png time-lapse images as this is required for the parser, and not generated in TA anymore
-for originalIm in $(find $segDataDir -maxdepth 1 -name "$movieName*.[p,t][n,i][f,g]" | sort); do
+hash sem &> /dev/null
+if [ $? -eq 1 ]; then
+    for originalIm in $(find $segDataDir -maxdepth 1 -name "$movieName*.[p,t][n,i][f,g]" | sort); do
         # DEBUG originalPng=/lustre/projects/project-raphael/movie_dbs/testing/WT_25deg_111103/image_data/mutant/tag/segmentationData/frame0204/original.png
+		  file=$(basename $originalIm)		
+		  ext="${file##*.}"
+      pngOutput=$(dirname $originalIm)/${file%.$ext}/"original".png
+      echo "converting $originalIm -> $pngOutput ..."
+	    convert $originalIm -background "black" -type truecolor -colorspace RGB -define png:compression-level=9 $pngOutput
+    done
+else
+  for originalIm in $(find $segDataDir -maxdepth 1 -name "$movieName*.[p,t][n,i][f,g]" | sort); do
 		file=$(basename $originalIm)		
 		ext="${file##*.}"
-        pngOutput=$(dirname $originalIm)/${file%.$ext}/"original".png
-        echo "converting $originalIm -> $pngOutput ..."
-	#sem -j4 convert $originalIm -background "black" -type truecolor -colorspace RGB -define png:compression-level=9 $pngOutput
-	convert $originalIm -background "black" -type truecolor -colorspace RGB -define png:compression-level=9 $pngOutput
-    done
-#sem --wait
+    pngOutput=$(dirname $originalIm)/${file%.$ext}/"original".png
+    echo "converting $originalIm -> $pngOutput ..."
+	  sem -j$NB_CPU convert $originalIm -background "black" -type truecolor -colorspace RGB -define png:compression-level=9 $pngOutput
+  done
+  sem --wait
+fi
+
+
+
+
 
 
 ### create fake config file for parser NO ANYMORE NEEDED !!
