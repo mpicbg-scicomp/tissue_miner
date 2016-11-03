@@ -1,5 +1,5 @@
 ## Define where the working directory is located
-setwd("/home/rstudio/")
+# setwd("/home/rstudio/")
 
 
 
