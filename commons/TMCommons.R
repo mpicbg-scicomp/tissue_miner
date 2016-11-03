@@ -46,7 +46,7 @@ registerDoMC(cores=ifelse(isCluster, 5, ifelse(isEatonPC,6,3)));
 # require.auto(foreach); require.auto(doMC); registerDoMC(cores=20)
 
 require.auto(dplyr)
-#require.auto(dtplyr)
+require.auto(dtplyr)
 
 ## allows processing also on headless systems (like when running as cluster job)
 #options(device="png")
