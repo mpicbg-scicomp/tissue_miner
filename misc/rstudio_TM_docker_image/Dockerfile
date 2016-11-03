@@ -34,9 +34,7 @@ RUN useradd rstudio \
 
 
 ## Install additional required R packages and additional packages for Rstudio in rstudio user space (Rmd, etc...)
-RUN /bin/bash -c "export TM_HOME='/tissue_miner'; su rstudio -c /tissue_miner/Setup.R" \
-	/bin/bash -c "export TM_HOME='/tissue_miner'; su rstudio -c /tissue_miner/misc/rstudio_TM_docker_image/RstudioSetup.R
-
+RUN /bin/bash -c "export TM_HOME='/tissue_miner'; su rstudio -c /tissue_miner/Setup.R && /tissue_miner/misc/rstudio_TM_docker_image/RstudioSetup.R" 
 
 ## Set up R and bash environments
 COPY rocker_Renviron /home/rstudio/.Renviron
