@@ -394,17 +394,11 @@ print("")
 print("Querying the DB...")
 shearData <- mqf_cg_roi_rate_shear(movieDir, ROIlist)
 
-shearRateSlim <- subset(shearData, (tensor=="CEwithCT" | tensor=="correlationEffects" |
-                                      tensor=="nu" | tensor=="ShearT1" | 
-                                      tensor=="ShearT2" | tensor=="ShearCD"))
-shearRateSlim$tensor <- factor(shearRateSlim$tensor, 
-                               levels=c("ShearCD", "CEwithCT", "correlationEffects",
-                                        "nu", "ShearT1", "ShearT2"),
-                               labels=c("cell_division", "cell_elongation_change",
-                                        "correlation_effects","total_shear","T1", "T2"))
+shearRateSlim <- subset(shearData, (tensor %in% c("crc", "cagc", "CEwithCT", "av_total_shear","nu","ct","J",
+                                                  "ShearT1", "ShearT2", "ShearCD", "correlationEffects","sumContrib")))
 deltaT=30
 shearRateInterpolated <- shearRateSlim %>%
-  select(-c(xy,yx,yy,xy.ma,yx.ma,yy.ma, TimeInt.ma,
+  select(-c(xy,xy.ma, TimeInt.ma,
             phi, norm,time_sec,timeInt_sec,time_shift)) %>%
   mutate(min_dev_time=min(dev_time),
          max_dev_time=max(dev_time)) %>% 
