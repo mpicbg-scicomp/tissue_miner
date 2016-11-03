@@ -20,7 +20,10 @@ if((length(argv) < 2) | (length(argv) > 3)){
   print(ROIlist)
 }
 
-
+scriptsDir=Sys.getenv("TM_HOME")
+if(is.na(file.info(scriptsDir)$isdir)){
+  stop(paste("TM_HOME not correctly defined (",scriptsDir ,")"))
+}
 
 source(file.path(scriptsDir, "commons/TMCommons.R"))
 source(file.path(scriptsDir, "commons/BaseQueryFunctions.R"))
