@@ -62,7 +62,7 @@ require.auto(svglite)
 ### quit R restart and run
 
 sessionInfo()
-writeLines(capture.output(sessionInfo()), ".tm_setup_sessionInfo.txt")
+#writeLines(capture.output(sessionInfo()), ".tm_setup_sessionInfo.txt")
 
 #R version 3.2.2 (2015-08-14)
 #Platform: x86_64-pc-linux-gnu (64-bit)
