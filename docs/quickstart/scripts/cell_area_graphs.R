@@ -4,7 +4,6 @@ argv = commandArgs(TRUE)
 if((length(argv) < 2) | (length(argv) > 3)){
   stop("Usage: cell_area_graphs.R <movie_db_directory> <output_directory> <'ROI list in quotes'>")
 }else{
-  if(argv[1]==".") argv[1] <- Sys.getenv("PWD")
   movieDir=normalizePath(argv[1])
   if(is.na(file.info(movieDir)$isdir)) stop(paste("movie directory does not exist"))
   print(movieDir)
