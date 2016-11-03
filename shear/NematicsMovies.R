@@ -137,7 +137,35 @@ shearByCE <- merge(Qcg_t, transform(Qcg_t, frame=frame-1), by=c("frame", "xGrid"
 echo("calculate total pure shear...")
 ## calculate total pure shear contrib
 
-dQtot <- local(get(load(file.path(movieDir, "shear_contrib/whole_tissue/dQtot.RData"))))
+# dQtot <- local(get(load(file.path(movieDir, "shear_contrib/whole_tissue/Ta_i1.RData"))))
+
+dQtot <- dt.merge(locload(file.path(movieDir, "shear_contrib/whole_tissue/Ta_i1.RData")), locload(file.path(movieDir, "shear_contrib/whole_tissue/Ta_i2.RData")), by="tri_id", suffixes=c(".i1", ".i2"))
+names(dQtot) <- str_replace(names(dQtot), "^ta_", "")
+
+## Fine-grained total shear: Let's define Tu, the affine transformation that describes deformation
+##  calculate matrix product component wise and get norm and angle of the symmetric traceless part (nematic) of Tu
+dQtot <- mutate(dQtot,
+                denominator=-1*xy.i1*yx.i1 + xx.i1*yy.i1,
+                tu_xx= (-1*xy.i2*yx.i1 + xx.i2*yy.i1)/denominator,
+                tu_xy= (xy.i2*xx.i1 - xx.i2*xy.i1)/denominator,
+                tu_yx= (-1*yy.i2*yx.i1 + yx.i2*yy.i1)/denominator,
+                tu_yy= (yy.i2*xx.i1 - yx.i2*xy.i1)/denominator,
+                
+                ## calculate anisotropic part: total Pure shear Nu for each triangle
+                nu_xx=0.5*(tu_xx-tu_yy),
+                nu_xy=0.5*(tu_xy+tu_yx), # also in of diagonal of whole symmetric part
+                
+                ## Calulate component of total shear
+                s_a.tu       = 0.5*log(tu_xx*tu_yy-tu_xy*tu_yx),         ## scaling
+                theta_a.tu   = atan2(tu_yx-tu_xy, tu_xx+tu_yy),          ## rotation
+                two_phi_a.tu = mod2pi(theta_a.tu+atan2(tu_xy+tu_yx, tu_xx-tu_yy)),  ## shear axis (aka orientation of nematic)
+                Q_a.tu       = asinh(0.5 * sqrt((tu_xx-tu_yy)^2 + (tu_xy+tu_yx)^2) / exp(s_a.tu))   ## norm of Q_a/amount of the pure shear
+)
+
+## remove unused columns
+# Note: the tri_id of dQtot refer to time t as tri_id are then artificially propagted to build second intermediate
+dQtot <- subset(dQtot, select=!str_detect(names(dQtot), "(yx|xx|xy|yy)[.]"))
+
 dQtotCG <- dQtot %>%
     dt.merge(baseTriCenters) %>%
     coarseGrid(gridSize)
