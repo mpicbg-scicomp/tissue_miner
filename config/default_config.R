@@ -55,7 +55,18 @@ shearColors <- c(
   "cell_division"="orange",
   "correlation_effects"="magenta",
   "sum_contrib"="salmon",
-  "check"="yellow")
+  "check"="yellow",
+  "crc"="pink", "cagc"="lightgreen",
+  "ct"="grey",
+  "J"="grey",
+  "CEwithCT"="darkgreen",
+  "av_total_shear"="blue",
+  "nu"="blue",
+  "ShearT1"="red",
+  "ShearT2"="turquoise",
+  "ShearCD"="orange",
+  "correlationEffects"="magenta",
+  "sumContrib"="salmon")
 
 
 ## polygon class

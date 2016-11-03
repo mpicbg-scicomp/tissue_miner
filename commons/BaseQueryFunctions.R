@@ -916,8 +916,8 @@ mqf_cg_roi_rate_shear <- function(movieDir, rois=c(), kernSize=11){
   # browser()
   ShearRateByRoi <- as.df(data.table(pooledShear)[, ":=" (xx.ma=ma(xx, kernSize)/(ma(timeInt_sec, kernSize)/3600),
                                                           xy.ma=ma(xy, kernSize)/(ma(timeInt_sec, kernSize)/3600),
-                                                          yx.ma=ma(yx, kernSize)/(ma(timeInt_sec, kernSize)/3600),
-                                                          yy.ma=ma(yy, kernSize)/(ma(timeInt_sec, kernSize)/3600),
+                                                          # yx.ma=ma(yx, kernSize)/(ma(timeInt_sec, kernSize)/3600),
+                                                          # yy.ma=ma(yy, kernSize)/(ma(timeInt_sec, kernSize)/3600),
                                                           TimeInt.ma=as.numeric(ma(timeInt_sec, kernSize))), by=c("roi", "tensor")]) %>%
     # calculate the phi angle and norm of nematics
     mutate(phi=mod2pi(0.5*(atan2(xy.ma, xx.ma))), 
