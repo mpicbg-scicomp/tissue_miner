@@ -38,7 +38,7 @@ RUN /bin/bash -c "export TM_HOME='/tissue_miner'; su rstudio -c /tissue_miner/Se
 
 ## Set up R and bash environments
 COPY rocker_Renviron /home/rstudio/.Renviron
-COPY rocker_Rprofile /home/rstudio/.Rprofile
+#COPY rocker_Rprofile /home/rstudio/.Rprofile
 COPY docker_bash_profile.sh /home/rstudio/.bash_profile
 
 
