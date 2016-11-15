@@ -3,6 +3,21 @@
 ![alt tag](https://github.com/mpicbg-scicomp/tissue_miner/blob/gh-pages/readme_screenshots/stripes_0.jpg)
 ![alt tag](https://github.com/mpicbg-scicomp/tissue_miner/blob/gh-pages/readme_screenshots/veins_0.jpg)
 
+News
+=================
+
+**New TM release on Nov 18th:**
+
+* We now highly recommend to run TM through Docker (Win7, Win10, MacOS, other Unix)
+* Designed to work through Docker to simplify installation and maintenance
+* Versionning now enabled for docker images: new release is 1.0.1
+* Please update the tm alias in your .bashrc:
+
+```
+alias tm='docker run --rm -ti -v $(dirname $PWD):/movies -w /movies/$(basename $PWD) -u rstudio etournay/tissue_miner'
+```
+
+
 
 About
 =================
