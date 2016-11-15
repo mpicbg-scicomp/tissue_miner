@@ -287,10 +287,10 @@ echo "TM_CONFIG=path_to_my_config_file" >> ~/.Renviron
 
 ```{r set up config and script path, eval=FALSE}
 # Example 1: home_share is the mount point to access your data (see above)
-Sys.setenv(TM_CONFIG="/home/rstudio/home_share/tm_config/my_favorite_config.R")
+Sys.setenv(TM_CONFIG="/home/rstudio/data/tm_config/my_favorite_config.R")
 
 # Example 2: assuming that the user has cloned the TM git repository in his home folder 
-Sys.setenv(TM_HOME="/home/rstudio/home_share/tissue_miner/")
+Sys.setenv(TM_HOME="/home/rstudio/data/tissue_miner/")
 
 ```
 
