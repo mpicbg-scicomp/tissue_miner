@@ -62,47 +62,25 @@ This API can then be employed to
 
 
 
-Installation
+Installation on common operating systems
 ================
 
-TissueMiner ships with a command-line Ubuntu-Installer and can be used via Docker on other platforms.
+* For MacOS and Windows systems, please install the [docker toolbox](https://www.docker.com/products/docker-toolbox) (180Mb), which works using VirtualBox. For Linux, please install the [docker engine](https://docs.docker.com/), which works natively.
 
-### Ubuntu
 
-* To install TissueMiner on Ubuntu simply copy-paste the commands in the box below into a [terminal](https://help.ubuntu.com/community/UsingTheTerminal) to perform the following steps:
-    + Define the directory where to install TissueMiner
-    + Download TissueMiner repository (~120MB)
-    + Install TM (~30 min due to the compilation of the source code of R packages)
-```
-# Step1
-export TM_HOME="${HOME}/tissue_miner"
-sudo apt-get update && sudo apt-get install git
-
-```
-```
-# Step 2
-git clone https://github.com/mpicbg-scicomp/tissue_miner.git ${TM_HOME}
-${TM_HOME}/installation/ubuntu/install_tm.sh
-source ${HOME}/.bashrc
-```
-
-* To update TissueMiner on Ubuntu, click [here](faq.md#how-to-update-my-tissueminer-installation)
-
-### Other Systems
-
-* To install TissueMiner on a MacOS or a Windows system, we provide a Docker container that bundles TissueMiner and all its dependencies. If not yet present on your system, you need to install the [docker toolbox](https://www.docker.com/products/docker-toolbox)
-beforehand (180Mb). On any non-Ubuntu Linux, please install the [docker engine](https://docs.docker.com/).
-
-* Next, you can download the TissueMiner application bundled in a docker image called _etournay/tissue_miner_ (~700Mb).
+* Next, you can download/update the TissueMiner application bundled in a docker image called _etournay/tissue_miner_ (~700Mb).
 
     + On Mac or Windows, open a Docker Quick Start Terminal: ![alt tag](https://github.com/mpicbg-scicomp/tissue_miner/blob/gh-pages/readme_screenshots/docker_toolbox_osx_quickstart_icon_nolabel.png)
+    
 ```
 docker pull etournay/tissue_miner
 ```
 
 * For troubleshooting in case of out-of-date operating systems [click here](misc/docker_troubleshooting.md).
 
-* To update TissueMiner, click [here](faq.md#how-to-update-my-tissueminer-installation)
+
+* To install TissueMiner without using Docker (not recommended except on a cluster), you'll find instructions [here](installation/local_installation.md)
+
 
 Documentation
 ================
