@@ -246,6 +246,9 @@ system.time({
     
     # }) # end of system.time()
     
+    ## DEBUG: remvove all lines with NAs as Marko mentioned:
+    # pooledInterpolAvgDeltaQtot <- pooledInterpolAvgDeltaQtot[complete.cases(pooledInterpolAvgDeltaQtot),]
+    
     # sum up interpolated values of shear tensor coefficients for the current frame interval
     avgDeltaQtotByFrameIntervals <- pooledInterpolAvgDeltaQtot %>% 
       summarize(av_total_shear_xx=sum(av_total_shear_xx, na.rm=T), av_total_shear_xy=sum(av_total_shear_xy, na.rm=T), 
