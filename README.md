@@ -68,9 +68,8 @@ Installation on common operating systems
 * For **MacOS** and **Windows** systems, please install the [docker toolbox](https://www.docker.com/products/docker-toolbox) (180Mb), which works using VirtualBox. For **Linux**, please install the [docker engine](https://docs.docker.com/), which works natively.
 
 
-* Next, you can download/update the TissueMiner application bundled in a docker image called _etournay/tissue_miner_ (~700Mb).
-
-    + On Mac or Windows, open a Docker Quick Start Terminal: ![alt tag](https://github.com/mpicbg-scicomp/tissue_miner/blob/gh-pages/readme_screenshots/docker_toolbox_osx_quickstart_icon_nolabel.png)
+* Next, you can download/update the TissueMiner application bundled in a docker image called _etournay/tissue_miner_ (~700Mb). On Mac or Windows, open a Docker Quick Start Terminal:
+![alt tag](https://github.com/mpicbg-scicomp/tissue_miner/blob/gh-pages/readme_screenshots/docker_toolbox_osx_quickstart_icon_nolabel.png)
     
     
 ```
