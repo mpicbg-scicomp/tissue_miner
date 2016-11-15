@@ -65,7 +65,7 @@ This API can then be employed to
 Installation on common operating systems
 ================
 
-* For MacOS and Windows systems, please install the [docker toolbox](https://www.docker.com/products/docker-toolbox) (180Mb), which works using VirtualBox. For Linux, please install the [docker engine](https://docs.docker.com/), which works natively.
+* For **MacOS** and **Windows** systems, please install the [docker toolbox](https://www.docker.com/products/docker-toolbox) (180Mb), which works using VirtualBox. For **Linux**, please install the [docker engine](https://docs.docker.com/), which works natively.
 
 
 * Next, you can download/update the TissueMiner application bundled in a docker image called _etournay/tissue_miner_ (~700Mb).
