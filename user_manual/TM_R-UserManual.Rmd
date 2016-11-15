@@ -218,6 +218,7 @@ docker ps
 ```
 output example: ![](../readme_screenshots/docker_ps_cmd.jpg)
 
+
 ```{bash docker stop container, warning=FALSE, message=FALSE, echo=T, eval=F}
 # In this example, I stop the RStudio server by running 
 docker stop 171906d9e728 # where the last argument is the CONTAINER ID that is just displayed above
@@ -302,7 +303,7 @@ Sys.setenv(TM_HOME="/home/rstudio/home_share/tissue_miner/")
 Please, do not forget to **edit the path** below to set up your data location in the `movieDbBaseDir` variable !
 ```{r Setup IN/OUT, warning=FALSE, message=FALSE, echo=T,results='hide'}
 # Define path to all processed movies: MUST BE EDITED BY THE USER
-movieDbBaseDir="/Users/retourna/example_data"
+movieDbBaseDir="/home/rstudio/data/example_data"
 
 # Define path a particular time-lapse called "demo"
 movieDir <- file.path(movieDbBaseDir, c("demo"))
@@ -993,7 +994,7 @@ rm(cdNematics)
 
 * The **[mqf_cg_grid_unit_nematics_CD()](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/commons/BaseQueryFunctions.R#L1122)** does the following:
     + it assigns grid elements to cells and calculate the cell division unit nematics
-    + it averages nematics in each grid element.
+    + it sums up nematics in each grid element.
     + it scales nematics for display on the image (automatic scaling by default)
 
 ```{r Cell division coarse-grained nematics get data, warning=FALSE, message=FALSE, cache=TRUE}
@@ -1124,7 +1125,7 @@ rm(t1nematics)
 
 * The **[mqf_cg_grid_unit_nematics_T1()](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/commons/BaseQueryFunctions.R#L1173)** does the following:
     + it assigns grid elements to cells and calculate T1 unit nematics
-    + it averages nematics in each grid element.
+    + it sums up nematics in each grid element.
     + it scales nematics for display on the image (automatic scaling by default)
 
 ```{r T1 coarse-grained nematics data calculation, warning=FALSE, message=FALSE, cache=TRUE}
@@ -1197,7 +1198,7 @@ curl https://cloud.mpi-cbg.de/index.php/s/4BJiyxnCS7HFyKB/download  | tar -zxvf 
 ```{r Comparing patterns between movies new Setup IN/OUT, warning=FALSE, message=FALSE, echo=T,results='hide'}
 # These datasets are automatically extracted in the example_data folder where the demo was also downloaded.
 # Define path to all processed movies: TO BE EDITED BY THE USER
-movieDbBaseDir="/Users/retourna/example_data"
+movieDbBaseDir="/home/rstudio/data/example_data"
 
 # Define a working directory where to save the analysis:
 outDataBaseDir=file.path(movieDbBaseDir, "multi-movie_analysis")
