@@ -72,6 +72,7 @@ Installation on common operating systems
 
     + On Mac or Windows, open a Docker Quick Start Terminal: ![alt tag](https://github.com/mpicbg-scicomp/tissue_miner/blob/gh-pages/readme_screenshots/docker_toolbox_osx_quickstart_icon_nolabel.png)
     
+    
 ```
 docker pull etournay/tissue_miner
 ```
