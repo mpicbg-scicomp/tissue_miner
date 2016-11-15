@@ -1,0 +1,17 @@
+CHANGES IN VERSION 1.0.1
+------------------------
+
+    o Enabled version check for updates
+	o Security: now runs the workflow with user permissions
+	  and solve permission issues when using docker on Linux
+	
+
+
+
+CHANGES IN VERSION 1.0.0
+------------------------
+
+    o RStudio server was added to the docker image for running
+	  TissueMiner API from within a fully configured RStudio and
+	  R environment along with a fully configured Ubuntu environment.
+
