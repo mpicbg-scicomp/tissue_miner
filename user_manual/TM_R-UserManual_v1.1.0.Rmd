@@ -156,7 +156,7 @@ Running times on multicore computers would significantly be reduced.
 * Command to build the database only: `sm make_db`
 * Command to generate the necessary data for exploiting the TissueMiner API: `sm shear_calculate topo_countt1 polygon_class tri_categorize`
 * Using docker, all of these commands must be used right after the docker command that we store in the `tm` alias for simplicity. Example:
-    + `alias tm='docker run --rm -ti -v $(dirname $PWD):/movies -w /movies/$(basename $PWD) etournay/tissue_miner'`
+    + `alias tm='docker run --rm -ti -v $(dirname $PWD):/movies -w /movies/$(basename $PWD) -u rstudio etournay/tissue_miner'`
     + `tm sm shear_calculate topo_countt1 polygon_class tri_categorize`
 
 ### Strengths

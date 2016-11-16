@@ -17,19 +17,16 @@ Just copy and paste the lines below **into this Quickstart terminal** and press 
      cd example_data/demo
      
      ## Store the docker command into a shell variable for the sake of simplicity in tutorials
-     alias tm='docker run --rm -ti -v $(dirname $PWD):/movies -w /movies/$(basename $PWD) etournay/tissue_miner'
+     alias tm='docker run --rm -ti -v $(dirname $PWD):/movies -w /movies/$(basename $PWD) -u rstudio etournay/tissue_miner'
      
 ```
 
 **A tip !** Just copy this line in your .bashrc to make this `tm` command permanent:
 ```
-alias tm='docker run --rm -ti -v $(dirname $PWD):/movies -w /movies/$(basename $PWD) etournay/tissue_miner'
+alias tm='docker run --rm -ti -v $(dirname $PWD):/movies -w /movies/$(basename $PWD) -u rstudio etournay/tissue_miner'
 ```
-This .bashrc file is the standard configuration file of the Terminal. Here, is one way to insert the line above into the .bashrc and apply the changes:
-```
-echo "alias tm='docker run --rm -ti -v $(dirname $PWD):/movies -w /movies/$(basename $PWD) etournay/tissue_miner'" >> $HOME/.bashrc
-source $HOME/.bashrc
-```
+This .bashrc file is the standard configuration file of the Terminal.
+
 
 ### 3. Select the analysis you are interested in
 

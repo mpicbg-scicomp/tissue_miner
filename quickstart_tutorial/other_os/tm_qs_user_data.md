@@ -92,13 +92,9 @@ Example:
 
 * Set up the docker command and store it in a shell variable for simplicity
 
-`alias tm='docker run --rm -ti -v $(dirname $PWD):/movies -w /movies/$(basename $PWD) etournay/tissue_miner'`
+`alias tm='docker run --rm -ti -v $(dirname $PWD):/movies -w /movies/$(basename $PWD) -u rstudio etournay/tissue_miner'`
 
-**A tip !** Just copy this line above in your .bashrc to make this `tm` command permanent. This file is the standard configuration file of the Terminal. Here, is one way to insert the line above into the .bashrc and apply the changes:
-```
-echo "alias tm='docker run --rm -ti -v $(dirname $PWD):/movies -w /movies/$(basename $PWD) etournay/tissue_miner'" >> $HOME/.bashrc
-source $HOME/.bashrc
-```
+**A tip !** Just copy this line above in your .bashrc to make this `tm` command permanent. This file is the standard configuration file of the Terminal. 
 
 
 ### 6. Select the analysis you are interested in
