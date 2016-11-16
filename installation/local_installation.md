@@ -23,7 +23,7 @@ ${TM_HOME}/installation/ubuntu/install_tm.sh
 source ${HOME}/.bashrc
 ```
 
-* To update TissueMiner on Ubuntu, click [here](faq.md#how-to-update-my-tissueminer-installation)
+* To update TissueMiner on Ubuntu, click [here](../faq.md#how-to-update-my-tissueminer-installation)
 
 
 ### MacOS
