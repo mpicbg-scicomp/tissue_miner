@@ -4,6 +4,7 @@ News
 **New TM release on Nov 16th:**
 
 * We now highly recommend to run TM through Docker (Win7, Win10, MacOS, other Unix)
+* To update TM run `docker pull etournay/tissue_miner` in a terminal (Linux) or Docker-QuickStart-terminal (MacOS, Windows)
 * Designed to work through Docker to simplify installation and maintenance: the **[TM R User Manual](https://mpicbg-scicomp.github.io/tissue_miner/user_manual/TM_R-UserManual_v1.0.1.html)** has been updated accordingly
 * Versioning now enabled for docker images: new release is 1.0.1
 * Please **update the tm alias** in your .bashrc by adding the `-u rstudio` option:
