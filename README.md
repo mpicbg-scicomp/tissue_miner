@@ -1,8 +1,3 @@
-
-
-![alt tag](https://github.com/mpicbg-scicomp/tissue_miner/blob/gh-pages/readme_screenshots/stripes_0.jpg)
-![alt tag](https://github.com/mpicbg-scicomp/tissue_miner/blob/gh-pages/readme_screenshots/veins_0.jpg)
-
 News
 =================
 
@@ -16,6 +11,11 @@ News
 ```
 alias tm='docker run --rm -ti -v $(dirname $PWD):/movies -w /movies/$(basename $PWD) -u rstudio etournay/tissue_miner'
 ```
+
+
+
+![alt tag](https://github.com/mpicbg-scicomp/tissue_miner/blob/gh-pages/readme_screenshots/stripes_0.jpg)
+![alt tag](https://github.com/mpicbg-scicomp/tissue_miner/blob/gh-pages/readme_screenshots/veins_0.jpg)
 
 
 
@@ -69,7 +69,7 @@ Docker is a software containerization platform in which you can easily install a
 
 * Step1: **Install Docker** 
    + for **Linux**, please install the [docker engine](https://docs.docker.com/). 
-   + for **MacOS** and **Windows** systems, please install the [docker toolbox](https://www.docker.com/products/docker-toolbox) (180Mb), which works using VirtualBox. 
+   + for **MacOS** and **Windows** systems, please install the [docker toolbox](https://www.docker.com/products/docker-toolbox) (180Mb).
 
 
 * Step2: **Download/update** the TissueMiner application bundled in a docker image called _etournay/tissue_miner_ (~700Mb)
