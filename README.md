@@ -62,13 +62,19 @@ This API can then be employed to
 
 
 
-Installation on common operating systems
+Installation inside Docker
 ================
 
-* For **MacOS** and **Windows** systems, please install the [docker toolbox](https://www.docker.com/products/docker-toolbox) (180Mb), which works using VirtualBox. For **Linux**, please install the [docker engine](https://docs.docker.com/), which works natively.
+Docker is a software containerization platform in which you can easily install and run TissueMiner. 
+
+* Step1: **Install Docker** 
+   + for **Linux**, please install the [docker engine](https://docs.docker.com/). 
+   + for **MacOS** and **Windows** systems, please install the [docker toolbox](https://www.docker.com/products/docker-toolbox) (180Mb), which works using VirtualBox. 
 
 
-* Next, you can download/update the TissueMiner application bundled in a docker image called _etournay/tissue_miner_ (~700Mb). On Mac or Windows, open a Docker Quick Start Terminal ![alt tag](https://github.com/mpicbg-scicomp/tissue_miner/blob/gh-pages/readme_screenshots/docker_toolbox_osx_quickstart_icon_nolabel.png) and type in:
+* Step2: **Download/update** the TissueMiner application bundled in a docker image called _etournay/tissue_miner_ (~700Mb)
+    + on Linux just open a terminal and type in the command below
+    + on Mac or Windows, open a Docker Quick Start Terminal ![alt tag](https://github.com/mpicbg-scicomp/tissue_miner/blob/gh-pages/readme_screenshots/docker_toolbox_osx_quickstart_icon_nolabel.png) and type in:
     
 ```
 docker pull etournay/tissue_miner
@@ -77,13 +83,13 @@ docker pull etournay/tissue_miner
 * For troubleshooting in case of out-of-date operating systems [click here](misc/docker_troubleshooting.md).
 
 
-* To install TissueMiner without using Docker (not recommended except on a cluster), you'll find instructions [here](installation/local_installation.md)
+* To install TissueMiner without using Docker (not recommended except on a cluster), you'll find instructions [here](installation/local_installation.md).
 
 
 Documentation
 ================
 
-* First [install](https://github.com/mpicbg-scicomp/tissue_miner#installation) TissueMiner on your system.
+* First [install](https://github.com/mpicbg-scicomp/tissue_miner#installation) TissueMiner.
 * To get started with TissueMiner we suggest to do **Quickstart Tutorials on our example data:** 
     + **[Quickstart TM-R Tutorials](https://github.com/mpicbg-scicomp/tissue_miner/blob/gh-pages/quickstart_tutorial/ubuntu/tm_qs_example_data.md#first-use-of-tissueminer-with-example-data)** (Ubuntu).
     + **[Quickstart docker-TM-R Tutorials](https://github.com/mpicbg-scicomp/tissue_miner/blob/gh-pages/quickstart_tutorial/other_os/tm_qs_example_data.md#first-use-of-tissueminer-with-example-data)** (Mac, Windows, other Linux).
