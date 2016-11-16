@@ -4,7 +4,7 @@ News
 **New TM release on Nov 18th:**
 
 * We now highly recommend to run TM through Docker (Win7, Win10, MacOS, other Unix)
-* Designed to work through Docker to simplify installation and maintenance
+* Designed to work through Docker to simplify installation and maintenance: the **[TM R User Manual](https://mpicbg-scicomp.github.io/tissue_miner/user_manual/TM_R-UserManual_v1.0.1.html)** has updated accrodingly
 * Versionning now enabled for docker images: new release is 1.0.1
 * Please update the tm alias in your .bashrc:
 
@@ -102,7 +102,7 @@ Documentation
     
 * We provide the streamlined [R scripts](docs/quickstart/scripts) that are used in the tutorials to perform a simple analysis of a single movie. This includes a script entitled `analyse_movie.R` that performs most of the analyses described in the Quickstart Tutorials.
 
-* We also provide an exhaustive **[TM R User Manual](https://mpicbg-scicomp.github.io/tissue_miner/user_manual/TM_R-UserManual.html)** with lots of examples, background information and API details:
+* We also provide an exhaustive **[TM R User Manual](https://mpicbg-scicomp.github.io/tissue_miner/user_manual/TM_R-UserManual_v1.0.1.html)** with lots of examples, background information and API details:
     + learn the necessary basics of the R language for TissueMiner (also see [here](https://mpicbg-scicomp.github.io/tissue_miner/user_manual/Learning_the_R_basics_for_TissueMiner.html))
     + learn the powerful libraries of TissueMiner for epithelium analysis
     + benefit from lots of examples to make your own scripts
