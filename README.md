@@ -115,7 +115,7 @@ Documentation
 Datasets
 ================
 We provide four datasets:
-* 1 demo sample (~35 Mb) to run [Quickstart TM-R Tutorials](#documentation)
+* 1 demo sample (~35 Mb) to run [Quickstart TM-R Tutorials](https://github.com/mpicbg-scicomp/tissue_miner#documentation)
 
 ```{bash}
 # In your unix terminal (or Docker QuickStart Terminal), type in:
