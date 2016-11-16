@@ -14,7 +14,7 @@ export TM_CONFIG=$TM_HOME/config/flywing_tm_config.R
     + Ubuntu: `export TM_CONFIG=$TM_HOME/config/flywing_tm_config.R`
     + Docker: defined my_config.R in the movie repository and run the command below
     ```
-    alias tm='docker run --rm -ti -v $(dirname $PWD):/movies -w /movies/$(basename $PWD) etournay/tissue_miner'
+    alias tm='docker run --rm -ti -v $(dirname $PWD):/movies -w /movies/$(basename $PWD) -u rstudio etournay/tissue_miner'
     tm "export TM_CONFIG=/movies/my_config.R; sm all"
     ```
 
