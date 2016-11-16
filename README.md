@@ -92,7 +92,6 @@ Documentation
 * First [install](https://github.com/mpicbg-scicomp/tissue_miner#installation-inside-docker) TissueMiner.
 * To get started with TissueMiner we suggest to do **Quickstart Tutorials on our example data:** 
     + **[Quickstart docker-TM-R Tutorials](https://github.com/mpicbg-scicomp/tissue_miner/blob/gh-pages/quickstart_tutorial/other_os/tm_qs_example_data.md#first-use-of-tissueminer-with-example-data)** (Linux, Mac, Windows).
-
     + [Quickstart TM-R Tutorials](https://github.com/mpicbg-scicomp/tissue_miner/blob/gh-pages/quickstart_tutorial/ubuntu/tm_qs_example_data.md#first-use-of-tissueminer-with-example-data) (Ubuntu, cluster).
    
 * To get started with your **own data** analysis:
@@ -116,7 +115,7 @@ Documentation
 Datasets
 ================
 We provide four datasets:
-* 1 demo sample (~35 Mb) to run [Quickstart TM-R Tutorials](https://github.com/mpicbg-scicomp/tissue_miner/blob/gh-pages/quickstart_tutorial/tm_quickstart_landing_page.md#first-use-of-tissueminer)
+* 1 demo sample (~35 Mb) to run [Quickstart TM-R Tutorials](#documentation)
 
 ```{bash}
 # In your unix terminal (or Docker QuickStart Terminal), type in:
