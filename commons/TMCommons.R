@@ -14,9 +14,13 @@ sink(file=file("/dev/null", "w"), type="message")
 
 if (!require("devtools")) install.packages("devtools")
 
-devtools::source_url("https://raw.githubusercontent.com/holgerbrandl/datautils/v1.13/R/core_commons.R")
-devtools::source_url("https://raw.githubusercontent.com/holgerbrandl/datautils/v1.13/R/ggplot_commons.R")
-devtools::source_url("https://raw.githubusercontent.com/holgerbrandl/datautils/v1.13/R/datatable_commons.R")
+# devtools::source_url("https://raw.githubusercontent.com/holgerbrandl/datautils/v1.13/R/core_commons.R")
+# devtools::source_url("https://raw.githubusercontent.com/holgerbrandl/datautils/v1.13/R/ggplot_commons.R")
+# devtools::source_url("https://raw.githubusercontent.com/holgerbrandl/datautils/v1.13/R/datatable_commons.R")
+
+source(file.path(scriptsDir, "commons/core_commons.R"))
+source(file.path(scriptsDir, "commons/ggplot_commons.R"))
+source(file.path(scriptsDir, "commons/datatable_commons.R"))
 
 require.auto(sqldf)
 
