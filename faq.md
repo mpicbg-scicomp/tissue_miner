@@ -40,15 +40,17 @@ Edit the tm.snkmk file located in the *workflow* folder, and find and replace %0
 
 ### How to update my TissueMiner installation?
 
+
+On the docker plateform (Linux, MacOs, Windows) simply pull latest image again with
+```
+docker pull etournay/tissue_miner
+```
+
 On ubuntu simply fetch the changes by
 ```
 cd  ${TM_HOME} && git pull origin && cd parser && make clean all
 ```
 
-On other systems (MacOs, Windows) simply pull latest image again with
-```
-docker pull etournay/tissue_miner
-```
 
 ### How to force `git pull origin` in case of conflict ?
 

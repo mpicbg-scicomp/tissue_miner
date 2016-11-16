@@ -28,3 +28,14 @@ source ${HOME}/.bashrc
 
 ### MacOS
 
+We only provide a TissueMiner API installer/updater that includes an Rstudio installation if not yet present. Run this in a simple Terminal:
+
+```
+/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+brew update
+brew install git
+export TM_HOME="${HOME}/tissue_miner"
+git clone https://github.com/mpicbg-scicomp/tissue_miner.git ${TM_HOME}
+${TM_HOME}/installation/osx/install_tm_api.sh
+```
+
