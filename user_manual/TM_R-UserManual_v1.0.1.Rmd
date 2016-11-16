@@ -208,7 +208,7 @@ Explanations regarding this command:
 4. `-p 8787:8787`: opens ports in the container for access by your webbrowser
 5. `-e USER=rstudio -e PASSWORD=rstudio`: defines login and password to connect to the RStudio server from your webbrowser
 6. `-v $HOME:/home/rstudio/data`: mounts your home folder inside the container so that you data are visible from the container
-7. `etournay/tissue_mine`r: the name of the application (docker image) to be run as a docker container
+7. `etournay/tissue_miner`: the name of the application (docker image) to be run as a docker container
 
 Note: "container" is the term used for an application and its dependencies embedded within the Docker plateform. The "rocker" container is not only created by the above command line, it is also up and running. 
 
