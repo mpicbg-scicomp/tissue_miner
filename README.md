@@ -68,7 +68,7 @@ Installation inside Docker
 Docker is a software containerization platform in which you can easily install and run TissueMiner. 
 
 * Step1: **Install Docker** 
-   + for **Linux**, please install the [docker engine](https://docs.docker.com/). 
+   + for **Linux**, please install the [docker engine](https://docs.docker.com/) (and optionally you may have to fix DNS issues [here](https://robinwinslow.uk/2016/06/23/fix-docker-networking-dns/)).
    + for **MacOS** and **Windows** systems, please install the [docker toolbox](https://www.docker.com/products/docker-toolbox) (180Mb).
 
 
