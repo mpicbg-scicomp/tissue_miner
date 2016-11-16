@@ -33,7 +33,7 @@ We recommend to follow the following procedure:
      docker-machine ssh default
     
      ## Pull the TissueMiner application image
-     docker pull brandl/tissue_miner
+     docker pull etournay/tissue_miner
     
      ## Go to your movie repository  and run the TissueMiner automated workflow on the Demo 
 
