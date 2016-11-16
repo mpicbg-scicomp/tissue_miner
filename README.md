@@ -24,7 +24,7 @@ About
 
 TissueMiner is a framework to perform a multiscale analysis of an entire developing epithelium acquired at cellular resolution over several hours or days. It  includes **(a)** tools to build a database from a timelapse movie, **(b)** ready-to-use tools to analyze various aspects of cell and tissue morphogenesis, and **(c)** a powerful but yet easy to use R programming interface to allow for the implementation of custom analyses.
 
-* [Installation](https://github.com/mpicbg-scicomp/tissue_miner#installation)
+* [Installation](https://github.com/mpicbg-scicomp/tissue_miner#installation-inside-docker)
 * [Documentation](https://github.com/mpicbg-scicomp/tissue_miner#documentation)
 
 ### (a) Cell Tracking Data Database
@@ -89,7 +89,7 @@ docker pull etournay/tissue_miner
 Documentation
 ================
 
-* First [install](https://github.com/mpicbg-scicomp/tissue_miner#installation) TissueMiner.
+* First [install](https://github.com/mpicbg-scicomp/tissue_miner#installation-inside-docker) TissueMiner.
 * To get started with TissueMiner we suggest to do **Quickstart Tutorials on our example data:** 
     + **[Quickstart docker-TM-R Tutorials](https://github.com/mpicbg-scicomp/tissue_miner/blob/gh-pages/quickstart_tutorial/other_os/tm_qs_example_data.md#first-use-of-tissueminer-with-example-data)** (Linux, Mac, Windows).
 
