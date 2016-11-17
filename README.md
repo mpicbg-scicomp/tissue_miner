@@ -12,7 +12,7 @@ News
 ```
 alias tm='docker run --rm -ti -v $(dirname $PWD):/movies -w /movies/$(basename $PWD) -u rstudio etournay/tissue_miner'
 ```
- * CAUTION: this only works if your user ID is 1000. We are working on a more generic solution
+ * CAUTION for Linux Users: this only works if your user ID is 1000. We are working on a more generic solution for any user.
 
 
 ![alt tag](https://github.com/mpicbg-scicomp/tissue_miner/blob/gh-pages/readme_screenshots/stripes_0.jpg)
