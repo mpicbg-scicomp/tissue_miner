@@ -212,6 +212,9 @@ Explanations regarding this command:
 
 Note: "container" is the term used for an application and its dependencies embedded within the Docker plateform. The "rocker" container is not only created by the above command line, it is also up and running. 
 
+**Important note for Linux users:** still one limitation due to the current Docker version, namely the dockerized TissueMiner only works if the user holds an user ID = 1000 that matches the user ID inside the container. So far there isn't any simple solution to this issue. You won't have read/write permissions if your user ID is different from 1000 and TissueMiner won't work correctly. To know your user ID, just type in `id` in a terminal. If you are the only user of your Linux machine, you should have an user ID = 1000. The only workaround is to install TissueMiner with the [installation script](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/installation/local_installation.md).
+
+
 * **Step2: Connect to the RStudio server with your web browser**
     + On **Linux**: juste type in `localhost:8787` as a URL in your favorite web browser (then bookmark it !)
     + On **MacOS** and **Windows**, first run the command below to get the URL and copy-paste the result into your web browser 
