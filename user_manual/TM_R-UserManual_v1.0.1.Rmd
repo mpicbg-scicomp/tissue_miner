@@ -106,7 +106,7 @@ To this purpose, we provide two [FIJI](http://fiji.sc/) programs ***draw_n_get_R
 
 #### Define ROI's:
 * launch FIJI
-* go to the ***fiji_macros*** folder located in your TissueMiner installation folder
+* get the the fiji ***draw_n_get_ROIcoord.ijm*** macro from [github](https://raw.githubusercontent.com/mpicbg-scicomp/tissue_miner/master/fiji_macros/draw_n_get_ROIcoord.ijm)
 * drag-and-drop the ***draw_n_get_ROIcoord.ijm*** file into FIJI
 * a script editor opens automatically
 * click **RUN** and define your ROI's   
@@ -118,7 +118,7 @@ By default, TissueMiner always creates two ROI's:
 
 #### Orient the tissue
 * launch FIJI
-* go to the ***fiji_macros*** folder located in your TissueMiner installation folder
+* get the the fiji ***orient_tissue.ijm*** macro from [github](https://raw.githubusercontent.com/mpicbg-scicomp/tissue_miner/master/fiji_macros/orient_tissue.ijm)
 * drap-and-drop the ***orient_tissue.ijm*** file into FIJI
 * a script editor opens automatically
 * click **RUN** and define the tissue axis to be aligned on x or y. 
