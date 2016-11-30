@@ -74,8 +74,8 @@ Docker is a software containerization platform in which you can easily install a
 
 
 * Step2: **Download/update** the TissueMiner application bundled in a docker image called _etournay/tissue_miner_ (~700Mb)
-    + on Linux just open a terminal and type in the command below
-    + on Mac or Windows, open a Docker Quick Start Terminal ![alt tag](https://github.com/mpicbg-scicomp/tissue_miner/blob/gh-pages/readme_screenshots/docker_toolbox_osx_quickstart_icon_nolabel.png) and type in:
+    + on **Linux** just open a terminal and type in the command below
+    + on **Mac** or **Windows**, open a Docker Quick Start Terminal ![alt tag](https://github.com/mpicbg-scicomp/tissue_miner/blob/gh-pages/readme_screenshots/docker_toolbox_osx_quickstart_icon_nolabel.png) and type in:
     
 ```
 docker pull etournay/tissue_miner
