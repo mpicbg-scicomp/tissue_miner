@@ -15,12 +15,13 @@
 * Security: now runs the workflow with user permissions and solve permission issues when using docker on Linux
 * Control of resource allocation
 * Can now run the workflow without network connection
-
+* Corresponding [user manual](https://mpicbg-scicomp.github.io/tissue_miner/user_manual/TM_R-UserManual_v1.0.1.html)
 
 
 #### CHANGES IN VERSION 1.0.0
 
 
 * Release date: **May 2016**
-* RStudio server was added to the docker image for running TissueMiner API from within a fully configured RStudio and R environment along with a fully configured Ubuntu environment.
+* RStudio server was added to the docker image for running TissueMiner API from within a fully configured RStudio and R environment along with a fully configured Ubuntu environment
+* Corresponding [user manual](https://mpicbg-scicomp.github.io/tissue_miner/user_manual/TM_R-UserManual.html)
 
