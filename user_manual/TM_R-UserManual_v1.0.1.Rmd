@@ -1704,41 +1704,5 @@ The Docker Toolbox first creates a virtual machine called "default" in Virtualbo
 * set up the allocated memory
 * set up additional shares such as `D:\` on Windows or `/Volumes` on Mac
 
-## Appendix 2: RStudio-server container configuration
-
-* **Mount other folders** into the dockerized TissueMiner using the `-v` option (make sure that the dockerized Rstudio server isn't already running by using `docker ps`). Example:
-```{bash rocker mount example, warning=FALSE, message=FALSE, echo=T, eval=F}
-# First, define the path to the movie repository (ex: /media/fileserver/movie_repository)
-# Second, define the path to your own R scripts (ex: $HOME/my_R_scripts)
-# Third, you may also define the path to your entire home folder (ex: $HOME)
-
-docker run --name rocker -d -p 8787:8787 -e USER=rstudio -e PASSWORD=rstudio \
--v /media/fileserver/movie_repository:/home/rstudio/movie_repository \
--v $HOME/my_R_scripts:/home/rstudio/scripts \
--v $HOME:/home/rstudio/data \
-etournay/tissue_miner
-```
-
-Note: on MacOS and Windows systems, some shares are not visible by default from the "rocker" container. These shares must first be added in Virtualbox, see [Appendix 1](#appendix-1-virtualbox-configuration-mac-and-windows).
-
-* Set up a **memory upper limit** for the container using `--memory`
-
-```{bash rocker memory example, warning=FALSE, message=FALSE, echo=T, eval=F}
-# We set up the upper limit to 12Gb of RAM (must be less than the RAM of the computer)
-docker run --name rocker --memory 12g -d -p 8787:8787 -e USER=rstudio -e PASSWORD=rstudio \
--v $HOME:/home/rstudio/home_share \
-etournay/tissue_miner
-```
-
-
-* Set up a **fixed number of CPUs** allocated to the container using `--cpuset-cpus`
-
-```{bash rocker cpu example, warning=FALSE, message=FALSE, echo=T, eval=F}
-# We set up 4 CPUs using the CPU identifiers 0 to 3 
-docker run --name rocker --cpuset-cpus 0-3 -d -p 8787:8787 -e USER=rstudio -e PASSWORD=rstudio \
--v $HOME:/home/rstudio/home_share \
-etournay/tissue_miner
-```
-
 
 
