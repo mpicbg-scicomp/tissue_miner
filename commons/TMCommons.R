@@ -43,11 +43,11 @@ sink(file=file("/dev/null", "w"), type="message")
 sink(file=NULL, type="message")
 
 
-## todo should go into config
 isCluster=Sys.getenv("LSF_SERVERDIR")!=""
-isEatonPC=Sys.info()[["nodename"]]=="eaton-pc-2"
-registerDoMC(cores=ifelse(isCluster, 5, ifelse(isEatonPC,6,3)));
+#isEatonPC=Sys.info()[["nodename"]]=="eaton-pc-2"
+# registerDoMC(cores=ifelse(isCluster, 5, ifelse(isEatonPC,6,3)));
 # require.auto(foreach); require.auto(doMC); registerDoMC(cores=20)
+registerDoMC(cores=ifelse(isCluster, 5, detectCores()));
 
 require.auto(dplyr)
 require.auto(dtplyr)
