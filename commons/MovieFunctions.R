@@ -95,8 +95,9 @@ render_source_image <- function(frame, img=readMovieImg(frame), squareRoi=rbind(
     labs(x=NULL, y=NULL, title=NULL) +
     theme(axis.title.x=element_blank(), axis.title.y=element_blank(), axis.text.x = element_blank(), axis.text.y = element_blank(),
           axis.ticks = element_blank(), axis.ticks.length = unit(0,"null"), panel.margin = rep(unit(0,"null"),4),
-          axis.text.x = element_text(margin=margin(0,0,0,0,"pt")),
-          axis.text.y = element_text(margin=margin(0,0,0,0,"pt")), plot.margin = rep(unit(0,"null"),4)) + #axis.ticks.margin= unit(0,"null")
+          # axis.text.x = element_text(margin=margin(0,0,0,0,"pt")),
+          # axis.text.y = element_text(margin=margin(0,0,0,0,"pt")),
+          plot.margin = rep(unit(0,"null"),4)) + #axis.ticks.margin= unit(0,"null")
     annotate("text", x = Inf, y = Inf, color='red', hjust = 1.5, vjust = -1.5, label = timeStamp) +
     coord_equal()
 }
