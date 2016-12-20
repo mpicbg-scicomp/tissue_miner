@@ -16,9 +16,8 @@ if(length(argv) != 1){
 # movieDir <- "/Users/retourna/example_data/demo"
 # movieDir <- "/home/rstudio/data/example_data/demo"
 # movieDir <- "/Volumes/OSX/WT_25deg_111102"
-# movieDir <- "/home/rstudio/data/movieSegmentation/WT_25deg_111102"
-# Sys.setenv(TM_HOME="/home/rstudio/home_share/tissue_miner/")
-
+# movieDir <- "/home/rstudio/data/movieDebug/WT_25deg_111102"
+# movieDir <- "/home/rstudio/data/movieDebug/MTdp_25deg_140222"
 
 db_name=basename(movieDir)
 scriptsDir=Sys.getenv("TM_HOME")
@@ -107,7 +106,7 @@ tmpDir <- file.path(getwd(),".shear_chunks")
 dir.create(tmpDir)
 
 
-registerDoMC(cores=detectCores())
+# registerDoMC(cores=detectCores())
 # registerDoMC(cores=2)
 
 print("  step 1/4 ...")
@@ -137,17 +136,18 @@ l_ply(shearRois, function(curROI){
   # for (curROI %in% shearRois) {
   # gc()
   
-  #DEBUG curROI="L5"
+  #DEBUG curROI="blade"
   echo(" calculating shear contributions for the ROI '", curROI, "'...")
   print(system.time({
+    
   simpleTri <- subset(local(get(load(file.path(tmpDir, paste0("simpleTriRoi_",curROI,".RData"))))), select=-roi)
   firstInt <- subset(local(get(load(file.path(tmpDir, paste0("firstIntRoi_",curROI,".RData"))))), select=-roi)
   sndInt <- subset(local(get(load(file.path(tmpDir, paste0("sndIntRoi_",curROI,".RData"))))), select=-roi)
   thirdInt <- subset(local(get(load(file.path(tmpDir, paste0("thirdIntRoi_",curROI,".RData"))))), select=-roi)
-
   mcdir(file.path(shearContribDir, curROI))
-  source(file.path(scriptsDir, "shear/ShearByCellEvents2.R"), local=new.env())
-  # source(file.path(scriptsDir, "shear/ShearByCellEvents3.R"), local=new.env())
+  
+   source(file.path(scriptsDir, "shear/ShearByCellEvents2.R"), local=new.env())
+  #source(file.path(scriptsDir, "shear/ShearByCellEvents3.R"), local=new.env())
   
   }))
 }, .parallel=F, .inform=T, .progress="text")
