@@ -13,6 +13,7 @@ News
 alias tm='docker run --rm -ti -v $(dirname $PWD):/movies -w /movies/$(basename $PWD) -u rstudio etournay/tissue_miner'
 ```
  * CAUTION for Linux Users: this only works if your user ID is 1000. The Docker team is working on this aspect to provide a better [solution](https://integratedcode.us/2015/10/13/user-namespaces-have-arrived-in-docker/).
+* The Rstudio software is now bundled with TissueMiner (many thanks to the Rstudio and rocker teams) to easily run the TissueMiner API and to create new scripts for addressing project-specific questions.
 
 
 ![alt tag](https://github.com/mpicbg-scicomp/tissue_miner/blob/gh-pages/readme_screenshots/stripes_0.jpg)
