@@ -181,10 +181,94 @@ Running times on multicore computers would significantly be reduced.
 
 ## How to set up TissueMiner for running API
 
-Please, contact me directly: raphael.etournay@pasteur.fr
+### Start and access the RStudio server 
 
-![work in progress...](../readme_screenshots/work_in_progress.png) 
+Here, we describe the API requirements on the Docker plateform. Please note that if you are not using the Docker plateform, the TissueMiner API has already been installed and configured during the installation procedure of TissueMiner, you would just need to install an integrated environment for R programming (such as RStudio).
 
+***
+
+**On any operating systems with the Docker plateform**, you can use the **Rstudio server** from the provided docker image that includes all necessary R packages and dependencies. 
+
+
+* **Step1: Create a RStudio-server container**
+
+Using **Linux**, open a terminal; using **MacOS** and **Windows**, open a Docker Quick Start terminal. Then type in  
+
+```{bash rocker, warning=FALSE, message=FALSE, echo=T, eval=F}
+docker run --name rocker -d -p 8787:8787 -e USER=rstudio -e PASSWORD=rstudio \
+-v $HOME:/home/rstudio/data \
+etournay/tissue_miner
+```
+
+Explanations regarding this command:
+
+1. `docker run`: runs "etournay/tissue_miner" in a container
+2. `--name rocker`: names the container "rocker"
+3. `-d`: runs in the background
+4. `-p 8787:8787`: opens ports in the container for access by your webbrowser
+5. `-e USER=rstudio -e PASSWORD=rstudio`: defines login and password to connect to the RStudio server from your webbrowser
+6. `-v $HOME:/home/rstudio/data`: mounts your home folder inside the container so that you data are visible from the container
+7. `etournay/tissue_miner`: the name of the application (docker image) to be run as a docker container
+
+Note: "container" is the term used for an application and its dependencies embedded within the Docker plateform. The "rocker" container is not only created by the above command line, it is also up and running. 
+
+**Important note for Linux users:** still one limitation due to the current Docker version, namely the dockerized TissueMiner only works if the user holds an user ID = 1000 that matches the user ID inside the container. So far there isn't any simple solution to this issue. You won't have read/write permissions if your user ID is different from 1000 and TissueMiner won't work correctly. To know your user ID, just type in `id` in a terminal. If you are the only user of your Linux machine, you should have an user ID = 1000. The only workaround is to install TissueMiner with the [installation script](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/installation/local_installation.md).
+
+
+* **Step2: Connect to the RStudio server with your web browser**
+    + On **Linux**: juste type in `localhost:8787` as a URL in your favorite web browser (then bookmark it !)
+    + On **MacOS** and **Windows**, first run the command below to get the URL and copy-paste the result into your web browser 
+```{bash rocker in web browser, warning=FALSE, message=FALSE, echo=T, eval=F}
+echo "http://$(docker-machine ip default):8787"
+```
+* **Step3: Connect to the server** 
+    + login: rstudio
+    + password: rstudio
+
+* **Step4: enjoy R programming in RStudio !**
+    + You can actually compile this TM_R-UserManual that you'll find as Rmarkdown document on [github](https://github.com/mpicbg-scicomp/tissue_miner/blob/gh-pages/user_manual/TM_R-UserManual_v1.0.1.Rmd)
+
+***
+
+### Stop, start, remove the RStudio-server container
+
+Once the RStudio server is running within a Docker container called "rocker", you shouldn't run any additional one. Instead, you can control the state of the "rocker" container. The container physically stays on your docker plateform until you explicilty delete it. For example, if you restart the computer, this "rocker" container will still be present but stopped, and you would have to manually start it using `docker start rocker`. If you want to mount additional data shares into the "rocker" container, best is to delete it using `docker stop rocker; docker rm rocker` and create a new one with appropriate options (see [Appendices](#appendices)).
+
+* In your terminal (Linux) or Quick Start Terminal (Mac, Win):
+    + **stop:** `docker stop rocker`
+    + **start:** `docker start rocker`
+    + **restart:** `docker restart rocker`
+    + **visualize running containers: ** `docker ps`
+    + **delete the rocker container:** `docker stop rocker; docker rm rocker`
+    
+***
+
+### Access your own configuration files from the RStudio-server container
+
+--- We provide two **configuration files to set up the global TissueMiner environment**: **[default_config.R](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/config/default_config.R)** and **[flywing_tm_config.R](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/config/flywing_tm_config.R)**:
+
+* define graphics theme
+* define a common color scheme for known quantities. Ex: color of shear curves
+* define time offsets for comparing multiple movies in time, using the `algnModel` variable
+* define a time offset to display the developmental time. Ex: 54000 seconds for 16 hAPF
+* define default parameters. Ex: movie grid size, default ROI name, ...  
+
+
+--- How to use your own configuration file in the **dockerized RStudio**:
+
+* in this context, the .Renviron file cannot be modified permanently: we use an alternative method described below.
+* the `TM_HOME` variable is already set up to take into account the dockerized TissueMiner scripts.
+* the `TM_CONFIG` variable is set up by default to use the `default_config.R` of the dockerized TissueMiner.
+* you can transiently overwrite these variables by using a dedicated R command `Sys.setenv()` that you should always add at the begining of your scripts. 
+
+Example:
+
+```{r set up config and script path, eval=FALSE}
+# Example: "data" is the mount point to access your data (see above)
+Sys.setenv(TM_CONFIG="/home/rstudio/data/my_favorite_config.R")
+```
+
+***
 
 ## Your first script: load the TissueMiner API in R
 
@@ -1704,5 +1788,40 @@ The Docker Toolbox first creates a virtual machine called "default" in Virtualbo
 * set up the allocated memory
 * set up additional shares such as `D:\` on Windows or `/Volumes` on Mac
 
+## Appendix 2: RStudio-server container configuration
+
+* **Mount other folders** into the dockerized TissueMiner using the `-v` option (make sure that the dockerized Rstudio server isn't already running by using `docker ps`). Example:
+```{bash rocker mount example, warning=FALSE, message=FALSE, echo=T, eval=F}
+# First, define the path to the movie repository (ex: /media/fileserver/movie_repository)
+# Second, define the path to your own R scripts (ex: $HOME/my_R_scripts)
+# Third, you may also define the path to your entire home folder (ex: $HOME)
+
+docker run --name rocker -d -p 8787:8787 -e USER=rstudio -e PASSWORD=rstudio \
+-v /media/fileserver/movie_repository:/home/rstudio/movie_repository \
+-v $HOME/my_R_scripts:/home/rstudio/scripts \
+-v $HOME:/home/rstudio/data \
+etournay/tissue_miner
+```
+
+Note: on MacOS and Windows systems, some shares are not visible by default from the "rocker" container. These shares must first be added in Virtualbox, see [Appendix 1](#appendix-1-virtualbox-configuration-mac-and-windows).
+
+* Set up a **memory upper limit** for the container using `--memory`
+
+```{bash rocker memory example, warning=FALSE, message=FALSE, echo=T, eval=F}
+# We set up the upper limit to 12Gb of RAM (must be less than the RAM of the computer)
+docker run --name rocker --memory 12g -d -p 8787:8787 -e USER=rstudio -e PASSWORD=rstudio \
+-v $HOME:/home/rstudio/home_share \
+etournay/tissue_miner
+```
+
+
+* Set up a **fixed number of CPUs** allocated to the container using `--cpuset-cpus`
+
+```{bash rocker cpu example, warning=FALSE, message=FALSE, echo=T, eval=F}
+# We set up 4 CPUs using the CPU identifiers 0 to 3 
+docker run --name rocker --cpuset-cpus 0-3 -d -p 8787:8787 -e USER=rstudio -e PASSWORD=rstudio \
+-v $HOME:/home/rstudio/home_share \
+etournay/tissue_miner
+```
 
 
