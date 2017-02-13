@@ -230,6 +230,14 @@ if(debug_mode){
 
 
 ## 6/ Identify more border cells by iterating over candidates corrresponding to "SegErrAppearance" and "Apoptosis" surrounded by known border cells
+##DEBUG
+if (T){
+  print_warning <- function(df, str){
+    warning(str)
+    return(df)
+  }
+}
+
 if (nrow(improvedBorderLineages)>0) {
   
   ## Treat special case of "SegErrAppearance" and "Apoptosis" within raw border lineages 
@@ -247,10 +255,13 @@ if (nrow(improvedBorderLineages)>0) {
       ## Find new border cells by identifying the candidates entirely surrounded by border cells
       selectedLineageCandidates <- candidateBorderCells %>% 
         # add frames to establish neighbor relationshipin each frame
+        print_warning(., "merge 1") %>%
         dt.merge(dbGetQuery(db, "select cell_id, frame from cells"), by = "cell_id") %>% 
         # add neighbor relationship to all candidates
+        print_warning(., "merge 2") %>%
         dt.merge(cellNeighbors, by = c("frame", "cell_id")) %>% 
         # add border status by using neighbors belonging to improved border-lineages
+        print_warning(., "merge 3") %>%
         dt.merge(improvedBorderLineages %>% transmute(neighbor_cell_id=cell_id, neighbor_status=lineage_status), by = "neighbor_cell_id", all.x=T) %>% 
         mutate(neighbor_status=ifelse(is.na(neighbor_status), "NonBorder", neighbor_status)) %>%
         # clarify neighbor status for each candidate cell_id in each frame
@@ -264,8 +275,10 @@ if (nrow(improvedBorderLineages)>0) {
       if (nrow(selectedLineageCandidates)>1){
         selectedLineageCandidates %<>%  
           # add lineage_group
+          print_warning(., "merge 4") %>%
           dt.merge(cellLineages, by = "cell_id") %>% select(-cell_id) %>% distinct(lineage_group, .keep_all = TRUE) %>%
           # add all cells of each lineage_group
+          print_warning(., "merge 5") %>%
           dt.merge(cellLineages, by = "lineage_group")  #%>% print_head()
       } else { selectedLineageCandidates <- data.frame(lineage_group=character(0), lineage_status=character(0), cell_id=numeric(0))}
       
@@ -293,10 +306,13 @@ if (nrow(improvedBorderLineages)>0) {
     ## Complement the improved border cell group with "Apoptosis" and "SegErrAppearance" cells that have N-1 neigbors that belong to the improved border cell group where N is the cell neighbor number
     selectedLineageCandidates <- candidateBorderCells %>% 
       # add frames to establish neighbor relationshipin each frame
+      print_warning(., "merge 6") %>%
       dt.merge(dbGetQuery(db, "select cell_id, frame from cells"), by = "cell_id") %>% 
       # add neighbor relationship to all candidates
+      print_warning(., "merge 7") %>%
       dt.merge(cellNeighbors, by = c("frame", "cell_id")) %>% 
       # add border status by using neighbors belonging to improved border-lineages
+      print_warning(., "merge 8") %>%
       dt.merge(improvedBorderLineages %>% transmute(neighbor_cell_id=cell_id, neighbor_status=lineage_status), by = "neighbor_cell_id", all.x=T) %>% 
       mutate(neighbor_status=ifelse(is.na(neighbor_status), "NonBorder", neighbor_status)) %>%
       # clarify neighbor status for each candidate cell_id in each frame
@@ -313,8 +329,10 @@ if (nrow(improvedBorderLineages)>0) {
     if (nrow(selectedLineageCandidates)>1){
       selectedLineageCandidates %<>%  
         # add lineage_group
+        print_warning(., "merge 9") %>%
         dt.merge(cellLineages, by = "cell_id") %>% select(-cell_id) %>% distinct(lineage_group, .keep_all = TRUE) %>%
         # add all cells of each lineage_group
+        print_warning(., "merge 10") %>%
         dt.merge(cellLineages, by = "lineage_group")  #%>% print_head()
     } else { selectedLineageCandidates <- data.frame(lineage_group=character(0), lineage_status=character(0), cell_id=numeric(0))}
     
