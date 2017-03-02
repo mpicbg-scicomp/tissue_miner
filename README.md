@@ -121,7 +121,7 @@ We provide four datasets:
 
 ```{bash}
 # In your unix terminal (or Docker QuickStart Terminal), type in:
-curl https://cloud.mpi-cbg.de/index.php/s/vC0VqD2Wy4A6uqu/download  | tar -zxvf -
+curl http://bds.mpi-cbg.de/tissue_miner/demo.tar.gz  | tar -zxvf -
 ```
 
 * 3 big datasets (~800Mb each) to explore more advanced capabilities of TissueMiner described in the [TM R User Manual](https://mpicbg-scicomp.github.io/tissue_miner/user_manual/TM_R-UserManual.html)
@@ -130,13 +130,13 @@ curl https://cloud.mpi-cbg.de/index.php/s/vC0VqD2Wy4A6uqu/download  | tar -zxvf 
 # In your unix terminal (or Docker QuickStart Terminal), type in:
 
 # Dataset WT_1 (~800Mb)
-curl https://cloud.mpi-cbg.de/index.php/s/SgxxQk5CkIpTLPW/download  | tar -zxvf -
+curl http://bds.mpi-cbg.de/tissue_miner/WT_1.tar.gz | tar -zxvf -
 
 # Dataset WT_2 (~800Mb)
-curl https://cloud.mpi-cbg.de/index.php/s/Z6ZR1b0sGWnC8Cj/download  | tar -zxvf -
+curl http://bds.mpi-cbg.de/tissue_miner/WT_2.tar.gz  | tar -zxvf -
 
 # Dataset WT_3 (~600Mb)
-curl https://cloud.mpi-cbg.de/index.php/s/4BJiyxnCS7HFyKB/download  | tar -zxvf -
+curl http://bds.mpi-cbg.de/tissue_miner/WT_3.tar.gz  | tar -zxvf -
 ```
 
 

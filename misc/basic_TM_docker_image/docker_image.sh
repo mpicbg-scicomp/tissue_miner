@@ -19,7 +19,7 @@ docker run -it --rm brandl/tissue_miner /bin/bash
 
 ## test the example from the README.md
 # mcdir /home/brandl/projects/tm_demo
-# curl https://cloud.mpi-cbg.de/index.php/s/EspCWSQn3k6NKLA/download  | tar -zxvf -
+# curl http://bds.mpi-cbg.de/tissue_miner/tm_example_data.tar.gz  | tar -zxvf -
 
 docker run --rm -ti -v $(pwd)/example_movies:/movies -w /movies/demo_ForTissueMiner brandl/tissue_miner sm all
 
@@ -125,7 +125,7 @@ docker run -i -t brandl/test /bin/bash
 # screen -R test_exdata
 
 mcdir ~/projects/tm_test
-curl https://cloud.mpi-cbg.de/index.php/s/EspCWSQn3k6NKLA/download  | tar -zxvf -
+curl http://bds.mpi-cbg.de/tissue_miner/tm_example_data.tar.gz  | tar -zxvf -
 
 docker run --rm -ti -v $(pwd)/example_movies:/movies -w /movies/demo_ForTissueMiner brandl/test /bin/bash --login -c "source /.bash_profile; sm make_db"
 
@@ -158,7 +158,7 @@ git clone https://github.com/mpicbg-scicomp/tissue_miner.git ${TM_HOME}
 sudo chmod +x ${TM_HOME}/installation/ubuntu/install_tm.sh
 ${TM_HOME}/installation/ubuntu/install_tm.sh | tee ${TM_HOME}/installation.log
 
-curl https://cloud.mpi-cbg.de/index.php/s/EspCWSQn3k6NKLA/download  | tar -zxvf -
+curl http://bds.mpi-cbg.de/tissue_miner/tm_example_data.tar.gz  | tar -zxvf -
 
 
 ## todo test the installation simple test and example data test
