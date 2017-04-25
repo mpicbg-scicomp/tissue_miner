@@ -106,7 +106,8 @@ calcAvgDeltaQtot <- function(deltaQtot){
       delta_av_phi=angle_difference(av_phi.next, av_phi.prev),
       delta_av_psi=areaWeightedMean(tri_area.prev, delta_psi_a),
       
-      C=tanh(2*sqrt(av_Q_xx.prev^2+av_Q_xx.next^2))/(2*sqrt(av_Q_xx.prev^2+av_Q_xx.next^2)),
+      # C=tanh(2*sqrt(av_Q_xx.prev^2+av_Q_xx.next^2))/(2*sqrt(av_Q_xx.prev^2+av_Q_xx.next^2)), # BUG !!!
+      C=tanh(2*sqrt(av_Q_xx.prev^2 + av_Q_xy.prev^2))/(2*sqrt(av_Q_xx.prev^2 + av_Q_xy.prev^2)),
       
       # Correlation terms
       # avg of j
@@ -179,7 +180,7 @@ Qavg_I3 <- calcQAverage(inner_join(Ta_i3, triWithFrame, by="tri_id"), "frame"); 
 
 #### Calculate shear and correlation effects between intermediates i1 and i2 #####
 ## Manual interpolation on the fly between two consecutive frames to save memory
-registerDoMC(cores=32) # TODO: library(pryr); mem_used(); mem_used()[1]/(10^9); detectCores()
+registerDoMC(cores=detectAlocCPU()) # TODO: library(pryr); mem_used(); mem_used()[1]/(10^9); detectCores()
 intervalNb <- 100
 maxFrame <-max(firstInt$frame)
 
