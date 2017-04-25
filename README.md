@@ -3,7 +3,7 @@ News
 
 **New TM release on May 1st 2017:**
 
-* New release is 1.0.2 see *[Version history](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/version_history.md) for changes
+* New release is 1.0.2 see [Version history](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/version_history.md) for changes
 * TissueMiner must be run through DockerToolBox (Win7, Win10, MacOS) or Docker (Linux)
 * To update TM run `docker pull etournay/tissue_miner` in a terminal (Linux) or Docker-QuickStart-terminal (MacOS, Windows)
 * Designed to work through Docker to simplify installation and maintenance: here is the **[TM R User Manual](https://mpicbg-scicomp.github.io/tissue_miner/user_manual/TM_R-UserManual_v1.0.1.html)** 
