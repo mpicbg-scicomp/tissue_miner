@@ -10,17 +10,14 @@ if(length(argv) != 1){
 }
 
 ## DEBUG
-# movieDir <- "/Users/retourna/MovieDB/demo"
-# movieDir <- "/Users/retourna/MovieDB/isotropicExpansion"
-# movieDir <- "/Users/retourna/MovieDB/pureShear"
-# movieDir <- "/Users/retourna/MovieDB/WT_25deg_111102"
-# movieDir <- "/home/etournay/RawData/WT_25deg_111102"
-# movieDir <- "/media/project_raphael@fileserver/movieSegmentation/MTdp_25deg_140222"
-# movieDir <- "/Users/retourna/MovieDB/WT_3"
+# movieDir <- "/home/rstudio/data/example_data/demo"
+# movieDir <- "/home/rstudio/data/Bureau/MTstbm_25deg_151128"
+# movieDir <- "/home/rstudio/data/movieDebug/WT_25deg_111102"
+# movieDir <- "/home/rstudio/data/movieDebug/MTdp_25deg_140222"
 
 
 #### SETUP #####
-debug_mode = F
+debug_mode = T
 
 db_name=basename(movieDir)
 
@@ -35,6 +32,9 @@ source(file.path(scriptsDir, "commons/TMCommons.R"))
 db <- openMovieDb(movieDir)
 mcdir(file.path(movieDir, "roi_bt"))
 
+if(debug_mode) {
+  cellContours <- local(get(load(file.path(movieDir, "cellshapes.RData"))))
+}
 
 ## additional dependencies
 sink(file=file("/dev/null", "w"), type="message")
@@ -50,7 +50,7 @@ if (file.exists(file.path(movieDir, "Segmentation", "UserFrameRoi.txt"))) {
 } else if (file.exists(file.path(movieDir, "Segmentation", "LastFrameRoi.txt"))) {
   path_to_userROIs <- file.path(movieDir, "Segmentation", "LastFrameRoi.txt")
 } else {
-  print("LastFrameRoi.txt not found, only create default largest trackable 'whole_tissue' ROI")
+  print("User-defined ROI not found, only create default largest trackable 'whole_tissue' ROI")
   cellRoiFrame <- dbGetQuery(db, "select * from cells where frame=0")
   # create an empty data frame for further rbinding
   cellsInROI <- data.frame(roi=character(0), cell_id=numeric(0))
@@ -179,7 +179,7 @@ if(debug_mode){
 
 ## 4/ Identify border lineages. NOTE: holes correspond to "SegErrAppearance" or "Apoptosis"= lineage is broken for those cells
 borderLineages <- borderCells %>% 
-  ## remove frame, therefore filter for unique cell_id
+  ## remove frame column, therefore filter for unique cell_id
   select(-frame)  %>% distinct(cell_id, .keep_all = TRUE) %>%
   ## bring in lineage_group
   dt.merge(cellLineages, by = "cell_id") %>% 
@@ -242,7 +242,10 @@ if (nrow(improvedBorderLineages)>0) {
   
   ## Treat special case of "SegErrAppearance" and "Apoptosis" within raw border lineages 
   candidateBorderCells <- rbind(dbGetQuery(db, "select cell_id, appears_by as lineage_status from cell_histories where appears_by = 'SegErrAppearance'"),
-                                dbGetQuery(db, "select cell_id, disappears_by as lineage_status from cell_histories where disappears_by = 'Apoptosis'"))
+                                dbGetQuery(db, "select cell_id, disappears_by as lineage_status from cell_histories where disappears_by = 'Apoptosis'")) %>%
+    ## Fix status ambiguities and remove related duplicates
+    group_by(cell_id) %>%
+    mutate(lineage_status=ifelse(length(unique(lineage_status)) > 1, "MultiStatus", lineage_status)) %>% distinct(cell_id, .keep_all = TRUE) %>% ungroup()
   
   if (nrow(candidateBorderCells)>0){
     
@@ -250,18 +253,18 @@ if (nrow(improvedBorderLineages)>0) {
     
     repeat {
       
-      print(paste("Interations number:", k))
+      print(paste("Interation number:", k))
       
       ## Find new border cells by identifying the candidates entirely surrounded by border cells
       selectedLineageCandidates <- candidateBorderCells %>% 
         # add frames to establish neighbor relationshipin each frame
-        print_warning(., "merge 1") %>%
+        # print_warning(., "merge 1") %>%
         dt.merge(dbGetQuery(db, "select cell_id, frame from cells"), by = "cell_id") %>% 
         # add neighbor relationship to all candidates
-        print_warning(., "merge 2") %>%
+        # print_warning(., "merge 2") %>%
         dt.merge(cellNeighbors, by = c("frame", "cell_id")) %>% 
         # add border status by using neighbors belonging to improved border-lineages
-        print_warning(., "merge 3") %>%
+        # print_warning(., "merge 3") %>%
         dt.merge(improvedBorderLineages %>% transmute(neighbor_cell_id=cell_id, neighbor_status=lineage_status), by = "neighbor_cell_id", all.x=T) %>% 
         mutate(neighbor_status=ifelse(is.na(neighbor_status), "NonBorder", neighbor_status)) %>%
         # clarify neighbor status for each candidate cell_id in each frame
@@ -275,10 +278,10 @@ if (nrow(improvedBorderLineages)>0) {
       if (nrow(selectedLineageCandidates)>1){
         selectedLineageCandidates %<>%  
           # add lineage_group
-          print_warning(., "merge 4") %>%
+          # print_warning(., "merge 4") %>%
           dt.merge(cellLineages, by = "cell_id") %>% select(-cell_id) %>% distinct(lineage_group, .keep_all = TRUE) %>%
           # add all cells of each lineage_group
-          print_warning(., "merge 5") %>%
+          # print_warning(., "merge 5") %>%
           dt.merge(cellLineages, by = "lineage_group")  #%>% print_head()
       } else { selectedLineageCandidates <- data.frame(lineage_group=character(0), lineage_status=character(0), cell_id=numeric(0))}
       
@@ -288,7 +291,10 @@ if (nrow(improvedBorderLineages)>0) {
       candidateBorderCells %<>% filter(!cell_id %in% selectedLineageCandidates$cell_id)
       
       ## update and add candidate border-lineages to the group of improved border-lineages
-      improvedBorderLineages %<>% rbind(selectedLineageCandidates)
+      improvedBorderLineages %<>% rbind(selectedLineageCandidates) %>% 
+        ## Fix status ambiguities and remove related duplicates
+        group_by(lineage_group) %>%
+        mutate(lineage_status=ifelse(length(unique(lineage_status)) > 1, "MultiStatus", lineage_status)) %>% distinct(cell_id, .keep_all = TRUE) %>% ungroup()
       
       ## Loop condition: search until no new candidate is found or stop at 20 interations
       if (nrow(selectedLineageCandidates)==0 | k==20) {break}
@@ -306,13 +312,13 @@ if (nrow(improvedBorderLineages)>0) {
     ## Complement the improved border cell group with "Apoptosis" and "SegErrAppearance" cells that have N-1 neigbors that belong to the improved border cell group where N is the cell neighbor number
     selectedLineageCandidates <- candidateBorderCells %>% 
       # add frames to establish neighbor relationshipin each frame
-      print_warning(., "merge 6") %>%
+      # print_warning(., "merge 6") %>%
       dt.merge(dbGetQuery(db, "select cell_id, frame from cells"), by = "cell_id") %>% 
       # add neighbor relationship to all candidates
-      print_warning(., "merge 7") %>%
+      # print_warning(., "merge 7") %>%
       dt.merge(cellNeighbors, by = c("frame", "cell_id")) %>% 
       # add border status by using neighbors belonging to improved border-lineages
-      print_warning(., "merge 8") %>%
+      # print_warning(., "merge 8") %>%
       dt.merge(improvedBorderLineages %>% transmute(neighbor_cell_id=cell_id, neighbor_status=lineage_status), by = "neighbor_cell_id", all.x=T) %>% 
       mutate(neighbor_status=ifelse(is.na(neighbor_status), "NonBorder", neighbor_status)) %>%
       # clarify neighbor status for each candidate cell_id in each frame
@@ -329,10 +335,10 @@ if (nrow(improvedBorderLineages)>0) {
     if (nrow(selectedLineageCandidates)>1){
       selectedLineageCandidates %<>%  
         # add lineage_group
-        print_warning(., "merge 9") %>%
+        # print_warning(., "merge 9") %>%
         dt.merge(cellLineages, by = "cell_id") %>% select(-cell_id) %>% distinct(lineage_group, .keep_all = TRUE) %>%
         # add all cells of each lineage_group
-        print_warning(., "merge 10") %>%
+        # print_warning(., "merge 10") %>%
         dt.merge(cellLineages, by = "lineage_group")  #%>% print_head()
     } else { selectedLineageCandidates <- data.frame(lineage_group=character(0), lineage_status=character(0), cell_id=numeric(0))}
     
@@ -340,7 +346,11 @@ if (nrow(improvedBorderLineages)>0) {
     candidateBorderCells %<>% filter(!cell_id %in% selectedLineageCandidates$cell_id)
     
     ## update and add candidate border-lineages to the group of improved border-lineages
-    improvedBorderLineages %<>% rbind(selectedLineageCandidates)
+    improvedBorderLineages %<>% rbind(selectedLineageCandidates) %>% 
+      ## Fix status ambiguities and remove duplicates
+      group_by(lineage_group) %>%
+      mutate(lineage_status=ifelse(length(unique(lineage_status)) > 1, "MultiStatus", lineage_status)) %>% distinct(cell_id, .keep_all = TRUE) %>% ungroup()
+    
     
     borderCellRoiByLineages <- improvedBorderLineages %>% transmute(lineage_group, roi="border", cell_id)
     
