@@ -11,13 +11,10 @@ if(length(argv) != 1){
 
 ## DEBUG
 # movieDir <- "/home/rstudio/data/example_data/demo"
-# movieDir <- "/home/rstudio/data/Bureau/MTstbm_25deg_151128"
-# movieDir <- "/home/rstudio/data/movieDebug/WT_25deg_111102"
-# movieDir <- "/home/rstudio/data/movieDebug/MTdp_25deg_140222"
 
 
 #### SETUP #####
-debug_mode = T
+debug_mode = F
 
 db_name=basename(movieDir)
 
