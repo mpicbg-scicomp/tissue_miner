@@ -1,19 +1,20 @@
 News
 =================
 
-**New TM release on Nov 16th:**
+**New TM release on May 1st 2017:**
 
-* We now highly recommend to run TM through Docker (Win7, Win10, MacOS, other Unix)
+* New release is 1.0.2 see *[Version history](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/version_history.md) for changes
+* TissueMiner must be run through DockerToolBox (Win7, Win10, MacOS) or Docker (Linux)
 * To update TM run `docker pull etournay/tissue_miner` in a terminal (Linux) or Docker-QuickStart-terminal (MacOS, Windows)
-* Designed to work through Docker to simplify installation and maintenance: the **[TM R User Manual](https://mpicbg-scicomp.github.io/tissue_miner/user_manual/TM_R-UserManual_v1.0.1.html)** has been updated accordingly
-* Versioning now enabled for docker images: new release is 1.0.1
+* Designed to work through Docker to simplify installation and maintenance: here is the **[TM R User Manual](https://mpicbg-scicomp.github.io/tissue_miner/user_manual/TM_R-UserManual_v1.0.1.html)** 
+
 * Please **update the tm alias** in your .bashrc by adding the `-u rstudio` option:
 
 ```
 alias tm='docker run --rm -ti -v $(dirname $PWD):/movies -w /movies/$(basename $PWD) -u rstudio etournay/tissue_miner'
 ```
- * CAUTION for Linux Users: this only works if your user ID is 1000. The Docker team is working on this aspect to provide a better [solution](https://integratedcode.us/2015/10/13/user-namespaces-have-arrived-in-docker/).
-* The Rstudio software is now bundled with TissueMiner (many thanks to the Rstudio and rocker teams) to easily run the TissueMiner API and to create new scripts for addressing project-specific questions.
+* CAUTION for Linux Users: this only works if your user ID is 1000.
+* The Rstudio IDE is bundled with TissueMiner (many thanks to the Rstudio and rocker teams) to easily run the TissueMiner API and to create new scripts for addressing project-specific questions.
 
 
 ![alt tag](https://github.com/mpicbg-scicomp/tissue_miner/blob/gh-pages/readme_screenshots/stripes_0.jpg)
@@ -157,6 +158,13 @@ If you like to use TissuMiner for your own research, please cite
 or
 
 > Etournay et al. (2015). Interplay of cell dynamics and epithelial tension during morphogenesis of the Drosophila pupal wing. eLife, 4, e07090. [doi:10.7554/eLife.07090](http://elifesciences.org/content/early/2015/06/23/eLife.07090)
+
+
+Trademarks
+==========
+
+RStudio is a registered trademark of RStudio, Inc.  The use of the trademarked term RStudio and the distribution of the RStudio binaries through the images hosted on [hub.docker.com](https://registry.hub.docker.com/) has been granted by explicit permission of RStudio.  Please review [RStudio's trademark use policy](http://www.rstudio.com/about/trademark/) and address inquiries about further distribution or other questions to [permissions@rstudio.com](emailto:permissions@rstudio.com).
+
 
 
 
