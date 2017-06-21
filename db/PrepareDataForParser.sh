@@ -55,7 +55,7 @@ if [ $? -eq 1 ]; then
 		  ext="${file##*.}"
       pngOutput=$(dirname $originalIm)/${file%.$ext}/"original".png
       echo "converting $originalIm -> $pngOutput ..."
-	    convert $originalIm -background "black" -type truecolor -colorspace RGB -define png:compression-level=9 $pngOutput
+	    convert $originalIm -background "black" -type truecolor -define png:compression-level=9 PNG24:$pngOutput
     done
 else
   for originalIm in $(find $segDataDir -maxdepth 1 -name "$movieName*.[p,t][n,i][f,g]" | sort); do
@@ -63,7 +63,7 @@ else
 		ext="${file##*.}"
     pngOutput=$(dirname $originalIm)/${file%.$ext}/"original".png
     echo "converting $originalIm -> $pngOutput ..."
-	  sem -j$NB_CPU convert $originalIm -background "black" -type truecolor -colorspace RGB -define png:compression-level=9 $pngOutput
+	  sem -j$NB_CPU convert $originalIm -background "black" -type truecolor -define png:compression-level=9 PNG24:$pngOutput
   done
   sem --wait
 fi
