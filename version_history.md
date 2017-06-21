@@ -8,6 +8,7 @@
 #### CHANGES IN VERSION 1.x.x
 
 * Release date: **TBA**
+* Fixed options in image format conversion by imagemagick (creation original.png from RGB files)
 * New Docker image including newer version of R, RstudioServer and dependencies
 * Host user ID mapping to the docker container
 
