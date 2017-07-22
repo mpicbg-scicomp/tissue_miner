@@ -12,22 +12,22 @@ trafoImage(){
 	if [ $3 -eq 0 ] && [ $4 -eq 0 ]
 		then
 		echo "Rotate $1 --> $5"		
-		convert $1 -background "black" -rotate "$2" -type truecolor -colorspace RGB -define png:compression-level=9 $5
+		convert $1 -background "black" -rotate "$2" -type truecolor -define png:compression-level=9 PNG24:$5
 
 	elif [ $3 -eq 1 ] && [ $4 -eq 0 ]
 		then
 		echo "Rotate and flip $1 --> $5"
-		convert $1 -background "black" -rotate "$2" -flip -type truecolor -colorspace RGB -define png:compression-level=9 $5
+		convert $1 -background "black" -rotate "$2" -flip -type truecolor -define png:compression-level=9 PNG24:$5
 
 	elif [ $3 -eq 0 ] && [ $4 -eq 1 ]
 		then
 		echo "Rotate and flop $1 --> $5"
-		convert $1 -background "black" -rotate "$2" -flop -type truecolor -colorspace RGB -define png:compression-level=9 $5
+		convert $1 -background "black" -rotate "$2" -flop -type truecolor -define png:compression-level=9 PNG24:$5
 
 	elif [ $3 -eq 1 ] && [ $4 -eq 1 ]
 		then
 		echo "Rotate and flip-flop $1 --> $5"
-		convert $1 -background "black" -rotate "$2" -flip -flop -type truecolor -colorspace RGB -define png:compression-level=9 $5
+		convert $1 -background "black" -rotate "$2" -flip -flop -type truecolor -define png:compression-level=9 PNG24:$5
 	fi
 
 }
