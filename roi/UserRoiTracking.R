@@ -11,7 +11,7 @@ if(length(argv) != 1){
 
 ## DEBUG
 # movieDir <- "/home/rstudio/data/example_data/demo"
-
+# movieDir <- "/home/rstudio/data/movieDebug/WT_25deg_111102"
 
 #### SETUP #####
 debug_mode = F
@@ -193,7 +193,7 @@ if(debug_mode){
 }
 
 
-## 5/ Complement border-lineages definition (based on VOID cell) by using Parser information about inward and outward cell flows
+## 5/ Complete border-lineages definition (based on VOID cell) by using Parser information about inward and outward cell flows
 completeCellInfo <- dbGetQuery(db, "select * from cell_histories") %>% orphan_correction(db)
 
 inwardFlowsByLineages <- filter(completeCellInfo, appears_by %in% c("MovedIntoMask", "Orphan")) %>% 
@@ -365,7 +365,7 @@ if (nrow(improvedBorderLineages)>0) {
 
 #### D/ Correct all ROIs for missing inner cells ####
 
-## 1/ Combine user-defined ROI with the border ROI
+## 1/ Concatenate user-defined ROI with the border ROI
 roiCellsBTRaw %<>% rbind(borderCellRoiByLineages)
 
 
