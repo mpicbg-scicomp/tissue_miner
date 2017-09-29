@@ -1,14 +1,25 @@
+About
+=================
+
+TissueMiner is a framework to perform a multiscale analysis of an entire developing epithelium acquired at cellular resolution over several hours or days. It  includes **(a)** tools to build a database from a timelapse movie, **(b)** ready-to-use tools to analyze various aspects of cell and tissue morphogenesis, and **(c)** a powerful but yet easy to use R programming interface to allow for the implementation of custom analyses.
+
+* [Features](https://github.com/mpicbg-scicomp/tissue_miner#features)
+* [Installation](https://github.com/mpicbg-scicomp/tissue_miner#installation)
+* [Documentation](https://github.com/mpicbg-scicomp/tissue_miner#documentation)
+* [Datasets](https://github.com/mpicbg-scicomp/tissue_miner#datasets)
+* [Citation](https://github.com/mpicbg-scicomp/tissue_miner#citation)
+
+
 News
 =================
 
-**New TM release on May 1st 2017:**
+**New TM release on October 1st 2017:**
 
-* New release is 1.0.2 see [Version history](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/version_history.md) for changes
-* TissueMiner must be run through DockerToolBox (Win7, Win10, MacOS) or Docker (Linux)
-* To update TM run `docker pull etournay/tissue_miner` in a terminal (Linux) or Docker-QuickStart-terminal (MacOS, Windows)
-* Designed to work through Docker to simplify installation and maintenance: here is the **[TM R User Manual](https://mpicbg-scicomp.github.io/tissue_miner/user_manual/TM_R-UserManual_v1.0.1.html)** 
+* New release is 1.0.3 see [Version history](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/version_history.md) for changes
+* TissueMiner must be run through DockerToolBox (Win7, Win10, MacOS) or Docker engine (Linux)
+* To update TM run `docker pull etournay/tissue_miner` in a terminal (Linux) or in a Docker-QuickStart-terminal (MacOS, Windows)
 
-* Please **update the tm alias** in your .bashrc by adding the `-u rstudio` option:
+* Please **make sure that the tm alias** in your .bashrc includes the `-u rstudio` option:
 
 ```
 alias tm='docker run --rm -ti -v $(dirname $PWD):/movies -w /movies/$(basename $PWD) -u rstudio etournay/tissue_miner'
@@ -17,18 +28,12 @@ alias tm='docker run --rm -ti -v $(dirname $PWD):/movies -w /movies/$(basename $
 * The Rstudio IDE is bundled with TissueMiner (many thanks to the Rstudio and rocker teams) to easily run the TissueMiner API and to create new scripts for addressing project-specific questions.
 
 
+Features
+=================
+
 ![alt tag](https://github.com/mpicbg-scicomp/tissue_miner/blob/gh-pages/readme_screenshots/stripes_0.jpg)
 ![alt tag](https://github.com/mpicbg-scicomp/tissue_miner/blob/gh-pages/readme_screenshots/veins_0.jpg)
 
-
-
-About
-=================
-
-TissueMiner is a framework to perform a multiscale analysis of an entire developing epithelium acquired at cellular resolution over several hours or days. It  includes **(a)** tools to build a database from a timelapse movie, **(b)** ready-to-use tools to analyze various aspects of cell and tissue morphogenesis, and **(c)** a powerful but yet easy to use R programming interface to allow for the implementation of custom analyses.
-
-* [Installation](https://github.com/mpicbg-scicomp/tissue_miner#installation-inside-docker)
-* [Documentation](https://github.com/mpicbg-scicomp/tissue_miner#documentation)
 
 ### (a) Cell Tracking Data Database
 
@@ -65,7 +70,7 @@ This API can then be employed to
 
 
 
-Installation inside Docker
+Installation
 ================
 
 Docker is a software containerization platform in which you can easily install and run TissueMiner. 
@@ -86,30 +91,20 @@ docker pull etournay/tissue_miner
 * For troubleshooting in case of out-of-date operating systems [click here](misc/docker_troubleshooting.md).
 
 
-* To install TissueMiner without using Docker (not recommended except on a cluster), you'll find instructions [here](installation/local_installation.md).
-
 
 Documentation
 ================
 
-* First [install](https://github.com/mpicbg-scicomp/tissue_miner#installation-inside-docker) TissueMiner.
-* To get started with TissueMiner we suggest to do **Quickstart Tutorials on our example data:** 
-    + **[Quickstart docker-TM-R Tutorials](https://github.com/mpicbg-scicomp/tissue_miner/blob/gh-pages/quickstart_tutorial/other_os/tm_qs_example_data.md#first-use-of-tissueminer-with-example-data)** (Linux, Mac, Windows).
-    + [Quickstart TM-R Tutorials](https://github.com/mpicbg-scicomp/tissue_miner/blob/gh-pages/quickstart_tutorial/ubuntu/tm_qs_example_data.md#first-use-of-tissueminer-with-example-data) (Ubuntu, cluster).
+* To get started with TissueMiner we suggest to do **[Quickstart docker-TM-R Tutorials](https://github.com/mpicbg-scicomp/tissue_miner/blob/gh-pages/quickstart_tutorial/other_os/tm_qs_example_data.md#first-use-of-tissueminer-with-example-data) on our example data**: 
    
-* To get started with your **own data** analysis:
-    + **[docker-TM-R Tutorials](https://github.com/mpicbg-scicomp/tissue_miner/blob/gh-pages/quickstart_tutorial/other_os/tm_qs_user_data.md#first-use-of-tissueminer-with-your-own-data)** (Linux, Mac, Windows).
-    + [TM-R Tutorials](https://github.com/mpicbg-scicomp/tissue_miner/blob/gh-pages/quickstart_tutorial/ubuntu/tm_qs_user_data.md#first-use-of-tissueminer-with-your-own-data) (Ubuntu, cluster).
-    
+* To get started with your **own data** analysis: **[docker-TM-R Tutorials](https://github.com/mpicbg-scicomp/tissue_miner/blob/gh-pages/quickstart_tutorial/other_os/tm_qs_user_data.md#first-use-of-tissueminer-with-your-own-data)**
     
 * We provide the streamlined [R scripts](docs/quickstart/scripts) that are used in the tutorials to perform a simple analysis of a single movie. This includes a script entitled `analyse_movie.R` that performs most of the analyses described in the Quickstart Tutorials.
 
-* We also provide an exhaustive **[TM R User Manual](https://mpicbg-scicomp.github.io/tissue_miner/user_manual/TM_R-UserManual_v1.0.1.html)** with lots of examples, background information and API details:
-    + learn the necessary basics of the R language for TissueMiner (also see [here](https://mpicbg-scicomp.github.io/tissue_miner/user_manual/Learning_the_R_basics_for_TissueMiner.html))
-    + learn the powerful libraries of TissueMiner for epithelium analysis
-    + benefit from lots of examples to make your own scripts
-    
-* You already know Python and you like to use it instead ? We also provide a **[Tutorial in Python](docs/TM_tutorial_in_Python/TissueMiner_pythonTutorial-3WT_Demo.md#tissueminer-python-tutorial)**
+* Build your own analysis in R (or Python) using the TissueMiner API:
+    + learn the necessary [basics of the R language for TissueMiner](https://mpicbg-scicomp.github.io/tissue_miner/user_manual/Learning_the_R_basics_for_TissueMiner.html)
+    + learn the powerful libraries of TissueMiner for epithelium analysis using the exhaustive **[TM R User Manual](https://mpicbg-scicomp.github.io/tissue_miner/user_manual/TM_R-UserManual_v1.0.1.html)** with lots of examples, background information and API details
+    + You already know Python and you like to use it instead ? Go to the **[Tutorial in Python](docs/TM_tutorial_in_Python/TissueMiner_pythonTutorial-3WT_Demo.md#tissueminer-python-tutorial)**
 
 * For a more general overview consider our [Resource Paper](http://dx.doi.org/10.7554/eLife.14334).
 
@@ -118,6 +113,7 @@ Documentation
 Datasets
 ================
 We provide four datasets:
+
 * 1 demo sample (~35 Mb) to run [Quickstart TM-R Tutorials](https://github.com/mpicbg-scicomp/tissue_miner#documentation)
 
 ```{bash}
@@ -148,7 +144,7 @@ Please use the [github ticket system](https://github.com/mpicbg-scicomp/tissue_m
 
 
 
-Reference
+Citation
 ==========
 
 If you like to use TissuMiner for your own research, please cite
