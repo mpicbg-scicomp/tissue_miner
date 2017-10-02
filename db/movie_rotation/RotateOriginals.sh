@@ -26,7 +26,7 @@ for originalPng in $(find $movieDbDir/Segmentation -name "original.png" | sort);
 
     trafoPngOutput=${originalPng%%.png}_trafo.png
 
-    echo "rotating $originalPng to $trafoPngOutput ..."
+    #echo "rotating $originalPng to $trafoPngOutput ..."
     #sem --no-notice -j6  $TM_HOME/db/movie_rotation/transform_images.sh $originalPng $trafoFile $trafoPngOutput
 
     if [ -z "$(which sem)" ]; then
