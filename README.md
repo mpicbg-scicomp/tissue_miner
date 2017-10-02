@@ -13,7 +13,7 @@ TissueMiner is a framework to perform a multiscale analysis of an entire develop
 News
 =================
 
-**New TM release on October 1st 2017:**
+**New TM release on October 9th 2017:**
 
 * New release is 1.0.3 see [Version history](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/version_history.md) for changes
 * TissueMiner must be run through DockerToolBox (Win7, Win10, MacOS) or Docker engine (Linux)
@@ -73,16 +73,15 @@ This API can then be employed to
 Installation
 ================
 
-Docker is a software containerization platform in which you can easily install and run TissueMiner. 
+TissueMiner ships as a single Docker image and must be run using the Docker containerization platform. 
 
-* Step1: **Install Docker** 
-   + for **Linux**, please install the [docker engine](https://docs.docker.com/) (and optionally you may have to fix DNS issues [here](https://robinwinslow.uk/2016/06/23/fix-docker-networking-dns/)).
-   + for **MacOS** and **Windows** systems, please install the [docker toolbox](https://www.docker.com/products/docker-toolbox) (180Mb).
+* **Step1**: Install Docker  
+    + for **Linux**, please install the [docker engine](https://docs.docker.com/) (and optionally you may have to fix DNS issues [here](https://robinwinslow.uk/2016/06/23/fix-docker-networking-dns/)).
+    + for **MacOS** and **Windows** systems, please install the [docker toolbox](https://www.docker.com/products/docker-toolbox) (180Mb).
 
 
-* Step2: **Download/update** the TissueMiner application bundled in a docker image called _etournay/tissue_miner_ (~700Mb)
-    + on **Linux** just open a terminal and type in the command below
-    + on **Mac** or **Windows**, open a Docker Quick Start Terminal ![alt tag](https://github.com/mpicbg-scicomp/tissue_miner/blob/gh-pages/readme_screenshots/docker_toolbox_osx_quickstart_icon_nolabel.png) and type in:
+* **Step2**: Download the TissueMiner docker image called _etournay/tissue_miner_ (~700Mb)  
+    + on **Linux** just open a terminal, on **Mac** or **Windows** open a Docker Quick Start Terminal ![alt tag](https://github.com/mpicbg-scicomp/tissue_miner/blob/gh-pages/readme_screenshots/docker_toolbox_osx_quickstart_icon_nolabel.png) and type in the command below 
     
 ```
 docker pull etournay/tissue_miner
