@@ -1,4 +1,4 @@
-#!/usr/bin/env Rscript
+#!/usr/bin/env Rscript --no-environ
 
 ## move to setup
 if(!require(docopt)) install.packages("docopt")

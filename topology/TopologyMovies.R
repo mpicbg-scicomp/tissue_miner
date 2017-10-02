@@ -1,4 +1,4 @@
-#!/usr/bin/env Rscript
+#!/usr/bin/env Rscript --no-environ
 
 argv = commandArgs(TRUE)
 if(length(argv) != 1){
