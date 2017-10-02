@@ -11,6 +11,7 @@
 * Release date: **October 9th, 2017**
 * Bug fix in image format conversion by imagemagick (creation of original.png from RGB files)
 * Bug fix in applying user-defined configuration files
+* Commited changes in the existing docker image
 
 #### CHANGES IN VERSION 1.0.2
 
