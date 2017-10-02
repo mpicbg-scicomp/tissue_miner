@@ -13,7 +13,7 @@ TissueMiner is a framework to perform a multiscale analysis of an entire develop
 News
 =================
 
-**New TM release on October 9th 2017:**
+**New TM release on October 2nd 2017:**
 
 * New release is 1.0.3 see [Version history](https://github.com/mpicbg-scicomp/tissue_miner/blob/master/version_history.md) for changes
 * TissueMiner must be run through DockerToolBox (Win7, Win10, MacOS) or Docker engine (Linux)
