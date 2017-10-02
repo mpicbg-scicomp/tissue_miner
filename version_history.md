@@ -3,14 +3,14 @@
 * Release date: **TBA**
 * New shear implementation using infinitesimal displacement formalism (Merkel et al 2016)
 * New mqf* libraries that enable interpolation of data, keep the old library still available
-* New Docker image including newer version of R and dependencies
-
-#### CHANGES IN VERSION 1.x.x
-
-* Release date: **TBA**
-* Fixed options in image format conversion by imagemagick (creation original.png from RGB files)
 * New Docker image including newer version of R, RstudioServer and dependencies
 * Host user ID mapping to the docker container
+
+#### CHANGES IN VERSION 1.0.3
+
+* Release date: **October 9th, 2017**
+* Bug fix in image format conversion by imagemagick (creation of original.png from RGB files)
+* Bug fix in applying user-defined configuration files
 
 #### CHANGES IN VERSION 1.0.2
 
