@@ -6,6 +6,13 @@
 
 defaultROI<-"whole_tissue"
 
+################################################
+#### Parallelization
+################################################
+# Limit max CPU number to 16 to avoid issue with dplyr and ggplot (render_movie() function)
+registerDoMC(cores=ifelse(detectCores()<=16, detectCores(), 16));
+
+
 
 ################################################
 #### movie rendering
