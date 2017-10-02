@@ -1,4 +1,4 @@
-#!/usr/bin/env Rscript --no-environ
+#!/usr/bin/Rscript --no-environ
 # ROI Backtracking
 
 argv = commandArgs(TRUE)

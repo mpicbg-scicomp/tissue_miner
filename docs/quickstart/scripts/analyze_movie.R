@@ -1,4 +1,4 @@
-#!/usr/bin/env Rscript --no-environ
+#!/usr/bin/Rscript --no-environ
 
 ## Setup  I/O ####
 argv = commandArgs(TRUE)
