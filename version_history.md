@@ -12,6 +12,7 @@
 * Bug fix in image format conversion by imagemagick (creation of original.png from RGB files)
 * Bug fix in applying user-defined configuration files
 * Commited changes in the existing docker image
+* Corresponding [user manual](https://mpicbg-scicomp.github.io/tissue_miner/user_manual/TM_R-UserManual_v1.0.3.html)
 
 #### CHANGES IN VERSION 1.0.2
 

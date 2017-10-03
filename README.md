@@ -102,7 +102,7 @@ Documentation
 
 * Build your own analysis in R (or Python) using the TissueMiner API:
     + learn the necessary [basics of the R language for TissueMiner](https://mpicbg-scicomp.github.io/tissue_miner/user_manual/Learning_the_R_basics_for_TissueMiner.html)
-    + learn the powerful libraries of TissueMiner for epithelium analysis using the exhaustive **[TM R User Manual](https://mpicbg-scicomp.github.io/tissue_miner/user_manual/TM_R-UserManual_v1.0.1.html)** with lots of examples, background information and API details
+    + learn the powerful libraries of TissueMiner for epithelium analysis using the exhaustive **[TM R User Manual](https://mpicbg-scicomp.github.io/tissue_miner/user_manual/TM_R-UserManual_v1.0.3.html)** with lots of examples, background information and API details
     + You already know Python and you like to use it instead ? Go to the **[Tutorial in Python](docs/TM_tutorial_in_Python/TissueMiner_pythonTutorial-3WT_Demo.md#tissueminer-python-tutorial)**
 
 * For a more general overview consider our [Resource Paper](http://dx.doi.org/10.7554/eLife.14334).
@@ -120,7 +120,7 @@ We provide four datasets:
 curl http://bds.mpi-cbg.de/tissue_miner/demo.tar.gz  | tar -zxvf -
 ```
 
-* 3 big datasets (~800Mb each) to explore more advanced capabilities of TissueMiner described in the [TM R User Manual](https://mpicbg-scicomp.github.io/tissue_miner/user_manual/TM_R-UserManual.html)
+* 3 big datasets (~800Mb each) to explore more advanced capabilities of TissueMiner described in the [TM R User Manual](https://mpicbg-scicomp.github.io/tissue_miner/user_manual/TM_R-UserManual_v1.0.3.html)
 
 ```{bash}
 # In your unix terminal (or Docker QuickStart Terminal), type in:
