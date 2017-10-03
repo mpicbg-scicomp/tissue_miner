@@ -1,7 +1,7 @@
 ---
 title: "TissueMiner User Manual for TM_1.0.3"
 author: "Raphael Etournay"
-date: "October 16th, 2016"
+date: "October 2th, 2017"
 output:
   html_document:
     fig_caption: yes
