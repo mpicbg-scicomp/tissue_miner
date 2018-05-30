@@ -105,7 +105,7 @@ Documentation
     + learn the powerful libraries of TissueMiner for epithelium analysis using the exhaustive **[TM R User Manual](https://mpicbg-scicomp.github.io/tissue_miner/user_manual/TM_R-UserManual_v1.0.3.html)** with lots of examples, background information and API details
     + You already know Python and you like to use it instead ? Go to the **[Tutorial in Python](docs/TM_tutorial_in_Python/TissueMiner_pythonTutorial-3WT_Demo.md#tissueminer-python-tutorial)**
 
-* For a more general overview consider our [Resource Paper](http://dx.doi.org/10.7554/eLife.14334).
+* For a more general overview consider our [Resource Paper](https://doi.org/10.7554/eLife.14334).
 
 * Commonly asked questions are answered in the [FAQ section](faq.md).
 
